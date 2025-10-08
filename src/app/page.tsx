@@ -1,8 +1,9 @@
-'use client';
+'use client'; 
 
 import React, { useState, useRef, useEffect } from 'react';
 
 // --- SVG Icon Components ---
+
 const SearchIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -120,6 +121,7 @@ const FeatureCard = ({ icon, title }: { icon: React.ReactNode; title: string }) 
     </div>
 );
 
+
 // --- Main App Component ---
 export default function ChatPage() {
   const [message, setMessage] = useState('');
@@ -162,14 +164,84 @@ export default function ChatPage() {
     };
   }, []);
 
-  // Rest of your component remains the same...
   return (
     <div 
       className="flex h-screen text-slate-200 font-sans overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at top, #1e293b, #020617)' }}
     >
-        {/* Your existing JSX remains unchanged */}
-        {/* ... */}
+        <aside className={`absolute top-0 left-0 h-full z-20 bg-slate-900/60 backdrop-blur-lg border-r border-slate-800 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-full sm:w-80 p-4`}>
+            <div className="flex flex-col gap-4 whitespace-nowrap mt-12">
+                <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      placeholder="Search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-slate-800/50 rounded-full pl-12 pr-4 py-3 text-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    />
+                    <SearchIcon className="absolute left-4 h-6 w-6 text-slate-400" />
+                </div>
+                <button className="flex items-center justify-center gap-2 text-lg py-2 px-4 rounded-full self-start hover:bg-slate-700/50 transition-colors border border-slate-700">
+                    <EditIcon className="h-6 w-6" />
+                    New chat
+                </button>
+            </div>
+        </aside>
+
+        <div className="flex-1 flex flex-col relative">
+            {isSidebarOpen && (
+                <div
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="absolute inset-0 bg-black/50 z-10 transition-opacity md:hidden"
+                ></div>
+            )}
+             <header className="absolute top-0 left-0 p-4 z-30">
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="p-2 rounded-full hover:bg-slate-800/80 transition-colors"
+                    aria-label="Toggle menu"
+                >
+                    <MenuIcon className="h-6 w-6 text-slate-300" />
+                </button>
+            </header>
+
+            <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-slate-400 mb-2">
+                    Minimalist Insight
+                </h1>
+                <p className="text-lg sm:text-xl text-slate-400 mb-12">Clarity in a Complex World.</p>
+
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                    <FeatureCard icon={<SearchIcon className="w-10 h-10" />} title="Artifact Detection" />
+                    <FeatureCard icon={<VideoIcon className="w-10 h-10" />} title="Deepfake Forensics" />
+                    <FeatureCard icon={<EditIcon className="w-10 h-10" />} title="Temporal Analysis" />
+                </div>
+            </main>
+            
+            <footer className="p-4 w-full max-w-3xl mx-auto flex-shrink-0">
+                <div className="relative flex items-center bg-black/30 backdrop-blur-sm rounded-full p-2 shadow-2xl shadow-black/50 border border-slate-700">
+                    <button className="p-2 rounded-full hover:bg-slate-700/50 transition-colors ml-1">
+                        <VideoIcon className="h-6 w-6 text-slate-300"/>
+                    </button>
+                    <input
+                        type="text"
+                        placeholder="Paste a video URL or ask anything..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="flex-1 bg-transparent px-4 py-2 text-md text-slate-200 placeholder-slate-400 focus:outline-none"
+                    />
+                    <button className="p-2 rounded-full hover:bg-slate-700/50 transition-colors mr-1">
+                        <MicIcon className="h-6 w-6 text-slate-300"/>
+                    </button>
+                    <button 
+                      onClick={handleVoicePackClick}
+                      className={`p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full hover:opacity-90 transition-all duration-300 shadow-lg shadow-indigo-500/30 ${isPlaying ? 'ring-4 ring-purple-400 opacity-100' : ''}`}
+                    >
+                        <SoundWaveIcon className="h-6 w-6 text-white"/>
+                    </button>
+                </div>
+            </footer>
+        </div>
     </div>
   );
 }
