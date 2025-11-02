@@ -89,14 +89,14 @@ const AuthForm: FC = () => {
           <AuthInput
             label="Email Address"
             type="email"
-            placeholder="you@example.com"
+            placeholder="Enter your email "
             InputIcon={Mail}
           />
 
           <AuthInput
             label="Password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Enter your password" 
             InputIcon={Lock}
           />
 
@@ -104,7 +104,7 @@ const AuthForm: FC = () => {
             <AuthInput
               label="Confirm Password"
               type="password"
-              placeholder="••••••••"
+              placeholder="Re-enter your password"
               InputIcon={Lock}
             />
           )}

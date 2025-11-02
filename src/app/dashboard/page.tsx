@@ -2,9 +2,9 @@
 "use client";
 
 import React from 'react'; // Explicitly import React
-import Sidebar from '../components/Sidebar';
-import RecentAnalyses from '../components/RecentAnalyses';
-import StatCard from '../components/StatCard';
+import Sidebar from '@/components/Sidebar';
+import RecentAnalyses from '@/components/RecentAnalyses';
+import StatCard from '@/components/StatCard';
 import { Video, AlertTriangle, Clock } from 'lucide-react'; // Import icons for StatCard
 
 export default function DashboardPage() {

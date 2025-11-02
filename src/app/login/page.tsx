@@ -4,7 +4,7 @@
 // Explicitly marking this page as client-side is often not necessary if all it does is render client components.
 // If you add any server-side logic here, remove the "use client" directive.
 
-import AuthForm from '../components/Login'; // Adjust the path based on your page's location
+import AuthForm from '@/components/Login'; // Adjust the path based on your page's location
 
 export default function LoginPage() {
   return (
