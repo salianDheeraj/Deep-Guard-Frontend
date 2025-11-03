@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, FC, FormEvent, ChangeEvent } from "react";
-import { Shield, Mail, Lock, Key } from "lucide-react";
+import { Shield, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface FormData {
   email: string;
   password: string;
   confirmPassword?: string;
-  devPasskey?: string;
   rememberMe?: boolean;
 }
 
@@ -53,7 +52,6 @@ const AuthInput: FC<AuthInputProps> = ({
 const Login: FC = () => {
   const router = useRouter();
   const [isSigningIn, setIsSigningIn] = useState(true);
-  const [isDevPassVisible, setIsDevPassVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +59,6 @@ const Login: FC = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    devPasskey: "",
     rememberMe: false,
   });
 
@@ -101,43 +98,41 @@ const Login: FC = () => {
     setIsLoading(true);
 
     try {
-      // ✅ CHANGE: /api/auth → /auth
-      const endpoint = isSigningIn ? '/auth/login' : '/auth/signup';
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-      console.log('📤 Sending to:', `${API_URL}${endpoint}`);
+      console.log("📤 Sending to:", `${API_URL}${endpoint}`);
 
       const response = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          name: formData.email.split('@')[0],
-          ...(isDevPassVisible && { devPasskey: formData.devPasskey }),
+          name: formData.email.split("@")[0],
           ...(isSigningIn && { rememberMe: formData.rememberMe }),
         }),
       });
-      console.log('📥 Response status:', response.body);
+
+      console.log("📥 Response status:", response.body);
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+        throw new Error(data.message || "Authentication failed");
       }
 
-      // Store token
       if (data.token) {
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      console.log('✅ Auth successful');
-      router.push('/dashboard');
+      console.log("✅ Auth successful");
+      router.push("/dashboard");
     } catch (err: any) {
-      console.error('❌ Error:', err.message);
-      setError(err.message || 'An error occurred');
+      console.error("❌ Error:", err.message);
+      setError(err.message || "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +145,6 @@ const Login: FC = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      devPasskey: "",
       rememberMe: false,
     });
   };
@@ -162,21 +156,6 @@ const Login: FC = () => {
           <div className="p-3 mb-4 bg-indigo-100 rounded-full shadow-xl">
             <Shield className="h-10 w-10 text-blue-600" />
           </div>
-
-          {isSigningIn && (
-            <button
-              onClick={() => setIsDevPassVisible(!isDevPassVisible)}
-              className={`p-2 mb-4 rounded-full transition duration-300 ${
-                isDevPassVisible
-                  ? "bg-indigo-300 text-white"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-              }`}
-              title={isDevPassVisible ? "Hide Dev Pass" : "Show Dev Pass"}
-              type="button"
-            >
-              <Key className="h-5 w-5" />
-            </button>
-          )}
         </div>
 
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -191,20 +170,6 @@ const Login: FC = () => {
 
       <div className="w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100">
         <form onSubmit={handleSubmit}>
-          {isSigningIn && isDevPassVisible && (
-            <div className="mb-6 border-b border-dashed pb-4">
-              <AuthInput
-                label="Developer Passkey (DEV)"
-                type="password"
-                name="devPasskey"
-                value={formData.devPasskey || ""}
-                onChange={handleInputChange}
-                placeholder="Enter master key"
-                InputIcon={Key}
-              />
-            </div>
-          )}
-
           <AuthInput
             label="Email Address"
             type="email"
