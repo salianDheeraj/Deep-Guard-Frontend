@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, DragEvent, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation'; // For redirecting
 import { UploadCloud, CheckCircle, Shield, Cpu, Image as ImageIcon, LucideIcon, FileWarning, Loader2 } from 'lucide-react';
 
 // --- Constants and Types ---
@@ -13,10 +14,11 @@ interface FeatureItem {
 type AnalysisState = 'IDLE' | 'UPLOADING' | 'ANALYZING';
 
 const MAX_FILE_SIZE_MB = 10;
-// ZIP removed, keeping JPG, PNG, MP4 per request
-const SUPPORTED_FORMATS = ["JPG", "PNG", "MP4"]; 
+const SUPPORTED_FORMATS = ["JPG", "PNG", "MP4"];
 
 const NewAnalysisContent: React.FC = () => {
+  const router = useRouter(); // Initialize the router
+
   // --- State Management ---
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -24,9 +26,9 @@ const NewAnalysisContent: React.FC = () => {
   const [analysisState, setAnalysisState] = useState<AnalysisState>('IDLE');
   
   // Placeholder progress data (for the UI state)
-  const [uploadProgress, setUploadProgress] = useState<number>(0); 
-  const [currentFrame, setCurrentFrame] = useState<number>(27); 
-  const [totalFrames, setTotalFrames] = useState<number>(120); 
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [currentFrame, setCurrentFrame] = useState<number>(27);
+  const [totalFrames, setTotalFrames] = useState<number>(120);
 
   // --- Memoized Static Data ---
   const acceptedFileTypes: string = useMemo(() => {
@@ -72,7 +74,7 @@ const NewAnalysisContent: React.FC = () => {
     setIsDragging(false);
   };
   
-  // --- Drag and Drop Handlers (FIXED PLACEMENT) ---
+  // --- Drag and Drop Handlers ---
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
@@ -99,7 +101,7 @@ const NewAnalysisContent: React.FC = () => {
     if (selectedFile && validateFile(selectedFile)) {
       // 1. Start Uploading state
       setAnalysisState('UPLOADING');
-      setUploadProgress(0); 
+      setUploadProgress(0);
 
       // Mock the Uploading phase (e.g., 2 seconds)
       const uploadTimer = setInterval(() => {
@@ -107,7 +109,16 @@ const NewAnalysisContent: React.FC = () => {
           if (prev >= 100) {
             clearInterval(uploadTimer);
             // After upload finishes, switch to Analyzing state
-            setAnalysisState('ANALYZING'); 
+            setAnalysisState('ANALYZING');
+
+            // --- REDIRECT LOGIC (FIXED) ---
+            // Mock the "Analyzing" phase (e.g., 3 seconds)
+            setTimeout(() => {
+              // This is the new, correct path that matches your file structure
+              router.push('/dashboard/analysis/123');
+            }, 3000); // 3-second analysis simulation
+            // --- END REDIRECT LOGIC ---
+
             return 100;
           }
           return prev + 10;
@@ -127,7 +138,7 @@ const NewAnalysisContent: React.FC = () => {
     
     if (!selectedFile) {
       // Trigger file input if no file is selected
-      event.preventDefault(); 
+      event.preventDefault();
       const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
       if (fileInput) fileInput.click();
     } else if (analysisState === 'IDLE' && !errorMessage) {
@@ -135,7 +146,6 @@ const NewAnalysisContent: React.FC = () => {
       startAnalysisPlaceholder();
     }
   };
-
 
   // --- Render Functions ---
   const renderUploadArea = () => {
@@ -153,8 +163,8 @@ const NewAnalysisContent: React.FC = () => {
             <span>{fileSizeMB} MB</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-            <div 
-              className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" 
+            <div
+              className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${analysisState === 'UPLOADING' ? uploadProgress : 100}%` }}
             ></div>
           </div>
@@ -214,18 +224,18 @@ const NewAnalysisContent: React.FC = () => {
         
         {/* Select File Button / Analyze Button */}
         <label className="cursor-pointer">
-          <input 
-            type="file" 
-            className="hidden" 
+          <input
+            type="file"
+            className="hidden"
             onChange={handleFileChange}
-            accept={acceptedFileTypes} 
+            accept={acceptedFileTypes}
           />
-          <button 
+          <button
             type="button"
             className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md disabled:bg-indigo-300"
             onClick={handleButtonClick}
             // Disable button if analysis is running
-            disabled={analysisState !== 'IDLE' && analysisState !== 'UPLOADING' && !errorMessage}
+            disabled={analysisState === 'UPLOADING' || analysisState === 'ANALYZING'}
           >
             {errorMessage ? 'Clear File' : selectedFile ? 'Start Analysis' : 'Select File'}
           </button>
@@ -242,7 +252,7 @@ const NewAnalysisContent: React.FC = () => {
         <p className="text-gray-500 mb-10">Upload media files to detect potential deepfakes using AI analysis</p>
 
         {/* --- Main Upload Card --- */}
-        <div 
+        <div
           className={`
             border-2 rounded-xl p-16 text-center bg-white shadow-xl transition-all duration-300 flex justify-center items-center
             ${isDragging && analysisState === 'IDLE' ? 'border-indigo-500 bg-indigo-50 border-solid' : 'border-indigo-200 border-dashed'}
