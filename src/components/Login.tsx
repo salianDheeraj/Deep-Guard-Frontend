@@ -1,21 +1,34 @@
 "use client";
 
-import React, { useState, FC } from "react";
+import React, { useState, FC, FormEvent, ChangeEvent } from "react";
 import { Shield, Mail, Lock, Key } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-// Type for input props (for clean typing)
+interface FormData {
+  email: string;
+  password: string;
+  confirmPassword?: string;
+  devPasskey?: string;
+  rememberMe?: boolean;
+}
+
 interface AuthInputProps {
   label: string;
   type: string;
   placeholder: string;
+  name: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   InputIcon?: FC<React.SVGProps<SVGSVGElement>>;
 }
 
-// Reusable Input Field Component
 const AuthInput: FC<AuthInputProps> = ({
   label,
   type,
   placeholder,
+  name,
+  value,
+  onChange,
   InputIcon = Shield,
 }) => (
   <div className="mb-4">
@@ -23,8 +36,12 @@ const AuthInput: FC<AuthInputProps> = ({
     <div className="relative">
       <input
         type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
         placeholder={placeholder}
-        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-10 transition duration-150 ease-in-out placeholder-gray-800 text-gray-800 font-semibold"
+        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-10 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
+        required
       />
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
         <InputIcon className="h-5 w-5 text-gray-400" />
@@ -33,14 +50,113 @@ const AuthInput: FC<AuthInputProps> = ({
   </div>
 );
 
-// Main AuthForm Component
-const AuthForm: FC = () => {
+const Login: FC = () => {
+  const router = useRouter();
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [isDevPassVisible, setIsDevPassVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    devPasskey: "",
+    rememberMe: false,
+  });
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const validateForm = (): boolean => {
+    if (!formData.email || !formData.password) {
+      setError("Email and password are required");
+      return false;
+    }
+
+    if (!isSigningIn && formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    if (!isSigningIn && formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    try {
+      // ✅ CHANGE: /api/auth → /auth
+      const endpoint = isSigningIn ? '/auth/login' : '/auth/signup';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+      console.log('📤 Sending to:', `${API_URL}${endpoint}`);
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.email.split('@')[0],
+          ...(isDevPassVisible && { devPasskey: formData.devPasskey }),
+          ...(isSigningIn && { rememberMe: formData.rememberMe }),
+        }),
+      });
+      console.log('📥 Response status:', response.body);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed');
+      }
+
+      // Store token
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      console.log('✅ Auth successful');
+      router.push('/dashboard');
+    } catch (err: any) {
+      console.error('❌ Error:', err.message);
+      setError(err.message || 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleAuthMode = () => {
+    setIsSigningIn(!isSigningIn);
+    setError(null);
+    setFormData({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      devPasskey: "",
+      rememberMe: false,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans">
-      {/* Header */}
       <header className="flex flex-col items-center mb-8">
         <div className="flex items-center space-x-2">
           <div className="p-3 mb-4 bg-indigo-100 rounded-full shadow-xl">
@@ -56,6 +172,7 @@ const AuthForm: FC = () => {
                   : "bg-gray-200 text-gray-600 hover:bg-gray-300"
               }`}
               title={isDevPassVisible ? "Hide Dev Pass" : "Show Dev Pass"}
+              type="button"
             >
               <Key className="h-5 w-5" />
             </button>
@@ -72,14 +189,16 @@ const AuthForm: FC = () => {
         </p>
       </header>
 
-      {/* Form */}
       <div className="w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100">
-        <form>
+        <form onSubmit={handleSubmit}>
           {isSigningIn && isDevPassVisible && (
             <div className="mb-6 border-b border-dashed pb-4">
               <AuthInput
                 label="Developer Passkey (DEV)"
                 type="password"
+                name="devPasskey"
+                value={formData.devPasskey || ""}
+                onChange={handleInputChange}
                 placeholder="Enter master key"
                 InputIcon={Key}
               />
@@ -89,14 +208,20 @@ const AuthForm: FC = () => {
           <AuthInput
             label="Email Address"
             type="email"
-            placeholder="Enter your email "
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="Enter your email"
             InputIcon={Mail}
           />
 
           <AuthInput
             label="Password"
             type="password"
-            placeholder="Enter your password" 
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            placeholder="Enter your password"
             InputIcon={Lock}
           />
 
@@ -104,6 +229,9 @@ const AuthForm: FC = () => {
             <AuthInput
               label="Confirm Password"
               type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword || ""}
+              onChange={handleInputChange}
               placeholder="Re-enter your password"
               InputIcon={Lock}
             />
@@ -114,7 +242,10 @@ const AuthForm: FC = () => {
               <div className="flex items-center">
                 <input
                   id="remember-me"
+                  name="rememberMe"
                   type="checkbox"
+                  checked={formData.rememberMe || false}
+                  onChange={handleInputChange}
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
@@ -130,13 +261,21 @@ const AuthForm: FC = () => {
             </div>
           )}
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
           <button
-            type="button"
+            type="submit"
+            disabled={isLoading}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white 
                        bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-[1.01] active:scale-[0.99]"
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-[1.01] active:scale-[0.99]
+                       disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSigningIn ? "Sign In" : "Sign Up"}
+            {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
 
@@ -146,7 +285,7 @@ const AuthForm: FC = () => {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              setIsSigningIn(!isSigningIn);
+              toggleAuthMode();
             }}
             className="ml-1 font-medium text-blue-600 hover:text-blue-700 transition duration-150"
           >
@@ -158,4 +297,4 @@ const AuthForm: FC = () => {
   );
 };
 
-export default AuthForm;
+export default Login;
