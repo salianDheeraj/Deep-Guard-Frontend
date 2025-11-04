@@ -1,10 +1,10 @@
 // src/app/dashboard/history/page.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react'; // 1. Import useMemo
 import Link from 'next/link';
 import { FileText, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import Sidebar from '@/components/Sidebar'; // 1. Import the Sidebar
+import Sidebar from '@/components/Sidebar'; 
 
 // --- Types and Mock Data ---
 type Verdict = "FAKE" | "REAL";
@@ -28,14 +28,21 @@ const mockAnalyses: AnalysisItem[] = [
 // --- ---
 
 export default function HistoryPage() {
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('All'); // This state is now used
+
+  // This filters the list based on the activeFilter state
+  const filteredAnalyses = useMemo(() => {
+    if (activeFilter === 'All') {
+      return mockAnalyses; // Show all
+    }
+    // Show only items where the verdict matches the active filter
+    return mockAnalyses.filter(item => item.verdict === activeFilter);
+  }, [activeFilter]); // This will re-run only when activeFilter changes
 
   return (
-    // 2. Wrap the page in a flex container
     <div className="flex min-h-screen bg-gray-100"> 
-      <Sidebar /> {/* 3. Add the Sidebar component */}
+      <Sidebar /> 
 
-      {/* 4. This is the main content area for the history page */}
       <main className="flex-1 p-6 flex flex-col h-full">
         
         {/* Header */}
@@ -46,11 +53,12 @@ export default function HistoryPage() {
 
         {/* Filter Bar */}
         <div className="flex justify-between items-center">
+          {/* These buttons will now work */}
           <div className="flex space-x-2">
             {['All', 'FAKE', 'REAL'].map((filter) => (
               <button
                 key={filter}
-                onClick={() => setActiveFilter(filter)}
+                onClick={() => setActiveFilter(filter)} // This sets the state
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
                   ${
                     activeFilter === filter
@@ -62,21 +70,28 @@ export default function HistoryPage() {
               </button>
             ))}
           </div>
+          
           <div className="flex space-x-4">
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+              />
               <input
                 type="text"
                 placeholder="Search by filename..."
-                className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-md text-sm"
+                className="pl-10 pr-4 py-2.5 w-48 border border-gray-300 rounded-md text-sm bg-white font-semibold text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
             <div className="relative">
-              <select className="appearance-none pr-10 pl-4 py-2 w-40 border border-gray-300 rounded-md text-sm bg-white">
+              <select className="appearance-none pr-10 pl-4 py-2.5 w-48 border border-gray-300 rounded-md text-sm bg-white font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black-400">
                 <option>Sort by Date</option>
                 <option>Sort by Confidence</option>
               </select>
-              <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <ChevronDown
+                size={18}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-200 pointer-events-none"
+              />
             </div>
           </div>
         </div>
@@ -87,22 +102,26 @@ export default function HistoryPage() {
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="p-4 w-12"><input type="checkbox" className="rounded border-gray-300" /></th>
-                <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                {/* --- COLUMNS SWAPPED HERE --- */}
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">File Name</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                {/* --- END SWAP --- */}
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Verdict</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Confidence</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {mockAnalyses.map((item) => (
+              {filteredAnalyses.map((item) => (
                 <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="p-4"><input type="checkbox" className="rounded border-gray-300" /></td>
-                  <td className="p-4 text-sm text-gray-700">{item.date}</td>
+                  {/* --- COLUMNS SWAPPED HERE --- */}
                   <td className="p-4 text-sm text-gray-800 font-medium flex items-center">
                     <FileText size={16} className="mr-2 text-gray-400 flex-shrink-0" />
                     {item.fileName}
                   </td>
+                  <td className="p-4 text-sm text-gray-700">{item.date}</td>
+                  {/* --- END SWAP --- */}
                   <td className="p-4">
                     <span
                       className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
@@ -111,7 +130,7 @@ export default function HistoryPage() {
                           : 'bg-green-100 text-green-700'
                       }`}
                     >
-                      {item.verdict} {/* <-- THIS LINE IS NOW FIXED */}
+                      {item.verdict}
                     </span>
                   </td>
                   <td className="p-4 text-sm text-gray-800 font-medium">{item.confidence}%</td>
@@ -126,7 +145,7 @@ export default function HistoryPage() {
           
           {/* Table Footer (Pagination) */}
           <div className="flex justify-between items-center p-4">
-            <span className="text-sm text-gray-600">Showing 5 of 127 analyses</span>
+            <span className="text-sm text-gray-600">Showing {filteredAnalyses.length} of {mockAnalyses.length} analyses</span>
             <nav className="flex items-center space-x-1">
               <button className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 flex items-center">
                 <ChevronLeft size={16} className="mr-1" /> Previous
