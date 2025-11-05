@@ -1,13 +1,14 @@
 // src/app/dashboard/history/page.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react'; // 1. Import useMemo
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { FileText, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import Sidebar from '@/components/Sidebar'; 
 
 // --- Types and Mock Data ---
 type Verdict = "FAKE" | "REAL";
+type SortKey = "date" | "confidence"; // 1. Added type for sorting
 
 interface AnalysisItem {
   id: string;
@@ -28,16 +29,52 @@ const mockAnalyses: AnalysisItem[] = [
 // --- ---
 
 export default function HistoryPage() {
-  const [activeFilter, setActiveFilter] = useState('All'); // This state is now used
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortKey>('date'); // 2. Added state for sorting
 
-  // This filters the list based on the activeFilter state
-  const filteredAnalyses = useMemo(() => {
-    if (activeFilter === 'All') {
-      return mockAnalyses; // Show all
+  // 3. This logic now FILTERS and SORTS
+  const filteredAndSortedAnalyses = useMemo(() => {
+    let processedData = [...mockAnalyses];
+
+    // Step A: Filter
+    if (activeFilter !== 'All') {
+      processedData = processedData.filter(item => item.verdict === activeFilter);
     }
-    // Show only items where the verdict matches the active filter
-    return mockAnalyses.filter(item => item.verdict === activeFilter);
-  }, [activeFilter]); // This will re-run only when activeFilter changes
+    
+    // Step B: Sort
+    processedData.sort((a, b) => {
+      if (sortBy === 'confidence') {
+        return b.confidence - a.confidence; // Highest confidence first
+      }
+      // Default: Sort by date (newest first)
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
+    return processedData;
+  }, [activeFilter, sortBy]); // Re-runs when filter or sort changes
+
+  // "Select All" logic now uses the filtered and sorted list
+  const allVisibleIds = filteredAndSortedAnalyses.map(item => item.id);
+  const areAllSelected = allVisibleIds.length > 0 && allVisibleIds.every(id => selectedIds.includes(id));
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(allVisibleIds);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectItem = (id: string) => {
+    setSelectedIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(selectedId => selectedId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100"> 
@@ -53,12 +90,15 @@ export default function HistoryPage() {
 
         {/* Filter Bar */}
         <div className="flex justify-between items-center">
-          {/* These buttons will now work */}
+          {/* Filter Buttons */}
           <div className="flex space-x-2">
             {['All', 'FAKE', 'REAL'].map((filter) => (
               <button
                 key={filter}
-                onClick={() => setActiveFilter(filter)} // This sets the state
+                onClick={() => {
+                  setActiveFilter(filter);
+                  setSelectedIds([]); // Clear selection
+                }}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
                   ${
                     activeFilter === filter
@@ -72,6 +112,7 @@ export default function HistoryPage() {
           </div>
           
           <div className="flex space-x-4">
+            {/* Search Bar */}
             <div className="relative">
               <Search
                 size={18}
@@ -83,10 +124,16 @@ export default function HistoryPage() {
                 className="pl-10 pr-4 py-2.5 w-48 border border-gray-300 rounded-md text-sm bg-white font-semibold text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
+            
+            {/* 4. SORTING DROPDOWN (Now functional) */}
             <div className="relative">
-              <select className="appearance-none pr-10 pl-4 py-2.5 w-48 border border-gray-300 rounded-md text-sm bg-white font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black-400">
-                <option>Sort by Date</option>
-                <option>Sort by Confidence</option>
+              <select 
+                className="appearance-none pr-10 pl-4 py-2.5 w-48 border border-gray-300 rounded-md text-sm bg-white font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black-400"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortKey)}
+              >
+                <option value="date">Sort by Date</option>
+                <option value="confidence">Sort by Confidence</option>
               </select>
               <ChevronDown
                 size={18}
@@ -101,27 +148,38 @@ export default function HistoryPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="p-4 w-12"><input type="checkbox" className="rounded border-gray-300" /></th>
-                {/* --- COLUMNS SWAPPED HERE --- */}
+                <th className="p-4 w-12">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300"
+                    checked={areAllSelected}
+                    onChange={handleSelectAll}
+                  />
+                </th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">File Name</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Date</th>
-                {/* --- END SWAP --- */}
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Verdict</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Confidence</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredAnalyses.map((item) => (
+              {/* 5. Use the new 'filteredAndSortedAnalyses' list */}
+              {filteredAndSortedAnalyses.map((item) => (
                 <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="p-4"><input type="checkbox" className="rounded border-gray-300" /></td>
-                  {/* --- COLUMNS SWAPPED HERE --- */}
+                  <td className="p-4">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300"
+                      checked={selectedIds.includes(item.id)}
+                      onChange={() => handleSelectItem(item.id)}
+                    />
+                  </td>
                   <td className="p-4 text-sm text-gray-800 font-medium flex items-center">
                     <FileText size={16} className="mr-2 text-gray-400 flex-shrink-0" />
                     {item.fileName}
                   </td>
                   <td className="p-4 text-sm text-gray-700">{item.date}</td>
-                  {/* --- END SWAP --- */}
                   <td className="p-4">
                     <span
                       className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
@@ -145,7 +203,7 @@ export default function HistoryPage() {
           
           {/* Table Footer (Pagination) */}
           <div className="flex justify-between items-center p-4">
-            <span className="text-sm text-gray-600">Showing {filteredAnalyses.length} of {mockAnalyses.length} analyses</span>
+            <span className="text-sm text-gray-600">Showing {filteredAndSortedAnalyses.length} of {mockAnalyses.length} analyses</span>
             <nav className="flex items-center space-x-1">
               <button className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 flex items-center">
                 <ChevronLeft size={16} className="mr-1" /> Previous
@@ -162,8 +220,15 @@ export default function HistoryPage() {
 
         {/* Bottom Actions */}
         <div className="flex justify-between items-center mt-6">
-          <button className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700">
-            Bulk Delete Selected
+          <button 
+            className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-colors
+              ${selectedIds.length > 0 
+                ? 'bg-red-600 text-white hover:bg-red-700' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
+            `}
+            disabled={selectedIds.length === 0}
+          >
+            Bulk Delete Selected ({selectedIds.length})
           </button>
           <Link 
             href="/dashboard/new-analysis"
