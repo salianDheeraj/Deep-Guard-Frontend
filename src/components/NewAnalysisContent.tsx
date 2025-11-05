@@ -1,3 +1,4 @@
+// src/components/NewAnalysisContent.tsx
 "use client";
 
 import React, { useState, useCallback, useMemo, DragEvent, ChangeEvent } from 'react';
@@ -389,20 +390,25 @@ const renderFrameInputModal = () => {
         const analysisId = data.analysis_id || data.id || data.data?.analysis_id;
         console.log(`📋 Using analysisId: ${analysisId}`);
         
-        const mlSuccess = await startMLAnalysis(analysisId, frameCount);
 
-        console.log(`📊 mlSuccess result:`, mlSuccess);
-        
-        if (mlSuccess) {
-          console.log(`✅ Analysis complete!`);
-          setTimeout(() => {
-            router.push(`/dashboard/analysis/${data.analysis_id}`);
-          }, 2000);
-        } else {
-          console.log(`❌ ML analysis failed, mlSuccess is:`, mlSuccess);
-          setErrorMessage('Analysis failed');
-          setAnalysisState('IDLE');
-        }
+const mlSuccess = await startMLAnalysis(analysisId, frameCount);
+
+console.log(`📊 mlSuccess result:`, mlSuccess);
+
+if (mlSuccess && analysisId) {  // ← Add analysisId check
+  console.log(`✅ Analysis complete!`);
+  console.log(`🎯 Redirecting to: /dashboard/analysis/${analysisId}`);
+  setTimeout(() => {
+    router.push(`/dashboard/analysis/${analysisId}`);  // ← Use analysisId, not data.analysis_id
+  }, 2000);
+} else {
+  console.error(`❌ ML analysis failed or no ID`);
+  console.error(`mlSuccess:`, mlSuccess);
+  console.error(`analysisId:`, analysisId);
+  setErrorMessage('Analysis failed');
+  setAnalysisState('IDLE');
+}
+
 
       } catch (error: any) {
         console.error('❌ Error:', error);

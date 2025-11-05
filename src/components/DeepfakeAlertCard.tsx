@@ -15,6 +15,12 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
   const bgColor = isDeepfake ? 'bg-[#D93F3F]' : 'bg-green-600';
   const label = isDeepfake ? "FAKE" : "REAL";
   const message = isDeepfake ? "Deepfake manipulation detected" : "No deepfake manipulation detected";
+  
+  const confidencePercent = confidence * 100;
+  // Format confidence: remove decimal if it's .0, otherwise show one decimal place.
+  const formattedConfidence = (confidencePercent % 1 === 0) 
+    ? confidencePercent.toFixed(0) 
+    : confidencePercent.toFixed(1);
 
   return (
     <div className={`rounded-lg p-6 text-white ${bgColor} flex items-center justify-between shadow-md`}>
@@ -34,7 +40,8 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
         </p>
       </div>
       <div className="flex flex-col items-center justify-center">
-        <span className="text-6xl font-bold">{(confidence * 100).toFixed(1)}%</span>
+        {/* Use the new formattedConfidence */}
+        <span className="text-6xl font-bold">{formattedConfidence}%</span>
         <span className="text-sm mt-1 opacity-90">Overall Confidence</span>
       </div>
     </div>
