@@ -1,65 +1,69 @@
 // src/components/ConfidenceOverTimeChart.tsx
+'use client';
+
 import React from 'react';
 
-const ConfidenceOverTimeChart: React.FC = () => {
-  // 1. Data now has a 'type' (FAKE or REAL) and a 'height'
-  // This 20-bar pattern matches your image exactly.
-  const dataPoints = [
-    { type: 'FAKE', height: 85 },
-    { type: 'FAKE', height: 82 },
-    { type: 'FAKE', height: 80 },
-    { type: 'REAL', height: 70 }, // Green bar
-    { type: 'FAKE', height: 83 },
-    { type: 'FAKE', height: 80 },
-    { type: 'FAKE', height: 88 },
-    { type: 'REAL', height: 73 }, // Green bar
-    { type: 'FAKE', height: 80 },
-    { type: 'FAKE', height: 78 },
-    { type: 'FAKE', height: 83 },
-    { type: 'FAKE', height: 85 },
-    { type: 'FAKE', height: 81 },
-    { type: 'REAL', height: 65 }, // Green bar
-    { type: 'FAKE', height: 83 },
-    { type: 'FAKE', height: 85 },
-    { type: 'FAKE', height: 80 },
-    { type: 'FAKE', height: 86 },
-    { type: 'REAL', height: 72 }, // Green bar
-    { type: 'FAKE', height: 83 },
-  ];
+interface ChartProps {
+  frameWiseConfidences: number[];
+}
+
+const ConfidenceOverTimeChart: React.FC<ChartProps> = ({ frameWiseConfidences }) => {
+  // Convert frame confidences to FAKE/REAL based on threshold
+  const dataPoints = frameWiseConfidences.map((confidence) => ({
+    type: confidence >= 0.5 ? 'FAKE' : 'REAL',
+    height: confidence * 100, // Convert to percentage
+  }));
+
+  // Count FAKE vs REAL
+  const fakeCount = dataPoints.filter(p => p.type === 'FAKE').length;
+  const realCount = dataPoints.filter(p => p.type === 'REAL').length;
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 h-full">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Confidence Over Time</h3>
-      
-      {/* 2. Added 'space-x-1' for the small gap between bars */}
-      <div className="flex items-end h-48 space-x-1" style={{height: '14rem'}}>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <h3 className="text-2xl font-bold text-gray-800 mb-4">Confidence Over Time</h3>
+
+      {/* Bar Chart */}
+      <div className="flex items-end h-48 space-x-1 bg-gray-50 p-4 rounded-lg mb-6">
         {dataPoints.map((point, index) => (
           <div key={index} className="flex flex-col justify-end w-full h-full">
-            {/* 3. This is the fix: It renders ONE bar, either red or green */}
             {point.type === 'FAKE' ? (
               <div
-                className="bg-[#D93F3F] rounded-t-sm" // Red bar, rounded top
-                style={{ height: `${point.height}%` }}
+                className="bg-red-600 rounded-t-sm hover:opacity-80 transition cursor-pointer"
+                style={{ height: `${point.height}%`, minHeight: '2px' }}
+                title={`Frame ${index + 1}: ${point.height.toFixed(1)}%`}
               ></div>
             ) : (
               <div
-                className="bg-[#22C55E]" // Green bar, NO rounding
-                style={{ height: `${point.height}%` }}
+                className="bg-green-500 rounded-t-sm hover:opacity-80 transition cursor-pointer"
+                style={{ height: `${point.height}%`, minHeight: '2px' }}
+                title={`Frame ${index + 1}: ${point.height.toFixed(1)}%`}
               ></div>
             )}
           </div>
         ))}
       </div>
-      
-      {/* 4. Legend is correct (squares and light text) */}
-      <div className="flex justify-center text-xs mt-4 space-x-4">
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="text-center p-3 bg-red-50 rounded-lg">
+          <p className="text-sm text-gray-600">FAKE Frames</p>
+          <p className="text-2xl font-bold text-red-600">{fakeCount}</p>
+        </div>
+        <div className="text-center p-3 bg-green-50 rounded-lg">
+          <p className="text-sm text-gray-600">REAL Frames</p>
+          <p className="text-2xl font-bold text-green-600">{realCount}</p>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex justify-center text-xs mt-4 space-x-6">
         <div className="flex items-center">
-          <span className="w-3 h-3 bg-[#D93F3F] rounded-sm mr-1.5"></span> 
-          <span className="text-gray-500">FAKE Detection</span>
+          <span className="w-3 h-3 bg-red-600 rounded-sm mr-2"></span>
+          <span className="text-gray-700">FAKE Detection (&ge; 50%)</span>
         </div>
         <div className="flex items-center">
-          <span className="w-3 h-3 bg-[#22C55E] rounded-sm mr-1.5"></span>
-          <span className="text-gray-500">REAL Detection</span>
+          <span className="w-3 h-3 bg-green-500 rounded-sm mr-2"></span>
+          <span className="text-gray-700">REAL Detection (&lt; 50%)</span>
         </div>
       </div>
     </div>

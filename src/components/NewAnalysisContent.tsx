@@ -1,10 +1,10 @@
+// src/components/NewAnalysisContent.tsx
 "use client";
 
 import React, { useState, useCallback, useMemo, DragEvent, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation'; // For redirecting
+import { useRouter } from 'next/navigation';
 import { UploadCloud, CheckCircle, Shield, Cpu, Image as ImageIcon, LucideIcon, FileWarning, Loader2 } from 'lucide-react';
 
-// --- Constants and Types ---
 interface FeatureItem {
   title: string;
   desc: string;
@@ -17,20 +17,18 @@ const MAX_FILE_SIZE_MB = 10;
 const SUPPORTED_FORMATS = ["JPG", "PNG", "MP4"];
 
 const NewAnalysisContent: React.FC = () => {
-  const router = useRouter(); // Initialize the router
+  const router = useRouter();
 
-  // --- State Management ---
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [analysisState, setAnalysisState] = useState<AnalysisState>('IDLE');
-  
-  // Placeholder progress data (for the UI state)
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [currentFrame, setCurrentFrame] = useState<number>(27);
-  const [totalFrames, setTotalFrames] = useState<number>(120);
+  const [currentFrame, setCurrentFrame] = useState<number>(0);
+  const [totalFrames, setTotalFrames] = useState<number>(0);
+  const [framesToAnalyze, setFramesToAnalyze] = useState<number>(50);
+  const [showFrameInput, setShowFrameInput] = useState<boolean>(false);
 
-  // --- Memoized Static Data ---
   const acceptedFileTypes: string = useMemo(() => {
     return SUPPORTED_FORMATS.map(f => `.${f.toLowerCase()}`).join(',');
   }, []);
@@ -41,19 +39,29 @@ const NewAnalysisContent: React.FC = () => {
     { title: "AI-Powered Detection", desc: "Advanced neural networks analyze each frame for manipulation", icon: Cpu },
   ], []);
 
-  // --- Validation Logic ---
+  const getVideoFrameCount = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.onloadedmetadata = () => {
+        const fps = video.videoWidth > 0 ? 30 : 24;
+        const frameCount = Math.floor(video.duration * fps);
+        resolve(frameCount);
+      };
+      video.onerror = () => resolve(0);
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
   const validateFile = useCallback((file: File | null) => {
-    setErrorMessage(null); // Clear previous errors
+    setErrorMessage(null);
     if (!file) return false;
 
-    // Check 1: File Size Limit (10MB)
     const fileSizeMB = file.size / (1024 * 1024);
     if (fileSizeMB > MAX_FILE_SIZE_MB) {
       setErrorMessage(`File size is too high: ${fileSizeMB.toFixed(2)} MB. Maximum allowed size is ${MAX_FILE_SIZE_MB} MB.`);
       return false;
     }
 
-    // Check 2: File Type
     const fileExtension = file.name.split('.').pop()?.toUpperCase();
     if (!fileExtension || !SUPPORTED_FORMATS.includes(fileExtension)) {
       setErrorMessage(`Unsupported file type. Please use ${SUPPORTED_FORMATS.join(', ')}.`);
@@ -63,7 +71,6 @@ const NewAnalysisContent: React.FC = () => {
     return true;
   }, []);
 
-  // --- File Processing Logic ---
   const processFiles = (files: FileList) => {
     const file = files[0];
     if (file && validateFile(file)) {
@@ -74,7 +81,6 @@ const NewAnalysisContent: React.FC = () => {
     setIsDragging(false);
   };
   
-  // --- Drag and Drop Handlers ---
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
@@ -89,47 +95,331 @@ const NewAnalysisContent: React.FC = () => {
     processFiles(event.dataTransfer.files);
   };
 
-  // --- File Input Change Handler ---
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       processFiles(event.target.files);
     }
   };
-  
-  // --- Analysis Placeholder (Mocks Upload/Analysis Flow) ---
-  const startAnalysisPlaceholder = () => {
-    if (selectedFile && validateFile(selectedFile)) {
-      // 1. Start Uploading state
-      setAnalysisState('UPLOADING');
-      setUploadProgress(0);
 
-      // Mock the Uploading phase (e.g., 2 seconds)
-      const uploadTimer = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(uploadTimer);
-            // After upload finishes, switch to Analyzing state
-            setAnalysisState('ANALYZING');
+  const startMLAnalysis = async (analysisId: string, frameCount: number) => {
+    try {
+      if (!analysisId) {
+        console.error('❌ analysisId is required');
+        return null;
+      }
 
-            // --- REDIRECT LOGIC (FIXED) ---
-            // Mock the "Analyzing" phase (e.g., 3 seconds)
-            setTimeout(() => {
-              // This is the new, correct path that matches your file structure
-              router.push('/dashboard/analysis/123');
-            }, 3000); // 3-second analysis simulation
-            // --- END REDIRECT LOGIC ---
+      const token = localStorage.getItem('authToken');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-            return 100;
+      console.log(`🔍 Starting ML analysis: ${analysisId}`);
+      console.log(`🎬 Total frames: ${frameCount}`);
+      console.log(`📊 Frames to analyze: ${framesToAnalyze}`);
+
+      const frameInterval = setInterval(() => {
+        setCurrentFrame(prev => {
+          const newFrame = prev + Math.floor((framesToAnalyze / 30) * 5);
+          if (newFrame >= framesToAnalyze) {
+            clearInterval(frameInterval);
+            return framesToAnalyze;
           }
-          return prev + 10;
+          return newFrame;
         });
-      }, 200);
+      }, 100);
+
+    const response = await fetch(`${API_URL}/api/ml/analyze/${analysisId}`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ 
+    total_frames: frameCount,
+    frames_to_analyze: framesToAnalyze
+  }),
+});
+
+clearInterval(frameInterval);
+console.log(`📊 Response status: ${response.status}`);
+
+const data = await response.json();
+console.log(`📥 Response data:`, data);
+
+if (!response.ok) {
+  console.error('❌ ML error:', data.message || data);
+  return null;
+}
+
+console.log(`✅ ML completed:`, data.data);
+
+return {
+  success: true,
+  is_deepfake: data.data.is_deepfake,
+  confidence_score: data.data.confidence_score,
+};
+
+
+    } catch (error) {
+      console.error('❌ ML error:', error);
+      return null;
     }
   };
 
-  // --- Button Click Handler (Triggers file selection or analysis) ---
+const renderFrameInputModal = () => {
+  if (!showFrameInput || !selectedFile) return null;
+
+  const maxFramesToAnalyze = Math.min(200, totalFrames);
+  const frameSkipInterval = Math.ceil(totalFrames / (framesToAnalyze || 1)); // ← Handle 0 here
+  const isInvalid = framesToAnalyze > maxFramesToAnalyze || framesToAnalyze < 10;
+  
+  const handleFrameChange = (newValue: number) => {
+    const val = Math.min(maxFramesToAnalyze, Math.max(0, newValue)); // ← Allow 0
+    setFramesToAnalyze(val);
+  };
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm max-h-[85vh] overflow-y-auto flex flex-col">
+        
+        <div className="sticky top-0 bg-white border-b p-6">
+          <h3 className="text-2xl font-bold text-gray-800">
+            🎬 Analysis Settings
+          </h3>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
+            How Many Frames to Analyze?
+          </label>
+          <p className="text-xs text-gray-500 mb-4">
+            📊 Total: <span className="font-bold text-indigo-600">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600">{maxFramesToAnalyze}</span>
+          </p>
+
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-600 mb-2">Slider:</label>
+            <input
+              type="range"
+              min="0"
+              max={maxFramesToAnalyze}
+              step="1"
+              value={framesToAnalyze}
+              onChange={(e) => handleFrameChange(Number(e.target.value))}
+              className="w-full h-3 bg-gradient-to-r from-green-200 to-blue-500 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1 font-semibold">
+              <span>Quick (10)</span>
+              <span>Standard (100)</span>
+              <span>Deep ({maxFramesToAnalyze})</span>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-600 mb-2">Type Directly:</label>
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={framesToAnalyze}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  if (val === '') {
+                    handleFrameChange(0); // ← Changed from 20 to 0
+                  } else {
+                    handleFrameChange(Number(val));
+                  }
+                }}
+                onFocus={(e) => {
+                  e.target.value = '';
+                  e.target.placeholder = String(framesToAnalyze);
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '') {
+                    handleFrameChange(0); // ← Changed from 20 to 0
+                    e.target.placeholder = '';
+                  }
+                }}
+                placeholder={String(framesToAnalyze)}
+                className="w-full px-3 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-600 focus:outline-none text-lg font-bold text-center"
+              />
+              <span className="absolute right-2 top-2 text-xs font-semibold text-gray-500">
+                (0-{maxFramesToAnalyze})
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-3 mb-4">
+            <p className="text-gray-600 text-xs mb-2 font-semibold">📊 Summary:</p>
+            
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="bg-white rounded p-2 text-center">
+                <p className="text-xs text-gray-500">Analyze</p>
+                <p className="text-2xl font-bold text-indigo-600">{framesToAnalyze}</p>
+              </div>
+              <div className="bg-white rounded p-2 text-center">
+                <p className="text-xs text-gray-500">Max</p>
+                <p className="text-2xl font-bold text-gray-600">{maxFramesToAnalyze}</p>
+              </div>
+            </div>
+
+            {isInvalid && (
+              <div className="bg-red-50 border border-red-200 rounded p-2">
+                <p className="text-xs text-red-700 font-bold">⚠️ Invalid! Enter 10-{maxFramesToAnalyze}</p>
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 mt-2">
+              Skip every <span className="font-bold">{frameSkipInterval}</span> frame (from {totalFrames} total)
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800">
+            <p className="font-bold mb-1">✅ Example:</p>
+            <p>Video: 279 frames → Pick: 100 → AI analyzes exactly 100</p>
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 bg-white border-t p-4 flex gap-3">
+          <button
+            onClick={() => {
+              setShowFrameInput(false);
+              setFramesToAnalyze(50);
+              setAnalysisState('IDLE');
+            }}
+            className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-sm"
+          >
+            ❌ Cancel
+          </button>
+          <button
+            onClick={() => {
+              setShowFrameInput(false);
+              startAnalysisPlaceholder();
+            }}
+            disabled={isInvalid}
+            className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${
+              isInvalid
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            }`}
+          >
+            ✅ Analyze {framesToAnalyze}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+  const startAnalysisPlaceholder = async () => {
+    if (selectedFile && validateFile(selectedFile)) {
+      setAnalysisState('UPLOADING');
+      setUploadProgress(0);
+
+      try {
+        let frameCount = 0;
+        if (selectedFile.type.startsWith('video')) {
+          frameCount = await getVideoFrameCount(selectedFile);
+          console.log(`🎬 Detected frames: ${frameCount}`);
+          
+          if (frameCount > 0 && !showFrameInput) {
+            setTotalFrames(frameCount);
+            setShowFrameInput(true);
+            return;
+          }
+        }
+        setTotalFrames(frameCount || 1);
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('user_id', 'user_' + Math.random().toString(36).substr(2, 9));
+        formData.append('total_frames', frameCount.toString());
+        formData.append('frames_to_analyze', framesToAnalyze.toString());
+
+        const token = localStorage.getItem('authToken');
+        
+        console.log('🔑 Token:', token ? 'Found' : 'NOT FOUND');
+        console.log('📁 File:', selectedFile.name, selectedFile.size);
+        console.log('📊 Frames to analyze:', framesToAnalyze);
+
+        if (!token) {
+          setErrorMessage('Not authenticated. Please login first.');
+          setAnalysisState('IDLE');
+          return;
+        }
+
+        const uploadTimer = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(uploadTimer);
+              return 90;
+            }
+            return prev + Math.random() * 20;
+          });
+        }, 200);
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+        const response = await fetch(`${API_URL}/api/analysis/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        clearInterval(uploadTimer);
+        setUploadProgress(100);
+
+        console.log('📥 Response status:', response.status);
+        const data = await response.json();
+        console.log('📥 Response data:', data);
+
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || 'Upload failed');
+        }
+
+        setAnalysisState('ANALYZING');
+        setCurrentFrame(0);
+        console.log(`📤 Upload complete. Starting ML...`);
+        console.log(`📋 Analysis ID: ${data.analysis_id}`);
+        console.log(`🎬 Frame count: ${frameCount}`);
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        console.log(`⏱️ Calling ML endpoint now...`);
+        
+        const analysisId = data.analysis_id || data.id || data.data?.analysis_id;
+        console.log(`📋 Using analysisId: ${analysisId}`);
+        
+
+const mlSuccess = await startMLAnalysis(analysisId, frameCount);
+
+console.log(`📊 mlSuccess result:`, mlSuccess);
+
+if (mlSuccess && analysisId) {  // ← Add analysisId check
+  console.log(`✅ Analysis complete!`);
+  console.log(`🎯 Redirecting to: /dashboard/analysis/${analysisId}`);
+  setTimeout(() => {
+    router.push(`/dashboard/analysis/${analysisId}`);  // ← Use analysisId, not data.analysis_id
+  }, 2000);
+} else {
+  console.error(`❌ ML analysis failed or no ID`);
+  console.error(`mlSuccess:`, mlSuccess);
+  console.error(`analysisId:`, analysisId);
+  setErrorMessage('Analysis failed');
+  setAnalysisState('IDLE');
+}
+
+
+      } catch (error: any) {
+        console.error('❌ Error:', error);
+        const errorMsg = error?.message || String(error) || 'Unknown error';
+        setErrorMessage(`Upload failed: ${errorMsg}`);
+        setAnalysisState('IDLE');
+      }
+    }
+  };
+
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    // If we have an error, the button is "Clear File"
     if (errorMessage) {
       setSelectedFile(null);
       setErrorMessage(null);
@@ -137,19 +427,15 @@ const NewAnalysisContent: React.FC = () => {
     }
     
     if (!selectedFile) {
-      // Trigger file input if no file is selected
       event.preventDefault();
       const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
       if (fileInput) fileInput.click();
     } else if (analysisState === 'IDLE' && !errorMessage) {
-      // If file is selected and valid, start the placeholder process
       startAnalysisPlaceholder();
     }
   };
 
-  // --- Render Functions ---
   const renderUploadArea = () => {
-    // 1. RENDER PROGRESS / ANALYSIS STATE
     if (analysisState !== 'IDLE' && selectedFile) {
       const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(1);
       
@@ -157,7 +443,6 @@ const NewAnalysisContent: React.FC = () => {
         <div className="text-left w-full">
           <p className="text-lg font-medium text-gray-800 mb-1">{selectedFile.name}</p>
           
-          {/* Progress Bar and Percentage */}
           <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
             <span>{analysisState === 'UPLOADING' ? 'Uploading...' : 'Processing file...'}</span>
             <span>{fileSizeMB} MB</span>
@@ -169,25 +454,23 @@ const NewAnalysisContent: React.FC = () => {
             ></div>
           </div>
 
-          {/* Analyzing Frames Section */}
           {analysisState === 'ANALYZING' && (
             <div className="flex flex-col items-center justify-center py-6">
               <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
               <p className="text-xl font-semibold text-gray-800 mb-1">Analyzing frames...</p>
-              <p className="text-gray-500">Processing frame {currentFrame} of {totalFrames}.</p>
+              <p className="text-gray-500">Processing frame {currentFrame} of {framesToAnalyze}.</p>
+              <p className="text-xs text-gray-400 mt-2">Total frames: {totalFrames}</p>
             </div>
           )}
 
-          {/* Note */}
           <div className="bg-indigo-50 border-l-4 border-indigo-400 text-indigo-700 p-4 mt-4" role="alert">
             <p className="font-semibold">Note:</p>
-            <p className="text-sm">Analysis may take 1-3 minutes depending on file size and frame count.</p>
+            <p className="text-sm">Analysis may take 1-3 minutes depending on file size.</p>
           </div>
         </div>
       );
     }
 
-    // 2. RENDER IDLE / ERROR STATE
     return (
       <div className="flex flex-col items-center justify-center w-full">
         {errorMessage ? (
@@ -211,7 +494,6 @@ const NewAnalysisContent: React.FC = () => {
           </>
         )}
 
-        {/* File Type Badges */}
         <div className="flex space-x-2 mb-4">
           {SUPPORTED_FORMATS.map(format => (
             <span key={format} className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-md border border-gray-200">
@@ -222,7 +504,6 @@ const NewAnalysisContent: React.FC = () => {
         
         <p className="text-sm text-gray-400 mb-4">Maximum file size: {MAX_FILE_SIZE_MB}MB</p>
         
-        {/* Select File Button / Analyze Button */}
         <label className="cursor-pointer">
           <input
             type="file"
@@ -234,7 +515,6 @@ const NewAnalysisContent: React.FC = () => {
             type="button"
             className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md disabled:bg-indigo-300"
             onClick={handleButtonClick}
-            // Disable button if analysis is running
             disabled={analysisState === 'UPLOADING' || analysisState === 'ANALYZING'}
           >
             {errorMessage ? 'Clear File' : selectedFile ? 'Start Analysis' : 'Select File'}
@@ -244,21 +524,20 @@ const NewAnalysisContent: React.FC = () => {
     );
   };
   
-  // --- Main Component Render ---
   return (
     <main className="flex-1 overflow-y-auto bg-gray-50 p-10">
+      {renderFrameInputModal()}
+
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">New Deepfake Analysis</h2>
         <p className="text-gray-500 mb-10">Upload media files to detect potential deepfakes using AI analysis</p>
 
-        {/* --- Main Upload Card --- */}
         <div
           className={`
             border-2 rounded-xl p-16 text-center bg-white shadow-xl transition-all duration-300 flex justify-center items-center
             ${isDragging && analysisState === 'IDLE' ? 'border-indigo-500 bg-indigo-50 border-solid' : 'border-indigo-200 border-dashed'}
             ${analysisState !== 'IDLE' ? 'p-10' : ''}
           `}
-          // Event handlers are only active when the component is IDLE
           onDragOver={analysisState === 'IDLE' ? handleDragOver : undefined}
           onDragLeave={analysisState === 'IDLE' ? handleDragLeave : undefined}
           onDrop={analysisState === 'IDLE' ? handleDrop : undefined}
@@ -266,7 +545,6 @@ const NewAnalysisContent: React.FC = () => {
           {renderUploadArea()}
         </div>
 
-        {/* --- Feature Summary Row --- */}
         <div className="flex justify-between mt-12">
           {features.map((feature, index) => {
             const Icon = feature.icon;

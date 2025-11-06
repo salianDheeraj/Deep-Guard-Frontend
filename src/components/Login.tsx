@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, FC, FormEvent, ChangeEvent } from "react";
+import React, { useState, FC, FormEvent, ChangeEvent, useEffect } from "react";
 import { Shield, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -62,6 +62,47 @@ const Login: FC = () => {
     rememberMe: false,
   });
 
+  // ✅ LISTEN FOR GOOGLE SUCCESS
+  useEffect(() => {
+    const handleGoogleSuccess = async (event: any) => {
+      const { detail } = event;
+      console.log("🔐 Google credential received");
+      
+      try {
+        setIsLoading(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+        // Send JWT to backend
+        const response = await fetch(`${API_URL}/auth/google`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credentials: detail.credential }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Google auth failed");
+        }
+
+        // ✅ SAVE TOKEN
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("✅ Google auth successful");
+        
+        router.push("/dashboard");
+      } catch (err: any) {
+        console.error("❌ Google error:", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    window.addEventListener("googleSuccess", handleGoogleSuccess);
+    return () => window.removeEventListener("googleSuccess", handleGoogleSuccess);
+  }, [router]);
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -89,54 +130,66 @@ const Login: FC = () => {
     return true;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
+ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setError(null);
 
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
+  try {
+    const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    console.log("📤 Sending to:", `${API_URL}${endpoint}`);
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+        name: formData.email.split("@")[0],
+        ...(isSigningIn && { rememberMe: formData.rememberMe }),
+      }),
+    });
+
+    console.log("📥 Response status:", response.status);
+
+    // 🧩 Safe JSON parser
+    let data: any;
     try {
-      const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-      console.log("📤 Sending to:", `${API_URL}${endpoint}`);
-
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: formData.email.split("@")[0],
-          ...(isSigningIn && { rememberMe: formData.rememberMe }),
-        }),
-      });
-
-      console.log("📥 Response status:", response.body);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Authentication failed");
-      }
-
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
-      console.log("✅ Auth successful");
-      router.push("/dashboard");
-    } catch (err: any) {
-      console.error("❌ Error:", err.message);
-      setError(err.message || "An error occurred");
-    } finally {
-      setIsLoading(false);
+      data = await response.json();
+    } catch (parseError) {
+      const rawText = await response.text();
+      console.error("❌ Non-JSON response:", rawText);
+      throw new Error(`Server returned HTML or invalid JSON (${response.status})`);
     }
-  };
+
+    if (!response.ok) {
+      throw new Error(data.message || "Authentication failed");
+    }
+
+    // ✅ SAVE TOKEN
+    if (data.token) {
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log("✅ Token saved");
+    }
+
+    console.log("✅ Auth successful");
+    router.push("/dashboard");
+  } catch (err: any) {
+    console.error("❌ Error:", err.message);
+    setError(err.message || "An error occurred");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const toggleAuthMode = () => {
     setIsSigningIn(!isSigningIn);
@@ -244,6 +297,46 @@ const Login: FC = () => {
           </button>
         </form>
 
+        {/* ✅ GOOGLE OAUTH BUTTON */}
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div
+              id="g_id_onload"
+              data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+              data-callback="handleCredentialResponse"
+            />
+            <div
+              id="g_id_signin"
+              data-type="standard"
+              data-size="large"
+              data-theme="outline"
+              data-text="signin_with"
+              data-shape="rectangular"
+              data-logo_alignment="left"
+            />
+          </div>
+
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.handleCredentialResponse = (response) => {
+                  const event = new CustomEvent('googleSuccess', { detail: response });
+                  window.dispatchEvent(event);
+                };
+              `,
+            }}
+          />
+        </div>
+
         <p className="mt-6 text-center text-sm text-gray-600">
           {isSigningIn ? "Don't have an account?" : "Already have an account?"}
           <a
@@ -258,6 +351,13 @@ const Login: FC = () => {
           </a>
         </p>
       </div>
+
+      {/* ✅ LOAD GOOGLE SCRIPT */}
+      <script
+        src="https://accounts.google.com/gsi/client"
+        async
+        defer
+      />
     </div>
   );
 };
