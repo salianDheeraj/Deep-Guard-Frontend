@@ -34,40 +34,34 @@ const AnalysisHistory: React.FC = () => {
   React.useEffect(() => {
     fetchAllAnalyses();
   }, []);
+const fetchAllAnalyses = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('Not authenticated');
 
-  const fetchAllAnalyses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const res = await fetch(`${API_URL}/api/analyses`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError('Not authenticated');
-        setLoading(false);
-        return;
-      }
+    if (!res.ok) throw new Error(`Error: ${res.statusText}`);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      
-      const response = await fetch(`${API_URL}/api/analysis?limit=1000&offset=0`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+    const data = await res.json();
+    setAnalyses(data.analyses || []);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
-      if (!response.ok) throw new Error('Failed to fetch analyses');
+React.useEffect(() => {
+  fetchAllAnalyses();
+}, []);
 
-      const result = await response.json();
-      setAnalyses(result.data || []);
-    } catch (err: any) {
-      console.error('Error:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

@@ -1,15 +1,16 @@
 // src/components/AnalysisPage.tsx - COMPLETE with FrameGallery
 'use client';
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AnalysisHeader from './AnalysisHeader';
 import DeepfakeAlertCard from './DeepfakeAlertCard';
 import ConfidenceOverTimeChart from './ConfidenceOverTimeChart';
 import FrameAnalysisSection from './FrameAnalysisSection';
-
 import UnderstandingConfidence from './UnderstandingConfidence';
 import { Loader, AlertCircle } from 'lucide-react';
+import { useAnalysisStore } from '@/../lib/store/analysisStore';
 
 
 interface ConfidenceReport {
@@ -211,47 +212,47 @@ export default function AnalysisPage() {
       </div>
     );
   }
-
-  if (error || !currentAnalysis) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
-          <div className="flex justify-center mb-4">
-            <AlertCircle className="w-12 h-12 text-red-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600 mb-6">{error || 'Failed to load analysis'}</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Back to Dashboard
-          </button>
+if (error || !currentAnalysis) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
+        <div className="flex justify-center mb-4">
+          <AlertCircle className="w-12 h-12 text-red-600" />
         </div>
+        <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+        <p className="text-gray-600 mb-6">{error || 'Failed to load analysis'}</p>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Back to Dashboard
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  if (currentAnalysis.status === 'failed') {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
-          <div className="flex justify-center mb-4">
-            <AlertCircle className="w-12 h-12 text-orange-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-orange-600 mb-2">Analysis Failed</h2>
-          <p className="text-gray-600 mb-2">The analysis failed to process</p>
-          <p className="text-sm text-gray-500 mb-6">Check the server logs for details.</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Back to Dashboard
-          </button>
+if (currentAnalysis.status === 'failed') {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
+        <div className="flex justify-center mb-4">
+          <AlertCircle className="w-12 h-12 text-orange-600" />
         </div>
+        <h2 className="text-2xl font-bold text-orange-600 mb-2">Analysis Failed</h2>
+        <p className="text-gray-600 mb-2">The analysis failed to process</p>
+        <p className="text-sm text-gray-500 mb-6">Check the server logs for details.</p>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Back to Dashboard
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   const totalFrames = currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length || 0;
   const averageConfidence = currentAnalysis.confidence_report?.average_confidence || currentAnalysis.confidence_score || 0;
