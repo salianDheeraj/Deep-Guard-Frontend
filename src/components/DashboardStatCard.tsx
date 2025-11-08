@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import RecentAnalyses from "@/components/RecentAnalyses";
 import { Video, AlertTriangle } from "lucide-react";
 
 interface StatsData {
@@ -62,79 +60,57 @@ export default function DashboardStatCard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 flex flex-col h-full max-w-7xl mx-auto text-center">
-          <p>Loading statistics...</p>
-        </main>
-      </div>
-    );
+    return <p className="text-center py-8">Loading statistics...</p>;
   }
 
   if (error) {
-    return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 flex flex-col h-full max-w-7xl mx-auto text-center text-red-600">
-          <p>{error}</p>
-        </main>
-      </div>
-    );
+    return <p className="text-center text-red-600 py-8">{error}</p>;
   }
 
+  // ✅ ONLY return the stat cards grid
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <main className="flex-1 p-8 flex flex-col h-full max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">Dashboard Overview</h1>
-
-        {/* Updated stat cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Total Videos */}
-          <div className="p-6 bg-white rounded-xl shadow flex flex-col">
-            <div className="flex items-center mb-2">
-              <span className="rounded-full bg-blue-100 text-blue-600 p-2 mr-3">
-                <Video className="w-6 h-6" />
-              </span>
-              <span className="font-semibold text-gray-700 text-base">Total Videos</span>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-3xl font-bold text-gray-900">{stats.totalVideos}</span>
-              <span className="text-xs text-gray-400 ml-4">Analyzed this month</span>
-            </div>
-          </div>
-
-          {/* Real Videos */}
-          <div className="p-6 bg-white rounded-xl shadow flex flex-col">
-            <div className="flex items-center mb-2">
-              <span className="rounded-full bg-green-100 text-green-600 p-2 mr-3">
-                <Video className="w-6 h-6" />
-              </span>
-              <span className="font-semibold text-gray-700 text-base">Real Videos</span>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-3xl font-bold text-gray-900">{stats.realVideos}</span>
-              <span className="text-xs text-gray-400 ml-4">Authentic content</span>
-            </div>
-          </div>
-
-          {/* Fake Videos */}
-          <div className="p-6 bg-white rounded-xl shadow flex flex-col">
-            <div className="flex items-center mb-2">
-              <span className="rounded-full bg-red-100 text-red-600 p-2 mr-3">
-                <AlertTriangle className="w-6 h-6" />
-              </span>
-              <span className="font-semibold text-gray-700 text-base">Fake Videos</span>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-3xl font-bold text-gray-900">{stats.fakeVideos}</span>
-              <span className="text-xs text-gray-400 ml-4">Detected deepfakes</span>
-            </div>
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Total Videos */}
+      <div className="p-6 bg-white rounded-xl shadow flex flex-col">
+        <div className="flex items-center mb-2">
+          <span className="rounded-full bg-blue-100 text-blue-600 p-2 mr-3">
+            <Video className="w-6 h-6" />
+          </span>
+          <span className="font-semibold text-gray-700 text-base">Total Videos</span>
         </div>
+        <div className="flex items-end justify-between">
+          <span className="text-3xl font-bold text-gray-900">{stats.totalVideos}</span>
+          <span className="text-xs text-gray-400 ml-4">Analyzed this month</span>
+        </div>
+      </div>
 
-    
-      </main>
+      {/* Real Videos */}
+      <div className="p-6 bg-white rounded-xl shadow flex flex-col">
+        <div className="flex items-center mb-2">
+          <span className="rounded-full bg-green-100 text-green-600 p-2 mr-3">
+            <Video className="w-6 h-6" />
+          </span>
+          <span className="font-semibold text-gray-700 text-base">Real Videos</span>
+        </div>
+        <div className="flex items-end justify-between">
+          <span className="text-3xl font-bold text-gray-900">{stats.realVideos}</span>
+          <span className="text-xs text-gray-400 ml-4">Authentic content</span>
+        </div>
+      </div>
+
+      {/* Fake Videos */}
+      <div className="p-6 bg-white rounded-xl shadow flex flex-col">
+        <div className="flex items-center mb-2">
+          <span className="rounded-full bg-red-100 text-red-600 p-2 mr-3">
+            <AlertTriangle className="w-6 h-6" />
+          </span>
+          <span className="font-semibold text-gray-700 text-base">Fake Videos</span>
+        </div>
+        <div className="flex items-end justify-between">
+          <span className="text-3xl font-bold text-gray-900">{stats.fakeVideos}</span>
+          <span className="text-xs text-gray-400 ml-4">Detected deepfakes</span>
+        </div>
+      </div>
     </div>
   );
 }
