@@ -1,6 +1,8 @@
-// src/components/DeepfakeAlertCard.tsx
+// src/components/DeepfakeAlertCard.tsx - With inverted logic for REAL
+'use client';
+
 import React from 'react';
-import { AlertTriangle, Info, CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface DeepfakeAlertCardProps {
   isDeepfake: boolean;
@@ -9,40 +11,78 @@ interface DeepfakeAlertCardProps {
   totalFrames: number;
 }
 
-const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({ 
-  isDeepfake, confidence, framesAnalyzed, totalFrames 
+const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
+  isDeepfake,
+  confidence,
+  framesAnalyzed,
+  totalFrames
 }) => {
-  const bgColor = isDeepfake ? 'bg-[#D93F3F]' : 'bg-green-600';
-  const label = isDeepfake ? "FAKE" : "REAL";
-  const message = isDeepfake ? "Deepfake manipulation detected" : "No deepfake manipulation detected";
-  
-  const confidencePercent = confidence * 100;
-  // Format confidence: remove decimal if it's .0, otherwise show one decimal place.
-  const formattedConfidence = (confidencePercent % 1 === 0) 
-    ? confidencePercent.toFixed(0) 
-    : confidencePercent.toFixed(1);
+  // ✅ Apply inverted logic for REAL videos
+  const displayConfidence = isDeepfake 
+    ? confidence 
+    : (1 - confidence);
+
+  const displayPercentage = Math.round(displayConfidence * 100);
 
   return (
-    <div className={`rounded-lg p-6 text-white ${bgColor} flex items-center justify-between shadow-md`}>
-      <div>
-        <h2 className="text-4xl font-extrabold flex items-center space-x-2">
-          <span>{label}</span>
-          {isDeepfake ? (
-            <AlertTriangle size={28} className="text-white" />
-          ) : (
-            <CheckCircle size={28} className="text-white" />
-          )}
-        </h2>
-        <p className="text-lg mt-1">{message}</p>
-        <p className="text-sm flex items-center space-x-1 mt-2 opacity-90">
-          <Info size={16} />
-          <span>Confidence represents model certainty, not absolute proof</span>
-        </p>
+    <div
+      className={`rounded-lg shadow-lg p-8 text-white ${
+        isDeepfake
+          ? 'bg-gradient-to-r from-red-500 to-red-600'
+          : 'bg-gradient-to-r from-green-500 to-green-600'
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        {/* Left: Status & Message */}
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            {isDeepfake ? (
+              <>
+                <AlertTriangle className="w-8 h-8" />
+                <h2 className="text-4xl font-bold">FAKE</h2>
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-8 h-8" />
+                <h2 className="text-4xl font-bold">REAL</h2>
+              </>
+            )}
+          </div>
+          
+          <p className="text-lg font-semibold mb-1">
+            {isDeepfake
+              ? 'Deepfake manipulation detected'
+              : 'No deepfake detected'}
+          </p>
+          
+          <p className="text-sm opacity-90">
+            Confidence represents model certainty, not absolute proof
+          </p>
+        </div>
+
+        {/* Right: Confidence Score */}
+        <div className="text-right">
+          <p className="text-sm font-semibold opacity-80 mb-1">Overall Confidence</p>
+          <p className="text-6xl font-bold">{displayPercentage}%</p>
+        </div>
       </div>
-      <div className="flex flex-col items-center justify-center">
-        {/* Use the new formattedConfidence */}
-        <span className="text-6xl font-bold">{formattedConfidence}%</span>
-        <span className="text-sm mt-1 opacity-90">Overall Confidence</span>
+
+      {/* Frame Analysis Info */}
+      <div className="mt-6 pt-6 border-t border-white border-opacity-30 flex gap-6">
+        <div>
+          <p className="text-sm opacity-80">Frames Analyzed</p>
+          <p className="text-2xl font-bold">{framesAnalyzed}</p>
+        </div>
+        <div>
+          <p className="text-sm opacity-80">Total Frames</p>
+          <p className="text-2xl font-bold">{totalFrames}</p>
+        </div>
+        <div>
+          <p className="text-sm opacity-80">Coverage</p>
+          <p className="text-2xl font-bold">
+            {totalFrames > 0 ? Math.round((framesAnalyzed / totalFrames) * 100) : 0}%
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -42,7 +42,8 @@ const AuthInput: FC<AuthInputProps> = ({
         className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-10 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
         required
       />
-      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-even
+      ts-none">
         <InputIcon className="h-5 w-5 text-gray-400" />
       </div>
     </div>
@@ -72,7 +73,7 @@ const Login: FC = () => {
         setIsLoading(true);
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-        // Send` JWT to backend
+        // Send JWT to backend
         const response = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
