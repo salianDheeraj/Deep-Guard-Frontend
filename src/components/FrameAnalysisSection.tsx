@@ -32,77 +32,88 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
-    const loadFrames = async () => {
-      try {
-        setLoading(true);
+ useEffect(() => {
+  const loadFrames = async () => {
+    try {
+      setLoading(true);
 
-        // ✅ Create frame data from confidences with correct calculation
-        const framesData: FrameData[] = frameWiseConfidences.map((confidence, index) => {
-          const isFake = confidence >= 0.5;
-          
-          return {
-            id: index,
-            label: isFake ? 'FAKE' : 'REAL',
-            // ✅ FAKE: show actual confidence, REAL: show 100 - confidence
-            confidence: isFake 
-              ? Math.round(confidence * 100)           // FAKE: actual confidence
-              : Math.round((1 - confidence) * 100),    // REAL: 100 - confidence
-            isFake: isFake
-          };
-        });
+      // Create frames array from confidence scores
+      const framesData: FrameData[] = frameWiseConfidences.map((confidence, index) => {
+        const isFake = confidence >= 0.5;
+        return {
+          id: index,
+          label: isFake ? 'FAKE' : 'REAL',
+          confidence: isFake 
+            ? Math.round(confidence * 100)          // FAKE confidence
+            : Math.round((1 - confidence) * 100), // REAL confidence
+          isFake
+        };
+      });
 
-        // ✅ Try to get images from ZIP
-        if (annotatedFramesPath) {
-          try {
-            const token = localStorage.getItem('authToken');
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      // Load images from ZIP and map to correct frames
+      if (annotatedFramesPath) {
+        try {
+          const token = localStorage.getItem('authToken');
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-            const response = await fetch(
-              `${API_URL}/api/analysis/${analysisId}/download`,
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
-              }
-            );
-
-            if (response.ok) {
-              const zipBlob = await response.blob();
-              const jszip = new JSZip();
-              const zipData = await jszip.loadAsync(zipBlob);
-
-              // ✅ Match images to frames
-              let imageIdx = 0;
-              for (const [filename, file] of Object.entries(zipData.files)) {
-                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
-                const isJson = filename.endsWith('.json');
-
-                if (isImage && !isJson && !file.dir && imageIdx < framesData.length) {
-                  try {
-                    const imageBlob = await file.async('blob');
-                    const url = URL.createObjectURL(imageBlob);
-                    framesData[imageIdx].url = url;
-                    imageIdx++;
-                  } catch (err) {
-                    console.warn(`⚠️ Could not extract ${filename}`);
-                  }
-                }
-              }
+          const response = await fetch(
+            `${API_URL}/api/analysis/${analysisId}/download`,
+            {
+              headers: { 'Authorization': `Bearer ${token}` }
             }
-          } catch (err) {
-            console.warn('⚠️ Could not load images:', err);
-          }
-        }
+          );
 
-        setFrames(framesData);
-      } finally {
-        setLoading(false);
+          if (response.ok) {
+            const zipBlob = await response.blob();
+            const jszip = new JSZip();
+            const zipData = await jszip.loadAsync(zipBlob);
+
+            // Collect image files with extracted frame index
+ for (const [filename, file] of Object.entries(zipData.files)) {
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+  const isJson = filename.endsWith('.json');
+
+  if (isImage && !isJson && !file.dir) {
+    // Extract frame number from filenames like frame_0.jpg, frame_12.jpg
+    const match = filename.match(/(\d+)(?=\.jpg|\.jpeg|\.png|\.gif|\.webp$)/i);
+    const idx = match ? parseInt(match[1], 10) : null; // use directly, 0-based
+
+    if (idx !== null && idx >= 0 && idx < framesData.length) {
+      try {
+        const imageBlob = await file.async('blob');
+        const url = URL.createObjectURL(imageBlob);
+        framesData[idx].url = url;
+      } catch {
+        // skip on error
       }
-    };
+    }
+  }
+}
 
-    loadFrames();
-  }, [analysisId, frameWiseConfidences, annotatedFramesPath]);
+
+            // Sort images by frame index and assign urls to framesData
+            imageFiles.sort((a, b) => a.idx - b.idx);
+            imageFiles.forEach(({ idx, url }) => {
+              framesData[idx].url = url;
+            });
+          }
+        } catch (err) {
+          console.warn('⚠️ Could not load images:', err);
+        }
+      }
+
+      // Sort frames strictly by id ascending
+      framesData.sort((a, b) => a.id - b.id);
+
+      setFrames(framesData);
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadFrames();
+}, [analysisId, frameWiseConfidences, annotatedFramesPath]);
 
   // ✅ Download ZIP file
   const handleDownloadReport = async () => {

@@ -1,4 +1,4 @@
-
+// src/components/AnalysisHistory.tsx
 'use client';
 
 import React, { useState, useMemo } from 'react';
