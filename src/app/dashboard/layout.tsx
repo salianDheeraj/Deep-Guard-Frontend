@@ -10,8 +10,15 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      {children}
+      {/* ✅ Fixed Sidebar */}
+      <div className="fixed left-0 top-0 h-screen z-50">
+        <Sidebar />
+      </div>
+      
+      {/* ✅ Main content with left margin to avoid overlap */}
+      <div className="flex-1 ml-64">
+        {children}
+      </div>
     </div>
   );
 }

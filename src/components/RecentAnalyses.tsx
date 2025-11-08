@@ -32,6 +32,17 @@ const formatTimeAgo = (dateString: string) => {
   return date.toLocaleDateString();
 };
 
+// ✅ Helper function to calculate displayed confidence
+const getDisplayedConfidence = (analysis: Analysis) => {
+  if (analysis.is_deepfake) {
+    // FAKE: Show actual confidence
+    return Math.round(analysis.confidence_score * 100);
+  } else {
+    // REAL: Show 100 - confidence
+    return Math.round((1 - analysis.confidence_score) * 100);
+  }
+};
+
 export default function RecentAnalyses() {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +57,6 @@ export default function RecentAnalyses() {
       setLoading(true);
       setError(null);
 
-      // ✅ GET AUTH TOKEN
       const token = localStorage.getItem('authToken');
       
       if (!token) {
@@ -60,7 +70,6 @@ export default function RecentAnalyses() {
 
       console.log(`📥 Fetching analyses...`);
 
-      // ✅ ADD AUTH HEADER
       const response = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
         method: 'GET',
         headers: {
@@ -147,8 +156,9 @@ export default function RecentAnalyses() {
 
           {/* Status and confidence */}
           <div className="flex items-center space-x-4 ml-4">
+            {/* ✅ FIXED: Display confidence correctly */}
             <span className="hidden text-sm text-gray-500 md:block whitespace-nowrap">
-              {(analysis.confidence_score * 100).toFixed(0)}% confidence
+              {getDisplayedConfidence(analysis)}% confidence
             </span>
 
             <span

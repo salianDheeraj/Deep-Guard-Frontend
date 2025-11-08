@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css"; // optional if you have global styles
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Minimalist Insight",
@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="m-0 p-0 overflow-x-hidden">{children}</body>
     </html>
   );
 }

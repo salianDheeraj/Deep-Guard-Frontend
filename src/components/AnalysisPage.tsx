@@ -1,121 +1,205 @@
-// src/components/AnalysisPage.tsx
+// src/components/AnalysisPage.tsx - COMPLETE with FrameGallery
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AnalysisHeader from './AnalysisHeader';
 import DeepfakeAlertCard from './DeepfakeAlertCard';
 import ConfidenceOverTimeChart from './ConfidenceOverTimeChart';
 import FrameAnalysisSection from './FrameAnalysisSection';
-import UnderstandingConfidence from './UnderstandingConfidence';
-import { Loader } from 'lucide-react';
 
-interface AnalysisData {
-  analysis_id: string;
-  is_deepfake: boolean;
-  confidence_score: number;
-  frames_analyzed: number;
-  total_frames: number;
-  frame_wise_confidences: number[];
-  filename: string;
-  annotated_frames_path: string;
-  created_at: string;
+import UnderstandingConfidence from './UnderstandingConfidence';
+import { Loader, AlertCircle } from 'lucide-react';
+
+
+interface ConfidenceReport {
+  video_id?: string;
+  total_frames?: number;
+  frames_analyzed?: number;
+  average_confidence?: number;
+  frame_wise_confidences?: number[];
+}
+
+interface AnalysisResponse {
+  success: boolean;
+  data: {
+    id?: string;
+    analysis_id: string;
+    is_deepfake: boolean;
+    confidence_score: number;
+    frames_analyzed: number;
+    filename: string;
+    annotated_frames_path: string;
+    created_at: string;
+    status: 'processing' | 'completed' | 'failed';
+    confidence_report?: ConfidenceReport;
+    analysis_result?: ConfidenceReport | string;
+  };
 }
 
 export default function AnalysisPage() {
   const params = useParams();
   const router = useRouter();
   const analysisId = params.id as string;
+  
+  const { currentAnalysis, loading, error, setAnalysis, setLoading, setError, reset } = useAnalysisStore();
+  const [deleting, setDeleting] = useState(false);
 
-  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetchAnalysis = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!analysisId || analysisId === 'undefined') {
+        throw new Error('Invalid analysis ID');
+      }
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Not authenticated. Please log in.');
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+      const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized. Session expired.');
+        }
+        if (response.status === 404) {
+          throw new Error('Analysis not found.');
+        }
+        throw new Error(`Failed to fetch analysis: ${response.statusText}`);
+      }
+
+      const responseData: AnalysisResponse = await response.json();
+      const data = responseData.data || responseData;
+      
+      console.log('📥 Full API response:', JSON.stringify(data, null, 2));
+
+      let frameWiseConfidences: number[] = [];
+      let confidenceReport: ConfidenceReport | null = null;
+
+      // ✅ STEP 1: Try analysis_result FIRST (most reliable)
+      if (data.analysis_result) {
+        console.log('🔍 Found analysis_result:', typeof data.analysis_result);
+        
+        try {
+          const analysisResult = typeof data.analysis_result === 'string'
+            ? JSON.parse(data.analysis_result)
+            : data.analysis_result;
+          
+          console.log('✅ Parsed analysis_result:', analysisResult);
+          
+          confidenceReport = analysisResult;
+          frameWiseConfidences = analysisResult?.frame_wise_confidences || [];
+          
+          console.log(`✅ Extracted ${frameWiseConfidences.length} frames from analysis_result`);
+          console.log('🎬 First 5 frames:', frameWiseConfidences.slice(0, 5));
+        } catch (parseErr) {
+          console.warn('⚠️ Failed to parse analysis_result:', parseErr);
+        }
+      }
+
+      // ✅ STEP 2: Fallback to confidence_report
+      if (frameWiseConfidences.length === 0 && data.confidence_report) {
+        console.log('🔍 Fallback to confidence_report');
+        confidenceReport = data.confidence_report;
+        frameWiseConfidences = data.confidence_report.frame_wise_confidences || [];
+        console.log(`✅ Extracted ${frameWiseConfidences.length} frames from confidence_report`);
+      }
+
+      console.log(`✅ FINAL DATA:`, {
+        frameCount: frameWiseConfidences.length,
+        confidence_score: data.confidence_score,
+        is_deepfake: data.is_deepfake,
+        frames_analyzed: data.frames_analyzed,
+        annotated_frames_path: data.annotated_frames_path,
+        firstFrames: frameWiseConfidences.slice(0, 5)
+      });
+
+      // ✅ Use actual frame count if frames_analyzed is 0
+      const actualFramesAnalyzed = data.frames_analyzed > 0 ? data.frames_analyzed : frameWiseConfidences.length;
+
+      setAnalysis({
+        analysis_id: data.id || data.analysis_id,
+        is_deepfake: data.is_deepfake ?? false,
+        confidence_score: data.confidence_score ?? 0,
+        frames_analyzed: actualFramesAnalyzed,
+        frame_wise_confidences: frameWiseConfidences,
+        confidence_report: confidenceReport,
+        filename: data.filename || 'Unknown',
+        annotated_frames_path: data.annotated_frames_path || '',
+        created_at: data.created_at || new Date().toISOString(),
+        status: data.status || 'completed',
+        error_message: undefined
+      });
+    } catch (err: any) {
+      console.error('❌ Error fetching analysis:', err);
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }, [analysisId, setAnalysis, setLoading, setError]);
 
   useEffect(() => {
-    if (!analysisId || analysisId === 'undefined') {
+    return () => reset();
+  }, [reset]);
+
+  useEffect(() => {
+    if (analysisId && analysisId !== 'undefined') {
+      fetchAnalysis();
+    } else {
       setError('Invalid analysis ID');
       setLoading(false);
+    }
+  }, [analysisId, fetchAnalysis, setError, setLoading]);
+
+  const handleDelete = useCallback(async () => {
+    if (!confirm('Are you sure you want to delete this analysis? This action cannot be undone.')) {
       return;
     }
-    fetchAnalysis();
-  }, [analysisId]);
-
- const fetchAnalysis = async () => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem('authToken');
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-    const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch analysis');
-
-    const data = await response.json();
-    console.log('📥 API response:', data);
-
-    // ✅ INITIALIZE analysisResult FIRST
-    let analysisResult = {
-      frame_wise_confidences: []
-    };
-
-    // Then try to parse if it exists
-    if (data.analysis_result) {
-      try {
-        analysisResult = typeof data.analysis_result === 'string'
-          ? JSON.parse(data.analysis_result)
-          : data.analysis_result;
-      } catch (parseErr) {
-        console.error('Error parsing analysis_result:', parseErr);
-      }
-    }
-
-    console.log('✅ Final analysisResult:', analysisResult);
-
-    setAnalysisData({
-      analysis_id: data.id,
-      is_deepfake: data.is_deepfake,
-      confidence_score: data.confidence_score,
-      frames_analyzed: data.frames_to_analyze,
-      total_frames: data.total_frames || 0,
-      frame_wise_confidences: analysisResult?.frame_wise_confidences || [],
-      filename: data.filename,
-      annotated_frames_path: data.annotated_frames_path,
-      created_at: data.created_at
-    });
-  } catch (err: any) {
-    console.error('Error fetching analysis:', err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this analysis?')) return;
 
     try {
+      setDeleting(true);
       const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-        // ❌ REMOVED: credentials: 'include'
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (!response.ok) throw new Error('Failed to delete');
+      if (!response.ok) {
+        throw new Error('Failed to delete analysis');
+      }
 
+      console.log('✅ Analysis deleted successfully');
       alert('Analysis deleted successfully');
+      
+      reset();
       router.push('/dashboard');
-    } catch (err) {
-      console.error('Delete error:', err);
-      alert('Failed to delete analysis');
+    } catch (err: any) {
+      console.error('❌ Delete error:', err);
+      alert(`Failed to delete analysis: ${err.message}`);
+      setDeleting(false);
     }
-  };
+  }, [analysisId, router, reset]);
 
   if (loading) {
     return (
@@ -128,15 +212,18 @@ export default function AnalysisPage() {
     );
   }
 
-  if (error || !analysisData) {
+  if (error || !currentAnalysis) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
+          <div className="flex justify-center mb-4">
+            <AlertCircle className="w-12 h-12 text-red-600" />
+          </div>
           <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600">{error || 'Failed to load analysis'}</p>
+          <p className="text-gray-600 mb-6">{error || 'Failed to load analysis'}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             Back to Dashboard
           </button>
@@ -145,43 +232,82 @@ export default function AnalysisPage() {
     );
   }
 
+  if (currentAnalysis.status === 'failed') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
+          <div className="flex justify-center mb-4">
+            <AlertCircle className="w-12 h-12 text-orange-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-orange-600 mb-2">Analysis Failed</h2>
+          <p className="text-gray-600 mb-2">The analysis failed to process</p>
+          <p className="text-sm text-gray-500 mb-6">Check the server logs for details.</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const totalFrames = currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length || 0;
+  const averageConfidence = currentAnalysis.confidence_report?.average_confidence || currentAnalysis.confidence_score || 0;
+
   return (
     <main className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Analysis Header */}
         <AnalysisHeader
           analysisId={analysisId}
-          fileName={analysisData.filename}
-          analyzedDate={new Date(analysisData.created_at).toLocaleDateString()}
-          modelVersion="v3.2" // Updated to match screenshot
+          fileName={currentAnalysis.filename}
+          analyzedDate={new Date(currentAnalysis.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+          modelVersion="v3.2"
           onDelete={handleDelete}
         />
 
+        {/* Alert Card */}
         <DeepfakeAlertCard
-          isDeepfake={analysisData.is_deepfake}
-          confidence={analysisData.confidence_score}
-          framesAnalyzed={analysisData.frames_analyzed}
-          totalFrames={analysisData.total_frames}
+          isDeepfake={currentAnalysis.is_deepfake}
+          confidence={currentAnalysis.confidence_score}
+          framesAnalyzed={currentAnalysis.frames_analyzed}
+          totalFrames={totalFrames}
         />
-        
-        {/* New 2/3 and 1/3 grid layout for main content to match screenshot */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-                <FrameAnalysisSection
-                    analysisId={analysisId}
-                    frameWiseConfidences={analysisData.frame_wise_confidences}
-                    annotatedFramesPath={analysisData.annotated_frames_path}
-                    totalFrames={analysisData.total_frames} 
-                />
-            </div>
-            <div>
-                <ConfidenceOverTimeChart
-                    frameWiseConfidences={analysisData.frame_wise_confidences}
-                />
-            </div>
+          {/* RIGHT: Confidence Over Time - 1 column */}
+          <div className="lg:col-span-1">
+            <ConfidenceOverTimeChart
+              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+            />
+          </div>
         </div>
 
+        {/* ✅ Frame Analysis (LEFT) + Confidence (RIGHT) - SIDE BY SIDE */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* LEFT: Frame Analysis - 2 columns */}
+          <div className="lg:col-span-2">
+            <FrameAnalysisSection
+              analysisId={analysisId}
+              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+              annotatedFramesPath={currentAnalysis.annotated_frames_path}
+              totalFrames={totalFrames}
+              averageConfidence={averageConfidence}
+            />
+          </div>
+
+         
+        {/* Understanding Confidence */}
         <UnderstandingConfidence />
       </div>
     </main>
   );
 }
+
+
+
+

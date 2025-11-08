@@ -26,7 +26,7 @@ const NewAnalysisContent: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [currentFrame, setCurrentFrame] = useState<number>(0);
   const [totalFrames, setTotalFrames] = useState<number>(0);
-  const [framesToAnalyze, setFramesToAnalyze] = useState<number>(50);
+  const [framesToAnalyze, setFramesToAnalyze] = useState<number>(20);
   const [showFrameInput, setShowFrameInput] = useState<boolean>(false);
 
   const acceptedFileTypes: string = useMemo(() => {
@@ -162,23 +162,23 @@ return {
       console.error('❌ ML error:', error);
       return null;
     }
-  };
-
-const renderFrameInputModal = () => {
+  };const renderFrameInputModal = () => {
   if (!showFrameInput || !selectedFile) return null;
 
   const maxFramesToAnalyze = Math.min(200, totalFrames);
-  const frameSkipInterval = Math.ceil(totalFrames / (framesToAnalyze || 1)); // ← Handle 0 here
-  const isInvalid = framesToAnalyze > maxFramesToAnalyze || framesToAnalyze < 10;
+  const frameSkipInterval = Math.ceil(totalFrames / (framesToAnalyze || 1));
+  const isInvalid = framesToAnalyze > maxFramesToAnalyze || framesToAnalyze < 20;
   
-  const handleFrameChange = (newValue: number) => {
-    const val = Math.min(maxFramesToAnalyze, Math.max(0, newValue)); // ← Allow 0
-    setFramesToAnalyze(val);
-  };
+  const presets = [
+    { label: 'Quick', frames: 20, color: 'green' },
+    { label: 'Standard', frames: 80, color: 'blue' },
+    { label: 'Advanced', frames: 140, color: 'purple' },
+    { label: 'Deep', frames: maxFramesToAnalyze, color: 'red' }
+  ];
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm max-h-[85vh] overflow-y-auto flex flex-col">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto flex flex-col">
         
         <div className="sticky top-0 bg-white border-b p-6">
           <h3 className="text-2xl font-bold text-gray-800">
@@ -194,56 +194,75 @@ const renderFrameInputModal = () => {
             📊 Total: <span className="font-bold text-indigo-600">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600">{maxFramesToAnalyze}</span>
           </p>
 
-          <div className="mb-4">
+          {/* ✅ Slider with labels positioned correctly */}
+          <div className="mb-6">
             <label className="block text-xs font-medium text-gray-600 mb-2">Slider:</label>
+            
+            {/* Slider */}
             <input
               type="range"
-              min="0"
+              min="20"
               max={maxFramesToAnalyze}
-              step="1"
+              step="4"
               value={framesToAnalyze}
-              onChange={(e) => handleFrameChange(Number(e.target.value))}
-              className="w-full h-3 bg-gradient-to-r from-green-200 to-blue-500 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              onChange={(e) => setFramesToAnalyze(Number(e.target.value))}
+              className="w-full h-3 bg-gradient-to-r from-green-200 via-blue-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600"
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1 font-semibold">
-              <span>Quick (10)</span>
-              <span>Standard (100)</span>
-              <span>Deep ({maxFramesToAnalyze})</span>
+            
+            {/* Labels positioned to match preset locations on slider */}
+            <div className="relative mt-2 h-4">
+              <div className="absolute left-0 text-xs text-gray-500 font-semibold" style={{ left: '0%', transform: 'translateX(0%)' }}>
+                <span>20</span>
+              </div>
+              <div className="absolute text-xs text-gray-500 font-semibold" style={{ left: `${((80 - 20) / (maxFramesToAnalyze - 20)) * 100}%`, transform: 'translateX(-50%)' }}>
+                <span>80</span>
+              </div>
+              <div className="absolute text-xs text-gray-500 font-semibold" style={{ left: `${((140 - 20) / (maxFramesToAnalyze - 20)) * 100}%`, transform: 'translateX(-50%)' }}>
+                <span>140</span>
+              </div>
+              <div className="absolute text-xs text-gray-500 font-semibold" style={{ left: '100%', transform: 'translateX(-100%)' }}>
+                <span>200</span>
+              </div>
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-600 mb-2">Type Directly:</label>
-            <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={framesToAnalyze}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  if (val === '') {
-                    handleFrameChange(0); // ← Changed from 20 to 0
-                  } else {
-                    handleFrameChange(Number(val));
-                  }
-                }}
-                onFocus={(e) => {
-                  e.target.value = '';
-                  e.target.placeholder = String(framesToAnalyze);
-                }}
-                onBlur={(e) => {
-                  if (e.target.value === '') {
-                    handleFrameChange(0); // ← Changed from 20 to 0
-                    e.target.placeholder = '';
-                  }
-                }}
-                placeholder={String(framesToAnalyze)}
-                className="w-full px-3 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-600 focus:outline-none text-lg font-bold text-center"
-              />
-              <span className="absolute right-2 top-2 text-xs font-semibold text-gray-500">
-                (0-{maxFramesToAnalyze})
-              </span>
-            </div>
+          {/* ✅ Single row with 4 preset buttons - BUTTON STYLE */}
+          <div className="grid grid-cols-4 gap-3 mb-6">
+            {presets.map((preset) => {
+              const isSelected = framesToAnalyze === preset.frames;
+              const colorClasses = {
+                green: isSelected 
+                  ? 'bg-green-600 text-white shadow-lg scale-105' 
+                  : 'bg-white text-green-600 border-green-400 hover:bg-green-50 hover:shadow-md',
+                blue: isSelected 
+                  ? 'bg-blue-600 text-white shadow-lg scale-105' 
+                  : 'bg-white text-blue-600 border-blue-400 hover:bg-blue-50 hover:shadow-md',
+                purple: isSelected 
+                  ? 'bg-purple-600 text-white shadow-lg scale-105' 
+                  : 'bg-white text-purple-600 border-purple-400 hover:bg-purple-50 hover:shadow-md',
+                red: isSelected 
+                  ? 'bg-red-600 text-white shadow-lg scale-105' 
+                  : 'bg-white text-red-600 border-red-400 hover:bg-red-50 hover:shadow-md'
+              };
+
+              return (
+                <button
+                  key={preset.label}
+                  onClick={() => setFramesToAnalyze(preset.frames)}
+                  className={`
+                    p-3 rounded-lg border-2 transition-all duration-200 
+                    font-bold cursor-pointer active:scale-95
+                    ${colorClasses[preset.color as keyof typeof colorClasses]}
+                  `}
+                >
+                  <p className="text-lg font-bold mb-2 uppercase">{preset.label}</p>
+                 <div className="text-xs opacity-70">
+          <span className="font-semibold">{preset.frames}</span>
+          <span className="ml-1">frames</span>
+        </div>
+                </button>
+              );
+            })}
           </div>
 
           <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-3 mb-4">
@@ -261,8 +280,8 @@ const renderFrameInputModal = () => {
             </div>
 
             {isInvalid && (
-              <div className="bg-red-50 border border-red-200 rounded p-2">
-                <p className="text-xs text-red-700 font-bold">⚠️ Invalid! Enter 10-{maxFramesToAnalyze}</p>
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-2">
+                <p className="text-xs text-red-700 font-bold">⚠️ Invalid! Enter 20-{maxFramesToAnalyze} (multiples of 4)</p>
               </div>
             )}
 
@@ -281,7 +300,7 @@ const renderFrameInputModal = () => {
           <button
             onClick={() => {
               setShowFrameInput(false);
-              setFramesToAnalyze(50);
+              setFramesToAnalyze(20);
               setAnalysisState('IDLE');
             }}
             className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-sm"
