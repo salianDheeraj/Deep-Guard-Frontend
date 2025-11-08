@@ -1,7 +1,6 @@
 // src/components/AnalysisPage.tsx - COMPLETE with FrameGallery
 'use client';
 
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AnalysisHeader from './AnalysisHeader';
@@ -11,7 +10,6 @@ import FrameAnalysisSection from './FrameAnalysisSection';
 import UnderstandingConfidence from './UnderstandingConfidence';
 import { Loader, AlertCircle } from 'lucide-react';
 import { useAnalysisStore } from '@/../lib/store/analysisStore';
-
 
 interface ConfidenceReport {
   video_id?: string;
@@ -45,6 +43,7 @@ export default function AnalysisPage() {
   
   const { currentAnalysis, loading, error, setAnalysis, setLoading, setError, reset } = useAnalysisStore();
   const [deleting, setDeleting] = useState(false);
+  const [initialMount, setInitialMount] = useState(true); // ✅ ADDED: Prevents flash
 
   const fetchAnalysis = useCallback(async () => {
     try {
@@ -156,10 +155,11 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     if (analysisId && analysisId !== 'undefined') {
-      fetchAnalysis();
+      fetchAnalysis().finally(() => setInitialMount(false)); // ✅ FIXED: Mark loaded
     } else {
       setError('Invalid analysis ID');
       setLoading(false);
+      setInitialMount(false); // ✅ FIXED: Mark loaded even on error
     }
   }, [analysisId, fetchAnalysis, setError, setLoading]);
 
@@ -202,7 +202,8 @@ export default function AnalysisPage() {
     }
   }, [analysisId, router, reset]);
 
-  if (loading) {
+  // ✅ FIXED: Show loader during initial mount OR loading
+  if (loading || initialMount) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -212,47 +213,47 @@ export default function AnalysisPage() {
       </div>
     );
   }
-if (error || !currentAnalysis) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
-        <div className="flex justify-center mb-4">
-          <AlertCircle className="w-12 h-12 text-red-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-        <p className="text-gray-600 mb-6">{error || 'Failed to load analysis'}</p>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    </div>
-  );
-}
 
-if (currentAnalysis.status === 'failed') {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
-        <div className="flex justify-center mb-4">
-          <AlertCircle className="w-12 h-12 text-orange-600" />
+  if (error || !currentAnalysis) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
+          <div className="flex justify-center mb-4">
+            <AlertCircle className="w-12 h-12 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-gray-600 mb-6">{error || 'Failed to load analysis'}</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Back to Dashboard
+          </button>
         </div>
-        <h2 className="text-2xl font-bold text-orange-600 mb-2">Analysis Failed</h2>
-        <p className="text-gray-600 mb-2">The analysis failed to process</p>
-        <p className="text-sm text-gray-500 mb-6">Check the server logs for details.</p>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Back to Dashboard
-        </button>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
+  if (currentAnalysis.status === 'failed') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
+          <div className="flex justify-center mb-4">
+            <AlertCircle className="w-12 h-12 text-orange-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-orange-600 mb-2">Analysis Failed</h2>
+          <p className="text-gray-600 mb-2">The analysis failed to process</p>
+          <p className="text-sm text-gray-500 mb-6">Check the server logs for details.</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const totalFrames = currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length || 0;
   const averageConfidence = currentAnalysis.confidence_report?.average_confidence || currentAnalysis.confidence_score || 0;
@@ -280,15 +281,15 @@ if (currentAnalysis.status === 'failed') {
           framesAnalyzed={currentAnalysis.frames_analyzed}
           totalFrames={totalFrames}
         />
-          {/* RIGHT: Confidence Over Time - 1 column */}
-          <div className="lg:col-span-1">
-            <ConfidenceOverTimeChart
-              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
-            />
-          </div>
+
+        {/* ✅ FIXED: Proper grid structure for chart */}
+        <div className="grid grid-cols-1 gap-6">
+          <ConfidenceOverTimeChart
+            frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+          />
         </div>
 
-        {/* ✅ Frame Analysis (LEFT) + Confidence (RIGHT) - SIDE BY SIDE */}
+        {/* ✅ Frame Analysis (LEFT) + Understanding Confidence (RIGHT) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT: Frame Analysis - 2 columns */}
           <div className="lg:col-span-2">
@@ -301,14 +302,12 @@ if (currentAnalysis.status === 'failed') {
             />
           </div>
 
-         
-        {/* Understanding Confidence */}
-        <UnderstandingConfidence />
+          {/* RIGHT: Understanding Confidence - 1 column */}
+          <div className="lg:col-span-1">
+            <UnderstandingConfidence />
+          </div>
+        </div>
       </div>
     </main>
   );
 }
-
-
-
-
