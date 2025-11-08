@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import Sidebar from '@/components/Sidebar';
+
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react'; // Import AlertTriangle for modal
 
 // --- Reusable Toggle Switch Component ---
@@ -149,7 +149,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <>
       {isModalOpen && (
         <ConfirmationModal
           {...modalProps}
@@ -157,8 +157,6 @@ export default function AccountPage() {
         />
       )}
       
-      <Sidebar />
-
       <main className="flex-1 p-6 flex flex-col h-full overflow-y-auto">
         
         {/* Header */}
@@ -345,6 +343,6 @@ export default function AccountPage() {
 
         </form>
       </main>
-    </div>
+    </>
   );
 }

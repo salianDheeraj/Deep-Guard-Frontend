@@ -2,17 +2,14 @@
 "use client";
 
 import React from 'react'; // Explicitly import React
-import Sidebar from '@/components/Sidebar';
+
 import RecentAnalyses from '@/components/RecentAnalyses';
 import StatCard from '@/components/StatCard';
 import { Video, AlertTriangle, Clock } from 'lucide-react'; // Import icons for StatCard
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-
-      <div className="flex-1 p-6">
+    <div className="flex-1 p-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -41,6 +38,5 @@ export default function DashboardPage() {
 
         <RecentAnalyses />
       </div>
-    </div>
   );
 }
