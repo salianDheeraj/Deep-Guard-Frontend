@@ -11,6 +11,7 @@ import UnderstandingConfidence from './UnderstandingConfidence';
 import { Loader, AlertCircle } from 'lucide-react';
 import { useAnalysisStore } from '@/../lib/store/analysisStore';
 
+
 interface ConfidenceReport {
   video_id?: string;
   total_frames?: number;
