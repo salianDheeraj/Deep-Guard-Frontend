@@ -2,59 +2,35 @@
 "use client";
 
 import React, { useRef } from 'react';
-import RecentAnalyses from '@/components/RecentAnalyses';
-import StatCard from '@/components/StatCard'; // Make sure this is a default import
-import { Video, AlertTriangle, Clock } from 'lucide-react'; 
-
-// 1. Import your new custom hook HERE
 import { useDashboardAnimations } from '@/hooks/useDashboardAnimations';
 
-export default function DashboardPage() {
-  const container = useRef(null); // The scope for the animations
+// Import your components
+import RecentAnalyses from '@/components/RecentAnalyses';
+import DashboardStatCard from '@/components/DashboardStatCard';
 
-  // 2. Call your hook here
-  useDashboardAnimations(container);
+export default function DashboardPage() {
+  const container = useRef<HTMLDivElement>(null); // Ref for the main page container
+
+  useDashboardAnimations(container); // Pass the ref to your animation hook
 
   return (
-    // 3. The container ref scopes the animations
-    <div ref={container}> 
+    <div ref={container}> {/* Apply the ref here */}
+      
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        
-        <div className="stat-card">
-          <StatCard 
-            title="Total Videos"
-            value="1,234"
-            description="Analyzed this month"
-            Icon={Video}
-            colorClass="bg-blue-500"
-          />
-        </div>
-        
-        <div className="stat-card">
-          <StatCard 
-            title="Deepfakes Detected"
-            value="78"
-            description="Potential threats"
-            Icon={AlertTriangle}
-            colorClass="bg-red-500"
-          />
-        </div>
-        
-        <div className="stat-card">
-          <StatCard 
-            title="Pending Review"
-            value="12"
-            description="Awaiting action"
-            Icon={Clock}
-            colorClass="bg-yellow-500"
-          />
-        </div>
-        
-      </div>
+      {/* The DashboardStatCard component renders the grid of cards itself.
+          We apply the "stat-card" class to its *container* for the animation.
+          The animation hook targets children of the scoped element with ".stat-card".
+          So, if DashboardStatCard's root is a div for the grid, apply stat-card there.
+      */}
+      {/* Assuming DashboardStatCard's root element is what you want to animate as a "stat-card" group */}
+      <DashboardStatCard /> {/* This component will likely render its own grid with the cards */}
 
-      <RecentAnalyses />
+      {/* Recent Analyses will fade in after */}
+      <div className="recent-analyses mt-6">
+        <RecentAnalyses />
+      </div>
+      
     </div>
   );
 }

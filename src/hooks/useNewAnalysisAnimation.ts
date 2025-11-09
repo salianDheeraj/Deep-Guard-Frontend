@@ -11,15 +11,15 @@ export function useNewAnalysisAnimation(
   
   useGSAP(() => {
     if (isAnalyzing) {
-      // Start the frame counting animation
+      // 1. Animate the frame counter text
       gsap.to(".frame-counter", {
         innerText: 120,
-        duration: 4.8, // Match the 5-second analysis
+        duration: 2.8, // <-- REDUCED from 4.8s
         ease: "none",
-        round: true, // Make sure it's whole numbers
+        round: true, 
       });
 
-      // Start the frame stack animation
+      // 2. Animate the stack of cards
       gsap.fromTo(".frame-card", 
         { 
           y: 100,
@@ -27,17 +27,17 @@ export function useNewAnalysisAnimation(
           scale: 0.8
         },
         { 
-          y: (i) => -i * 10,  // Stacks them up
+          y: (i) => -i * 10,
           opacity: 1,
           scale: 1,
-          duration: 0.5,
+          duration: 0.4, // <-- REDUCED from 0.5s
           ease: "power2.out",
           stagger: {
-            each: 0.2,
-            repeat: -1, // Loop forever
+            each: 0.1, // <-- REDUCED from 0.2s
+            repeat: -1, 
           }
         }
       );
     }
-  }, { scope: scope, dependencies: [isAnalyzing] }); // Re-run when isAnalyzing changes
+  }, { scope: scope, dependencies: [isAnalyzing] });
 }

@@ -1,7 +1,8 @@
-// src/components/AnalysisPage.tsx - COMPLETE with FrameGallery
+// src/components/AnalysisPage.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+// 1. Added useRef and useMemo
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AnalysisHeader from './AnalysisHeader';
 import DeepfakeAlertCard from './DeepfakeAlertCard';
@@ -10,8 +11,10 @@ import FrameAnalysisSection from './FrameAnalysisSection';
 import UnderstandingConfidence from './UnderstandingConfidence';
 import { Loader, AlertCircle } from 'lucide-react';
 import { useAnalysisStore } from '@/../lib/store/analysisStore';
+// 2. Fixed typo AND imported the CORRECT animation hook
+import { useAnalysisResultsAnimation } from '@/hooks/useAnalysisResultsAnimation'; 
 
-
+// --- Types ---
 interface ConfidenceReport {
   video_id?: string;
   total_frames?: number;
@@ -19,7 +22,6 @@ interface ConfidenceReport {
   average_confidence?: number;
   frame_wise_confidences?: number[];
 }
-
 interface AnalysisResponse {
   success: boolean;
   data: {
@@ -36,99 +38,63 @@ interface AnalysisResponse {
     analysis_result?: ConfidenceReport | string;
   };
 }
+// ---
 
 export default function AnalysisPage() {
   const params = useParams();
   const router = useRouter();
   const analysisId = params.id as string;
+  const container = useRef(null); // 3. Added ref for animation
   
   const { currentAnalysis, loading, error, setAnalysis, setLoading, setError, reset } = useAnalysisStore();
   const [deleting, setDeleting] = useState(false);
-  const [initialMount, setInitialMount] = useState(true); // ✅ ADDED: Prevents flash
+  const [initialMount, setInitialMount] = useState(true);
 
+  // 4. Call the animation hook
+  useAnalysisResultsAnimation(container, !!currentAnalysis);
+
+  // --- Data Fetching and Handlers ---
   const fetchAnalysis = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
       if (!analysisId || analysisId === 'undefined') {
         throw new Error('Invalid analysis ID');
       }
-
       const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('Not authenticated. Please log in.');
       }
-
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
-
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized. Session expired.');
-        }
-        if (response.status === 404) {
-          throw new Error('Analysis not found.');
-        }
+        if (response.status === 401) throw new Error('Unauthorized. Session expired.');
+        if (response.status === 404) throw new Error('Analysis not found.');
         throw new Error(`Failed to fetch analysis: ${response.statusText}`);
       }
-
       const responseData: AnalysisResponse = await response.json();
       const data = responseData.data || responseData;
-      
-      console.log('📥 Full API response:', JSON.stringify(data, null, 2));
-
       let frameWiseConfidences: number[] = [];
       let confidenceReport: ConfidenceReport | null = null;
-
-      // ✅ STEP 1: Try analysis_result FIRST (most reliable)
       if (data.analysis_result) {
-        console.log('🔍 Found analysis_result:', typeof data.analysis_result);
-        
         try {
           const analysisResult = typeof data.analysis_result === 'string'
             ? JSON.parse(data.analysis_result)
             : data.analysis_result;
-          
-          console.log('✅ Parsed analysis_result:', analysisResult);
-          
           confidenceReport = analysisResult;
           frameWiseConfidences = analysisResult?.frame_wise_confidences || [];
-          
-          console.log(`✅ Extracted ${frameWiseConfidences.length} frames from analysis_result`);
-          console.log('🎬 First 5 frames:', frameWiseConfidences.slice(0, 5));
         } catch (parseErr) {
           console.warn('⚠️ Failed to parse analysis_result:', parseErr);
         }
       }
-
-      // ✅ STEP 2: Fallback to confidence_report
       if (frameWiseConfidences.length === 0 && data.confidence_report) {
-        console.log('🔍 Fallback to confidence_report');
         confidenceReport = data.confidence_report;
         frameWiseConfidences = data.confidence_report.frame_wise_confidences || [];
-        console.log(`✅ Extracted ${frameWiseConfidences.length} frames from confidence_report`);
       }
-
-      console.log(`✅ FINAL DATA:`, {
-        frameCount: frameWiseConfidences.length,
-        confidence_score: data.confidence_score,
-        is_deepfake: data.is_deepfake,
-        frames_analyzed: data.frames_analyzed,
-        annotated_frames_path: data.annotated_frames_path,
-        firstFrames: frameWiseConfidences.slice(0, 5)
-      });
-
-      // ✅ Use actual frame count if frames_analyzed is 0
       const actualFramesAnalyzed = data.frames_analyzed > 0 ? data.frames_analyzed : frameWiseConfidences.length;
-
       setAnalysis({
         analysis_id: data.id || data.analysis_id,
         is_deepfake: data.is_deepfake ?? false,
@@ -149,18 +115,18 @@ export default function AnalysisPage() {
       setLoading(false);
     }
   }, [analysisId, setAnalysis, setLoading, setError]);
-
+  
   useEffect(() => {
     return () => reset();
   }, [reset]);
-
+  
   useEffect(() => {
     if (analysisId && analysisId !== 'undefined') {
-      fetchAnalysis().finally(() => setInitialMount(false)); // ✅ FIXED: Mark loaded
+      fetchAnalysis().finally(() => setInitialMount(false));
     } else {
       setError('Invalid analysis ID');
       setLoading(false);
-      setInitialMount(false); // ✅ FIXED: Mark loaded even on error
+      setInitialMount(false);
     }
   }, [analysisId, fetchAnalysis, setError, setLoading]);
 
@@ -168,32 +134,17 @@ export default function AnalysisPage() {
     if (!confirm('Are you sure you want to delete this analysis? This action cannot be undone.')) {
       return;
     }
-
     try {
       setDeleting(true);
       const token = localStorage.getItem('authToken');
-      
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
+      if (!token) throw new Error('Not authenticated');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'DELETE',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete analysis');
-      }
-
-      console.log('✅ Analysis deleted successfully');
+      if (!response.ok) throw new Error('Failed to delete analysis');
       alert('Analysis deleted successfully');
-      
       reset();
       router.push('/dashboard');
     } catch (err: any) {
@@ -202,11 +153,32 @@ export default function AnalysisPage() {
       setDeleting(false);
     }
   }, [analysisId, router, reset]);
+  // --- End Data Fetching ---
 
-  // ✅ FIXED: Show loader during initial mount OR loading
+  // --- 5. THIS IS THE FIX for the chart error ---
+  // Transforms the number[] into ChartData[]
+  const chartDataForComponent = useMemo(() => {
+    if (!currentAnalysis?.frame_wise_confidences) {
+      return [];
+    }
+    return currentAnalysis.frame_wise_confidences.map((conf, index) => {
+      const isFake = conf >= 0.5;
+      const fakeValue = isFake ? Math.max(conf * 100, 3) : 0;
+      const realValue = !isFake ? Math.max((1 - conf) * 100, 3) : 0;
+      
+      return {
+        name: `F${index + 1}`,
+        FAKE: fakeValue,
+        REAL: realValue
+      };
+    });
+  }, [currentAnalysis?.frame_wise_confidences]);
+  // --- END OF FIX ---
+
+  // --- Loading / Error States ---
   if (loading || initialMount) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-[500px]">
         <div className="text-center">
           <Loader className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">Loading analysis...</p>
@@ -217,8 +189,8 @@ export default function AnalysisPage() {
 
   if (error || !currentAnalysis) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
+      <div className="p-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-auto">
           <div className="flex justify-center mb-4">
             <AlertCircle className="w-12 h-12 text-red-600" />
           </div>
@@ -237,8 +209,8 @@ export default function AnalysisPage() {
 
   if (currentAnalysis.status === 'failed') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 bg-opacity-90 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full z-50">
+      <div className="p-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-auto">
           <div className="flex justify-center mb-4">
             <AlertCircle className="w-12 h-12 text-orange-600" />
           </div>
@@ -255,60 +227,57 @@ export default function AnalysisPage() {
       </div>
     );
   }
+  // --- End States ---
 
   const totalFrames = currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length || 0;
   const averageConfidence = currentAnalysis.confidence_report?.average_confidence || currentAnalysis.confidence_score || 0;
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Analysis Header */}
-        <AnalysisHeader
-          analysisId={analysisId}
-          fileName={currentAnalysis.filename}
-          analyzedDate={new Date(currentAnalysis.created_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-          modelVersion="v3.2"
-          onDelete={handleDelete}
-        />
+    // 6. Add the ref to the main wrapper and REMOVE <main> tag
+    <div className="max-w-7xl mx-auto space-y-6" ref={container}>
+      {/* Analysis Header */}
+      <AnalysisHeader
+        analysisId={analysisId}
+        fileName={currentAnalysis.filename}
+        analyzedDate={new Date(currentAnalysis.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}
+        modelVersion="v3.2"
+        onDelete={handleDelete}
+      />
 
-        {/* Alert Card */}
+      {/* 7. Add classNames for animation targets */}
+      <div className="deepfake-alert-card">
         <DeepfakeAlertCard
           isDeepfake={currentAnalysis.is_deepfake}
           confidence={currentAnalysis.confidence_score}
           framesAnalyzed={currentAnalysis.frames_analyzed}
           totalFrames={totalFrames}
         />
+      </div>
 
-        {/* ✅ FIXED: Proper grid structure for chart */}
-        <div className="grid grid-cols-1 gap-6">
-          <ConfidenceOverTimeChart
+      <div className="grid grid-cols-1 gap-6 confidence-chart">
+        <ConfidenceOverTimeChart
+          frameWiseConfidences={chartDataForComponent} 
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 frame-analysis-section">
+          <FrameAnalysisSection
+            analysisId={analysisId}
             frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+            annotatedFramesPath={currentAnalysis.annotated_frames_path}
+            totalFrames={totalFrames}
+            averageConfidence={averageConfidence}
           />
         </div>
-
-        {/* ✅ Frame Analysis (LEFT) + Understanding Confidence (RIGHT) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT: Frame Analysis - 2 columns */}
-          <div className="lg:col-span-2">
-            <FrameAnalysisSection
-              analysisId={analysisId}
-              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
-              annotatedFramesPath={currentAnalysis.annotated_frames_path}
-              totalFrames={totalFrames}
-              averageConfidence={averageConfidence}
-            />
-          </div>
-
-          {/* RIGHT: Understanding Confidence - 1 column */}
-          <div className="lg:col-span-1">
-            <UnderstandingConfidence />
-          </div>
+        <div className="lg:col-span-1 understanding-confidence">
+          <UnderstandingConfidence />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

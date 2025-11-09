@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, FC, FormEvent, ChangeEvent, useEffect } from "react";
+import React, { useState, FC, FormEvent, ChangeEvent, useEffect, useRef } from "react"; // 1. Import useRef
 import { Shield, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useLoginAnimation } from "@/hooks/useLoginAnimation"; // 2. Import the animation hook
 
 interface FormData {
   email: string;
@@ -42,8 +43,7 @@ const AuthInput: FC<AuthInputProps> = ({
         className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-10 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
         required
       />
-      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-even
-      ts-none">
+      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
         <InputIcon className="h-5 w-5 text-gray-400" />
       </div>
     </div>
@@ -55,6 +55,7 @@ const Login: FC = () => {
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const container = useRef(null); // 3. Create a ref for the animation
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -63,47 +64,37 @@ const Login: FC = () => {
     rememberMe: false,
   });
 
-  // ✅ LISTEN FOR GOOGLE SUCCESS
+  // 4. Call the animation hook
+  useLoginAnimation(container);
+
+  // ... (Your useEffect, handleInputChange, validateForm, handleSubmit, and toggleAuthMode functions are all correct and remain here)
   useEffect(() => {
     const handleGoogleSuccess = async (event: any) => {
       const { detail } = event;
-      console.log("🔐 Google credential received");
-      
       try {
         setIsLoading(true);
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-        // Send JWT to backend
         const response = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ credentials: detail.credential }),
         });
-
         const data = await response.json();
-
         if (!response.ok) {
           throw new Error(data.message || "Google auth failed");
         }
-
-        // ✅ SAVE TOKEN
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("✅ Google auth successful");
-        
         router.push("/dashboard");
       } catch (err: any) {
-        console.error("❌ Google error:", err.message);
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-
     window.addEventListener("googleSuccess", handleGoogleSuccess);
     return () => window.removeEventListener("googleSuccess", handleGoogleSuccess);
   }, [router]);
-
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -111,118 +102,91 @@ const Login: FC = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
   const validateForm = (): boolean => {
     if (!formData.email || !formData.password) {
       setError("Email and password are required");
       return false;
     }
-
     if (!isSigningIn && formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return false;
     }
-
     if (!isSigningIn && formData.password.length < 8) {
       setError("Password must be at least 8 characters");
       return false;
     }
-
     return true;
   };
-
- const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setError(null);
-
-  if (!validateForm()) return;
-
-  setIsLoading(true);
-
-  try {
-    const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-    console.log("📤 Sending to:", `${API_URL}${endpoint}`);
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-        name: formData.email.split("@")[0],
-        ...(isSigningIn && { rememberMe: formData.rememberMe }),
-      }),
-    });
-
-    console.log("📥 Response status:", response.status);
-
-    // 🧩 Safe JSON parser
-    let data: any;
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    if (!validateForm()) return;
+    setIsLoading(true);
     try {
-      data = await response.json();
-    } catch (parseError) {
-      const rawText = await response.text();
-      console.error("❌ Non-JSON response:", rawText);
-      throw new Error(`Server returned HTML or invalid JSON (${response.status})`);
+      const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.email.split("@")[0],
+          ...(isSigningIn && { rememberMe: formData.rememberMe }),
+        }),
+      });
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        const rawText = await response.text();
+        throw new Error(`Server returned HTML or invalid JSON (${response.status})`);
+      }
+      if (!response.ok) {
+        throw new Error(data.message || "Authentication failed");
+      }
+      if (data.token) {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
     }
-
-    if (!response.ok) {
-      throw new Error(data.message || "Authentication failed");
-    }
-
-    // ✅ SAVE TOKEN
-    if (data.token) {
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      console.log("✅ Token saved");
-    }
-
-    console.log("✅ Auth successful");
-    router.push("/dashboard");
-  } catch (err: any) {
-    console.error("❌ Error:", err.message);
-    setError(err.message || "An error occurred");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
+  };
   const toggleAuthMode = () => {
     setIsSigningIn(!isSigningIn);
     setError(null);
-    setFormData({
-      email: "",
-      password: "",
-      confirmPassword: "",
-      rememberMe: false,
-    });
+    setFormData({ email: "", password: "", confirmPassword: "", rememberMe: false });
   };
+  // --- End of functions ---
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans">
+    // 5. Add the ref to the main container
+    <div 
+      ref={container}
+      className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans"
+    >
+      {/* 6. Add classNames for animation targets */}
       <header className="flex flex-col items-center mb-8">
         <div className="flex items-center space-x-2">
-          <div className="p-3 mb-4 bg-indigo-100 rounded-full shadow-xl">
+          <div className="login-logo p-3 mb-4 bg-indigo-100 rounded-full shadow-xl">
             <Shield className="h-10 w-10 text-blue-600" />
           </div>
         </div>
-
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className="login-title text-3xl font-extrabold text-gray-900 tracking-tight">
           Deepfake Detector
         </h1>
-        <p className="mt-2 text-md text-gray-500 max-w-sm text-center">
+        <p className="login-subtitle mt-2 text-md text-gray-500 max-w-sm text-center">
           {isSigningIn
             ? "Sign in to detect deepfakes and review past analyses"
             : "Create your account to start detecting deepfakes"}
         </p>
       </header>
 
-      <div className="w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100">
+      <div className="login-card w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100">
         <form onSubmit={handleSubmit}>
           <AuthInput
             label="Email Address"
@@ -233,7 +197,6 @@ const Login: FC = () => {
             placeholder="Enter your email"
             InputIcon={Mail}
           />
-
           <AuthInput
             label="Password"
             type="password"
@@ -243,7 +206,6 @@ const Login: FC = () => {
             placeholder="Enter your password"
             InputIcon={Lock}
           />
-
           {!isSigningIn && (
             <AuthInput
               label="Confirm Password"
@@ -255,7 +217,6 @@ const Login: FC = () => {
               InputIcon={Lock}
             />
           )}
-
           {isSigningIn && (
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center">
@@ -271,21 +232,16 @@ const Login: FC = () => {
                   Remember me
                 </label>
               </div>
-              <a
-                href="#"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150"
-              >
+              <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150">
                 Forgot Password?
               </a>
             </div>
           )}
-
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={isLoading}
@@ -298,7 +254,6 @@ const Login: FC = () => {
           </button>
         </form>
 
-        {/* ✅ GOOGLE OAUTH BUTTON */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -308,7 +263,6 @@ const Login: FC = () => {
               <span className="px-2 bg-white text-gray-500">Or continue with</span>
             </div>
           </div>
-
           <div className="mt-6">
             <div
               id="g_id_onload"
@@ -325,7 +279,6 @@ const Login: FC = () => {
               data-logo_alignment="left"
             />
           </div>
-
           <script
             dangerouslySetInnerHTML={{
               __html: `
@@ -353,7 +306,6 @@ const Login: FC = () => {
         </p>
       </div>
 
-      {/* ✅ LOAD GOOGLE SCRIPT */}
       <script
         src="https://accounts.google.com/gsi/client"
         async
