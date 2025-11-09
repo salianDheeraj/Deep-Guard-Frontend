@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useChartAnimation } from '@/hooks/useChartAnimation';
 
 interface ConfidenceOverTimeChartProps {
   frameWiseConfidences: number[];
