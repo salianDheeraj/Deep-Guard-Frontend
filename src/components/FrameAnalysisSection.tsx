@@ -45,7 +45,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
           label: isFake ? 'FAKE' : 'REAL',
           confidence: isFake 
             ? Math.round(confidence * 100)          // FAKE confidence
-            : Math.round((1 - confidence) * 100), // REAL confidence
+            : Math.round((1 - confidence) * 100),  // REAL confidence
           isFake
         };
       });
@@ -68,43 +68,35 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
             const jszip = new JSZip();
             const zipData = await jszip.loadAsync(zipBlob);
 
-            // Collect image files with extracted frame index
- for (const [filename, file] of Object.entries(zipData.files)) {
-  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
-  const isJson = filename.endsWith('.json');
+            // Correct matching: get frame number from filenames like frame_0.jpg
+            for (const [filename, file] of Object.entries(zipData.files)) {
+              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+              const isJson = filename.endsWith('.json');
 
-  if (isImage && !isJson && !file.dir) {
-    // Extract frame number from filenames like frame_0.jpg, frame_12.jpg
-    const match = filename.match(/(\d+)(?=\.jpg|\.jpeg|\.png|\.gif|\.webp$)/i);
-    const idx = match ? parseInt(match[1], 10) : null; // use directly, 0-based
+              if (isImage && !isJson && !file.dir) {
+                // Extract frame number (0-based): frame_2.jpg => idx = 2
+                const match = filename.match(/(\d+)(?=\.jpg|\.jpeg|\.png|\.gif|\.webp$)/i);
+                const idx = match ? parseInt(match[1], 10) : null;
 
-    if (idx !== null && idx >= 0 && idx < framesData.length) {
-      try {
-        const imageBlob = await file.async('blob');
-        const url = URL.createObjectURL(imageBlob);
-        framesData[idx].url = url;
-      } catch {
-        // skip on error
-      }
-    }
-  }
-}
-
-
-            // Sort images by frame index and assign urls to framesData
-            imageFiles.sort((a, b) => a.idx - b.idx);
-            imageFiles.forEach(({ idx, url }) => {
-              framesData[idx].url = url;
-            });
+                if (idx !== null && idx >= 0 && idx < framesData.length) {
+                  try {
+                    const imageBlob = await file.async('blob');
+                    const url = URL.createObjectURL(imageBlob);
+                    framesData[idx].url = url;
+                  } catch {
+                    // skip on error
+                  }
+                }
+              }
+            }
           }
         } catch (err) {
           console.warn('⚠️ Could not load images:', err);
         }
       }
 
-      // Sort frames strictly by id ascending
+      // Sort frames by id, just to ensure order
       framesData.sort((a, b) => a.id - b.id);
-
       setFrames(framesData);
 
     } finally {
@@ -114,6 +106,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
 
   loadFrames();
 }, [analysisId, frameWiseConfidences, annotatedFramesPath]);
+
 
   // ✅ Download ZIP file
   const handleDownloadReport = async () => {
