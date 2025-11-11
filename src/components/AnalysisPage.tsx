@@ -1,4 +1,4 @@
-// src/components/AnalysisPage.tsx - COMPLETE with FrameGallery
+// src/components/AnalysisPage.tsx - Chart LEFT, Frames RIGHT with stats cards below chart
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -8,7 +8,7 @@ import DeepfakeAlertCard from './DeepfakeAlertCard';
 import ConfidenceOverTimeChart from './ConfidenceOverTimeChart';
 import FrameAnalysisSection from './FrameAnalysisSection';
 import UnderstandingConfidence from './UnderstandingConfidence';
-import { Loader, AlertCircle } from 'lucide-react';
+import { Loader, AlertCircle, Activity, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { useAnalysisStore } from '@/../lib/store/analysisStore';
 
 interface ConfidenceReport {
@@ -43,7 +43,7 @@ export default function AnalysisPage() {
   
   const { currentAnalysis, loading, error, setAnalysis, setLoading, setError, reset } = useAnalysisStore();
   const [deleting, setDeleting] = useState(false);
-  const [initialMount, setInitialMount] = useState(true); // ✅ ADDED: Prevents flash
+  const [initialMount, setInitialMount] = useState(true);
 
   const fetchAnalysis = useCallback(async () => {
     try {
@@ -87,7 +87,6 @@ export default function AnalysisPage() {
       let frameWiseConfidences: number[] = [];
       let confidenceReport: ConfidenceReport | null = null;
 
-      // ✅ STEP 1: Try analysis_result FIRST (most reliable)
       if (data.analysis_result) {
         console.log('🔍 Found analysis_result:', typeof data.analysis_result);
         
@@ -108,7 +107,6 @@ export default function AnalysisPage() {
         }
       }
 
-      // ✅ STEP 2: Fallback to confidence_report
       if (frameWiseConfidences.length === 0 && data.confidence_report) {
         console.log('🔍 Fallback to confidence_report');
         confidenceReport = data.confidence_report;
@@ -125,7 +123,6 @@ export default function AnalysisPage() {
         firstFrames: frameWiseConfidences.slice(0, 5)
       });
 
-      // ✅ Use actual frame count if frames_analyzed is 0
       const actualFramesAnalyzed = data.frames_analyzed > 0 ? data.frames_analyzed : frameWiseConfidences.length;
 
       setAnalysis({
@@ -155,11 +152,11 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     if (analysisId && analysisId !== 'undefined') {
-      fetchAnalysis().finally(() => setInitialMount(false)); // ✅ FIXED: Mark loaded
+      fetchAnalysis().finally(() => setInitialMount(false));
     } else {
       setError('Invalid analysis ID');
       setLoading(false);
-      setInitialMount(false); // ✅ FIXED: Mark loaded even on error
+      setInitialMount(false);
     }
   }, [analysisId, fetchAnalysis, setError, setLoading]);
 
@@ -202,7 +199,6 @@ export default function AnalysisPage() {
     }
   }, [analysisId, router, reset]);
 
-  // ✅ FIXED: Show loader during initial mount OR loading
   if (loading || initialMount) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -221,7 +217,7 @@ export default function AnalysisPage() {
           <div className="flex justify-center mb-4">
             <AlertCircle className="w-12 h-12 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-red-600 mb-2"></h2>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
           <p className="text-gray-600 mb-6">{error || 'Failed to load analysis'}</p>
           <button
             onClick={() => router.push('/dashboard')}
@@ -258,6 +254,17 @@ export default function AnalysisPage() {
   const totalFrames = currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length || 0;
   const averageConfidence = currentAnalysis.confidence_report?.average_confidence || currentAnalysis.confidence_score || 0;
 
+  // Calculate additional statistics
+  const confidences = currentAnalysis.frame_wise_confidences || [];
+  const maxConfidence = confidences.length > 0 ? Math.max(...confidences) : 0;
+  const minConfidence = confidences.length > 0 ? Math.min(...confidences) : 0;
+  const stdDeviation = confidences.length > 0 
+    ? Math.sqrt(confidences.reduce((sum, val) => sum + Math.pow(val - averageConfidence, 2), 0) / confidences.length)
+    : 0;
+  
+  const fakeFrames = confidences.filter(c => c > 0.5).length;
+  const realFrames = confidences.filter(c => c <= 0.5).length;
+
   return (
     <main className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -282,17 +289,61 @@ export default function AnalysisPage() {
           totalFrames={totalFrames}
         />
 
-        {/* ✅ FIXED: Proper grid structure for chart */}
-        <div className="grid grid-cols-1 gap-6">
-          <ConfidenceOverTimeChart
-            frameWiseConfidences={currentAnalysis.frame_wise_confidences}
-          />
-        </div>
+        {/* Main Layout: Chart + Stats (LEFT) | Frame Analysis (RIGHT) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* LEFT COLUMN: Chart + Statistics */}
+          <div className="space-y-6">
+            {/* Confidence Over Time Chart */}
+            <ConfidenceOverTimeChart
+              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+            />
 
-        {/* ✅ Frame Analysis (LEFT) + Understanding Confidence (RIGHT) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT: Frame Analysis - 2 columns */}
-          <div className="lg:col-span-2">
+            {/* Statistics Cards Below Chart */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Peak Confidence */}
+              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">Peak Confidence</span>
+                  <TrendingUp className="w-4 h-4 text-red-500" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{(maxConfidence * 100).toFixed(1)}%</p>
+                <p className="text-xs text-gray-500 mt-1">Highest fake probability</p>
+              </div>
+
+              {/* Lowest Confidence */}
+              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">Lowest Confidence</span>
+                  <TrendingDown className="w-4 h-4 text-green-500" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{(minConfidence * 100).toFixed(1)}%</p>
+                <p className="text-xs text-gray-500 mt-1">Most authentic frame</p>
+              </div>
+
+              {/* Volatility (Standard Deviation) */}
+              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">Volatility</span>
+                  <Activity className="w-4 h-4 text-blue-500" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{(stdDeviation * 100).toFixed(1)}%</p>
+                <p className="text-xs text-gray-500 mt-1">Confidence variance</p>
+              </div>
+
+              {/* Detection Ratio */}
+              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">Fake/Real Ratio</span>
+                  <BarChart3 className="w-4 h-4 text-purple-500" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{fakeFrames}/{realFrames}</p>
+                <p className="text-xs text-gray-500 mt-1">Frame classification split</p>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Frame Analysis */}
+          <div>
             <FrameAnalysisSection
               analysisId={analysisId}
               frameWiseConfidences={currentAnalysis.frame_wise_confidences}
@@ -301,11 +352,11 @@ export default function AnalysisPage() {
               averageConfidence={averageConfidence}
             />
           </div>
+        </div>
 
-          {/* RIGHT: Understanding Confidence - 1 column */}
-          <div className="lg:col-span-1">
-            <UnderstandingConfidence />
-          </div>
+        {/* Understanding Confidence - Full Width Below */}
+        <div className="grid grid-cols-1 gap-6">
+          <UnderstandingConfidence />
         </div>
       </div>
     </main>
