@@ -1,9 +1,9 @@
-// src/components/RecentAnalyses.tsx
 "use client";
 
 import { ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // ✅ Add useRef here
+import { useRecentAnalysesAnimation } from '@/hooks/useRecentAnalysesAnimation'; 
 
 interface Analysis {
   id: string;
@@ -32,21 +32,21 @@ const formatTimeAgo = (dateString: string) => {
   return date.toLocaleDateString();
 };
 
-// ✅ Helper function to calculate displayed confidence
 const getDisplayedConfidence = (analysis: Analysis) => {
   if (analysis.is_deepfake) {
-    // FAKE: Show actual confidence
     return Math.round(analysis.confidence_score * 100);
   } else {
-    // REAL: Show 100 - confidence
     return Math.round((1 - analysis.confidence_score) * 100);
   }
 };
 
 export default function RecentAnalyses() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useRecentAnalysesAnimation(containerRef); // ✅ ADD THIS LINE
 
   useEffect(() => {
     fetchAnalyses();
@@ -133,7 +133,7 @@ export default function RecentAnalyses() {
   }
 
   return (
-    <div className="rounded-xl bg-white shadow-md">
+    <div ref={containerRef} className="rounded-xl bg-white shadow-md"> {/* ✅ ADD ref={containerRef} HERE */}
       <h2 className="text-xl font-bold p-4 border-b text-gray-800">Recent Analyses</h2>
       {analyses.map((analysis) => (
         <Link
@@ -142,21 +142,17 @@ export default function RecentAnalyses() {
           className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50 border-b last:border-b-0"
         >
           <div className="flex items-center space-x-4 flex-1">
-            {/* Avatar */}
             <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarPlaceholder(analysis.filename)}`}>
               {analysis.filename.substring(0, 1).toUpperCase()}
             </div>
 
-            {/* File info */}
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">{analysis.filename}</p>
               <p className="text-sm text-gray-500">{formatTimeAgo(analysis.created_at)}</p>
             </div>
           </div>
 
-          {/* Status and confidence */}
           <div className="flex items-center space-x-4 ml-4">
-            {/* ✅ FIXED: Display confidence correctly */}
             <span className="hidden text-sm text-gray-500 md:block whitespace-nowrap">
               {getDisplayedConfidence(analysis)}% confidence
             </span>
@@ -176,7 +172,6 @@ export default function RecentAnalyses() {
         </Link>
       ))}
 
-      {/* View all link */}
       <div className="p-4 text-center border-t">
         <Link
           href="/dashboard/history"

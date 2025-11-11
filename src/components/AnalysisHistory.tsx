@@ -1,10 +1,10 @@
-// src/components/AnalysisHistory.tsx
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef} from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Search, ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
-import Link from 'next/link'; // Added Link for the "Start New Analysis" button
+import Link from 'next/link';
+import { useHistoryAnimation } from '@/hooks/useHistoryAnimation';
 
 interface Analysis {
   id: string;
@@ -24,11 +24,22 @@ const AnalysisHistory: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'date' | 'confidence'>('date');
+  const [animationTrigger, setAnimationTrigger] = useState(0); // ✅ ADDED
   const itemsPerPage = 10;
+  const tableBodyRef = useRef<HTMLTableSectionElement>(null);
 
   React.useEffect(() => {
     fetchAllAnalyses();
   }, []);
+
+  // ✅ ADDED: Trigger animation on page change
+  React.useEffect(() => {
+    if (analyses.length > 0) {
+      setAnimationTrigger(prev => prev + 1);
+    }
+  }, [currentPage]);
 
   const fetchAllAnalyses = async () => {
     try {
@@ -65,7 +76,6 @@ const AnalysisHistory: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    // Format to match screenshot: Dec 15, 2024 (excluding time)
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -73,7 +83,14 @@ const AnalysisHistory: React.FC = () => {
     });
   };
 
-  // Filter by verdict and search term
+  const getDisplayedConfidence = (analysis: Analysis) => {
+    if (analysis.is_deepfake) {
+      return Math.round(analysis.confidence_score * 100);
+    } else {
+      return Math.round((1 - analysis.confidence_score) * 100);
+    }
+  };
+
   const filteredAnalyses = useMemo(() => {
     let filtered = analyses.filter(item => {
       const verdict = item.is_deepfake ? 'FAKE' : 'REAL';
@@ -86,18 +103,73 @@ const AnalysisHistory: React.FC = () => {
       );
     }
     
-    // Sort by date (newest first, based on implied order)
-    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    if (sortBy === 'date') {
+      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sortBy === 'confidence') {
+      filtered.sort((a, b) => b.confidence_score - a.confidence_score);
+    }
 
     return filtered;
-  }, [analyses, activeFilter, searchTerm]);
+  }, [analyses, activeFilter, searchTerm, sortBy]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
   const paginatedAnalyses = filteredAnalyses.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, filteredAnalyses.length);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(paginatedAnalyses.map(a => a.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const isAllSelected = paginatedAnalyses.length > 0 && 
+    paginatedAnalyses.every(a => selectedIds.has(a.id));
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) {
+      alert('Please select at least one item to delete');
+      return;
+    }
+
+    if (!confirm(`Delete ${selectedIds.size} selected analyses?`)) return;
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+      const deletePromises = Array.from(selectedIds).map(id =>
+        fetch(`${API_URL}/api/analysis/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      );
+
+      await Promise.all(deletePromises);
+      
+      setAnalyses(analyses.filter(a => !selectedIds.has(a.id)));
+      setSelectedIds(new Set());
+      setAnimationTrigger(prev => prev + 1); // ✅ ADDED
+    } catch (err: any) {
+      alert('Bulk delete failed: ' + (err.message || 'Unknown error'));
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this analysis?')) return;
@@ -118,19 +190,48 @@ const AnalysisHistory: React.FC = () => {
       alert('Delete failed: ' + (err.message || 'An unknown error occurred.'));
     }
   };
-  
+
+  useHistoryAnimation(tableBodyRef, [animationTrigger]); // ✅ CHANGED from [currentPage]
+
   const handleFilterChange = (filter: FilterType) => {
     setActiveFilter(filter);
     setCurrentPage(1);
+    setAnimationTrigger(prev => prev + 1); // ✅ ADDED
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
+    setAnimationTrigger(prev => prev + 1); // ✅ ADDED
   };
 
-  const totalAnalysesCount = analyses.length > 0 ? analyses.length : 127; // Use 127 as fallback to match screenshot
-
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, currentPage - 2);
+      let end = Math.min(totalPages, currentPage + 2);
+      
+      if (currentPage <= 3) {
+        end = maxPagesToShow;
+      }
+      
+      if (currentPage >= totalPages - 2) {
+        start = totalPages - maxPagesToShow + 1;
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  };
 
   if (loading) {
     return (
@@ -159,10 +260,8 @@ const AnalysisHistory: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Filter Bar (Matches screenshot layout) */}
       <div className="flex justify-between items-center mb-0">
         <div className="flex space-x-2 items-center">
-          {/* Verdict Filters */}
           {(['All', 'FAKE', 'REAL'] as FilterType[]).map((filter) => (
             <button
               key={filter}
@@ -179,7 +278,6 @@ const AnalysisHistory: React.FC = () => {
         </div>
 
         <div className="flex space-x-3 items-center">
-          {/* Search Input */}
           <div className="relative">
             <input
               type="text"
@@ -188,20 +286,25 @@ const AnalysisHistory: React.FC = () => {
               onChange={handleSearchChange}
               className="px-4 py-2 w-48 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
           
-          {/* Sort Dropdown */}
           <div className="relative">
-             <select className="appearance-none px-4 py-2 w-32 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                <option>Sort by Date</option>
-                <option>Sort by Confidence</option>
-              </select>
+            <select 
+              value={sortBy}
+              onChange={(e) => { // ✅ CHANGED
+                setSortBy(e.target.value as 'date' | 'confidence');
+                setAnimationTrigger(prev => prev + 1); // ✅ ADDED
+              }}
+              className="appearance-none px-4 py-2 w-40 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="confidence">Sort by Confidence</option>
+            </select>
           </div>
         </div>
       </div>
 
-      {/* Analysis Table Container */}
       <div className="bg-white rounded-lg shadow mt-4 flex-1 overflow-hidden flex flex-col">
         {paginatedAnalyses.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
@@ -210,97 +313,107 @@ const AnalysisHistory: React.FC = () => {
         ) : (
           <>
             <div className='overflow-x-auto'>
-                <table className="min-w-full text-left">
-                  <thead>
-                    {/* Header order matches screenshot: DATE, FILE NAME, VERDICT, CONFIDENCE, ACTIONS */}
-                    <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-20">DATE</th>
-                      <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-auto">FILE NAME</th>
-                      <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">VERDICT</th>
-                      <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">CONFIDENCE</th>
-                      <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">ACTIONS</th>
+              <table className="min-w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="p-4 w-12">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                      />
+                    </th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-20">DATE</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-auto">FILE NAME</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">VERDICT</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">CONFIDENCE</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody ref={tableBodyRef}>
+                  {paginatedAnalyses.map((item) => (
+                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="p-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={(e) => handleSelectOne(item.id, e.target.checked)}
+                          className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                        />
+                      </td>
+                      <td className="p-4 text-sm text-gray-700">{formatDate(item.created_at)}</td>
+                      <td className="p-4 text-sm text-gray-800 font-medium flex items-center">
+                        <FileText size={16} className="mr-2 text-gray-400 flex-shrink-0" />
+                        {item.filename}
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                            item.is_deepfake
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {item.is_deepfake ? 'FAKE' : 'REAL'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm text-gray-800 font-medium">
+                        {getDisplayedConfidence(item)}%
+                      </td>
+                      <td className="p-4 text-sm font-medium space-x-4">
+                        <button
+                          onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-red-600 hover:underline ml-4"
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedAnalyses.map((item) => (
-                      <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="p-4 text-sm text-gray-700">{formatDate(item.created_at)}</td>
-                        <td className="p-4 text-sm text-gray-800 font-medium flex items-center">
-                          <FileText size={16} className="mr-2 text-gray-400 flex-shrink-0" />
-                          {item.filename}
-                        </td>
-                        <td className="p-4">
-                          <span
-                            className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                              item.is_deepfake
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-green-100 text-green-700'
-                            }`}
-                          >
-                            {item.is_deepfake ? 'FAKE' : 'REAL'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-sm text-gray-800 font-medium">
-                          {(item.confidence_score * 100).toFixed(0)}%
-                        </td>
-                        <td className="p-4 text-sm font-medium space-x-4">
-                          <button
-                            onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                            className="text-blue-600 hover:underline"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red-600 hover:underline ml-4"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Table Footer (Pagination) */}
             <div className="flex justify-between items-center p-4 border-t border-gray-200">
               <span className="text-sm text-gray-600">
-                Showing {paginatedAnalyses.length} of {totalAnalysesCount} analyses
+                Showing {startIndex}-{endIndex} of {filteredAnalyses.length} analyses
+                {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
               </span>
               <nav className="flex items-center space-x-1">
-                {/* Previous Button */}
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50"
+                  className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                {/* Page Buttons (Mocked 1, 2, 3 as per screenshot) */}
-                <button
-                  onClick={() => setCurrentPage(1)}
-                  className={`px-3 py-1 rounded-md text-sm ${currentPage === 1 ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 border border-transparent'}`}
-                >1</button>
-                {totalPages > 1 && (
-                    <button
-                        onClick={() => setCurrentPage(2)}
-                        className={`px-3 py-1 rounded-md text-sm ${currentPage === 2 ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 border border-transparent'}`}
-                    >2</button>
-                )}
-                {totalPages > 2 && (
-                    <button
-                        onClick={() => setCurrentPage(3)}
-                        className={`px-3 py-1 rounded-md text-sm ${currentPage === 3 ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 border border-transparent'}`}
-                    >3</button>
-                )}
                 
-                {/* Next Button */}
+                {getPageNumbers().map(pageNum => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      currentPage === pageNum 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-600 hover:bg-gray-100 border border-transparent'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50"
-                >
+                  className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >  
                   Next
                 </button>
               </nav>
@@ -309,16 +422,19 @@ const AnalysisHistory: React.FC = () => {
         )}
       </div>
 
-      {/* Bulk Delete and Start New Analysis Buttons (Matches screenshot position) */}
       <div className="flex justify-between items-center mt-6">
-        <button className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
-          **Bulk Delete Selected**
+        <button 
+          onClick={handleBulkDelete}
+          disabled={selectedIds.size === 0}
+          className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Bulk Delete Selected {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
         <Link 
           href="/dashboard/new-analysis"
           className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
         >
-          **Start New Analysis**
+          Start New Analysis
         </Link>
       </div>
     </div>
