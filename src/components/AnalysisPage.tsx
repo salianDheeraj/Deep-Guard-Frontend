@@ -311,49 +311,6 @@ const resultsRef = useRef<HTMLDivElement>(null);
             <ConfidenceOverTimeChart
               frameWiseConfidences={currentAnalysis.frame_wise_confidences}
             />
-
-            {/* Statistics Cards Below Chart */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Peak Confidence */}
-              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Peak Confidence</span>
-                  <TrendingUp className="w-4 h-4 text-red-500" />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{(maxConfidence * 100).toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Highest fake probability</p>
-              </div>
-
-              {/* Lowest Confidence */}
-              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Lowest Confidence</span>
-                  <TrendingDown className="w-4 h-4 text-green-500" />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{(minConfidence * 100).toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Most authentic frame</p>
-              </div>
-
-              {/* Volatility (Standard Deviation) */}
-              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Volatility</span>
-                  <Activity className="w-4 h-4 text-blue-500" />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{(stdDeviation * 100).toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Confidence variance</p>
-              </div>
-
-              {/* Detection Ratio */}
-              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Fake/Real Ratio</span>
-                  <BarChart3 className="w-4 h-4 text-purple-500" />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{fakeFrames}/{realFrames}</p>
-                <p className="text-xs text-gray-500 mt-1">Frame classification split</p>
-              </div>
-            </div>
           </div>
         </div>
 
