@@ -1,4 +1,3 @@
-// src/components/FrameAnalysisSection.tsx - With Download Report button
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -26,89 +25,74 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
   frameWiseConfidences = [],
   annotatedFramesPath,
   totalFrames,
-  averageConfidence
+  averageConfidence,
 }) => {
   const [frames, setFrames] = useState<FrameData[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
- useEffect(() => {
-  const loadFrames = async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    const loadFrames = async () => {
+      try {
+        setLoading(true);
 
-      // Create frames array from confidence scores
-      const framesData: FrameData[] = frameWiseConfidences.map((confidence, index) => {
-        const isFake = confidence >= 0.5;
-        return {
-          id: index,
-          label: isFake ? 'FAKE' : 'REAL',
-          confidence: isFake 
-            ? Math.round(confidence * 100)          // FAKE confidence
-            : Math.round((1 - confidence) * 100),  // REAL confidence
-          isFake
-        };
-      });
+        const framesData: FrameData[] = frameWiseConfidences.map((confidence, index) => {
+          const isFake = confidence >= 0.5;
+          return {
+            id: index,
+            label: isFake ? 'FAKE' : 'REAL',
+            confidence: isFake
+              ? Math.round(confidence * 100)
+              : Math.round((1 - confidence) * 100),
+            isFake,
+          };
+        });
 
-      // Load images from ZIP and map to correct frames
-      if (annotatedFramesPath) {
-        try {
-          const token = localStorage.getItem('authToken');
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        // Load annotated frames from ZIP
+        if (annotatedFramesPath) {
+          try {
+            const token = localStorage.getItem('authToken');
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-          const response = await fetch(
-            `${API_URL}/api/analysis/${analysisId}/download`,
-            {
-              headers: { 'Authorization': `Bearer ${token}` }
-            }
-          );
+            const response = await fetch(`${API_URL}/api/analysis/${analysisId}/download`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
 
-          if (response.ok) {
-            const zipBlob = await response.blob();
-            const jszip = new JSZip();
-            const zipData = await jszip.loadAsync(zipBlob);
+            if (response.ok) {
+              const zipBlob = await response.blob();
+              const jszip = new JSZip();
+              const zipData = await jszip.loadAsync(zipBlob);
 
-            // Correct matching: get frame number from filenames like frame_0.jpg
-            for (const [filename, file] of Object.entries(zipData.files)) {
-              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
-              const isJson = filename.endsWith('.json');
+              for (const [filename, file] of Object.entries(zipData.files)) {
+                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+                if (isImage && !file.dir) {
+                  const match = filename.match(/(\d+)(?=\.jpg|\.jpeg|\.png|\.gif|\.webp$)/i);
+                  const idx = match ? parseInt(match[1], 10) : null;
 
-              if (isImage && !isJson && !file.dir) {
-                // Extract frame number (0-based): frame_2.jpg => idx = 2
-                const match = filename.match(/(\d+)(?=\.jpg|\.jpeg|\.png|\.gif|\.webp$)/i);
-                const idx = match ? parseInt(match[1], 10) : null;
-
-                if (idx !== null && idx >= 0 && idx < framesData.length) {
-                  try {
+                  if (idx !== null && idx >= 0 && idx < framesData.length) {
                     const imageBlob = await file.async('blob');
                     const url = URL.createObjectURL(imageBlob);
                     framesData[idx].url = url;
-                  } catch {
-                    // skip on error
                   }
                 }
               }
             }
+          } catch (err) {
+            console.warn('⚠️ Could not load images:', err);
           }
-        } catch (err) {
-          console.warn('⚠️ Could not load images:', err);
         }
+
+        framesData.sort((a, b) => a.id - b.id);
+        setFrames(framesData);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Sort frames by id, just to ensure order
-      framesData.sort((a, b) => a.id - b.id);
-      setFrames(framesData);
+    loadFrames();
+  }, [analysisId, frameWiseConfidences, annotatedFramesPath]);
 
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadFrames();
-}, [analysisId, frameWiseConfidences, annotatedFramesPath]);
-
-
-  // ✅ Download ZIP file
+  // ✅ Download ZIP report
   const handleDownloadReport = async () => {
     try {
       setDownloading(true);
@@ -116,18 +100,11 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-      const response = await fetch(
-        `${API_URL}/api/analysis/${analysisId}/download`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await fetch(`${API_URL}/api/analysis/${analysisId}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to download report');
-      }
+      if (!response.ok) throw new Error('Failed to download report');
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -138,8 +115,6 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
-      console.log('✅ Report downloaded successfully');
     } catch (err: any) {
       console.error('❌ Download error:', err);
       alert(`Failed to download report: ${err.message}`);
@@ -148,14 +123,12 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
     }
   };
 
-  // ✅ Calculate display average confidence
+  // ✅ Display average confidence
   const getDisplayAverageConfidence = () => {
     const isFake = averageConfidence >= 0.5;
-    if (isFake) {
-      return (averageConfidence * 100).toFixed(2);
-    } else {
-      return ((1 - averageConfidence) * 100).toFixed(2);
-    }
+    return isFake
+      ? (averageConfidence * 100).toFixed(2)
+      : ((1 - averageConfidence) * 100).toFixed(2);
   };
 
   if (loading) {
@@ -191,8 +164,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
             Average Confidence: {getDisplayAverageConfidence()}%
           </p>
         </div>
-        
-        {/* ✅ Download Report Button */}
+
         <button
           onClick={handleDownloadReport}
           disabled={downloading}
@@ -211,15 +183,15 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
           )}
         </button>
       </div>
-      
-      {/* ✅ Scrollable Grid - ALL frames visible with scroll */}
+
+      {/* Scrollable Grid */}
       <div className="max-h-[700px] overflow-y-auto pr-2">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {frames.map((frame) => (
-            <div key={frame.id} className="flex flex-col">
-              {/* Image container */}
+            <div key={frame.id} className="flex flex-col rounded-lg overflow-hidden shadow-md">
+              {/* Image container with correct aspect ratio */}
               <div
-                className={`relative rounded-t-lg overflow-hidden shadow-md border-2 border-b-0 ${
+                className={`relative aspect-video bg-black border-2 border-b-0 ${
                   frame.isFake ? 'border-red-400' : 'border-green-400'
                 }`}
               >
@@ -227,11 +199,11 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
                   <img
                     src={frame.url}
                     alt={`Frame ${frame.id + 1}`}
-                    className="w-full h-56 object-cover"
+                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-[1.02]"
                   />
                 ) : (
                   <div
-                    className={`w-full h-56 flex items-center justify-center ${
+                    className={`w-full h-full flex items-center justify-center ${
                       frame.isFake ? 'bg-red-50' : 'bg-green-50'
                     }`}
                   >
@@ -248,7 +220,9 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
                     : 'border-green-400 bg-green-600 hover:bg-green-700'
                 } text-white p-2 text-xs font-bold flex items-center justify-between transition-colors`}
               >
-                <span>Frame {frame.id + 1}: {frame.label}</span>
+                <span>
+                  Frame {frame.id + 1}: {frame.label}
+                </span>
                 <span>{frame.confidence}%</span>
               </div>
             </div>

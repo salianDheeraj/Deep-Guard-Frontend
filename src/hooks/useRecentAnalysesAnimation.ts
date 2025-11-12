@@ -50,7 +50,7 @@ export function useRecentAnalysesAnimation(scope: RefObject<HTMLDivElement>) {
           }
         );
       } else if (attempts < maxAttempts) {
-        console.log(`⏳ No items yet (attempt ${attempts}/${maxAttempts})`);
+       
         setTimeout(checkAndAnimate, 100);
       } else {
         console.warn('❌ Timeout: No analyses found after', maxAttempts, 'attempts');

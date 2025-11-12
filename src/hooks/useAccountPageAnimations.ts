@@ -12,7 +12,7 @@ export function useAccountPageAnimations(scope: RefObject<HTMLElement>) {
  gsap.from(".account-header > *", { opacity: 0,
       y: 20,
       duration: 0.6,
-      stagger: 0.1,
+       stagger: 0.1,
       ease: "power3.out",
       scope: scope.current // Ensure animations are scoped
     });
