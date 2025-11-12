@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useState, FC, FormEvent, ChangeEvent, useEffect } from "react";
+import React, { useState, FC, FormEvent, ChangeEvent, useEffect, useRef } from "react";
 import { Shield, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// 🟩 [Animation Import]
+import { useLoginAnimation } from "@/hooks/useLoginAnimation";
+
 interface FormData {
+  name?: string;
   email: string;
   password: string;
   confirmPassword?: string;
@@ -30,7 +34,7 @@ const AuthInput: FC<AuthInputProps> = ({
   onChange,
   InputIcon = Shield,
 }) => (
-  <div className="mb-4">
+  <div className="mb-4 login-form-element">{/* 🟩 [Animation Target] */}
     <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
     <div className="relative">
       <input
@@ -42,8 +46,7 @@ const AuthInput: FC<AuthInputProps> = ({
         className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-10 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
         required
       />
-      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-even
-      ts-none">
+      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
         <InputIcon className="h-5 w-5 text-gray-400" />
       </div>
     </div>
@@ -52,11 +55,17 @@ const AuthInput: FC<AuthInputProps> = ({
 
 const Login: FC = () => {
   const router = useRouter();
+
+  // 🟩 [Animation Setup]
+  const scope = useRef<HTMLDivElement>(null);
+  useLoginAnimation(scope); // Run animated login form
+
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
+    name: '',
     email: "",
     password: "",
     confirmPassword: "",
@@ -68,12 +77,11 @@ const Login: FC = () => {
     const handleGoogleSuccess = async (event: any) => {
       const { detail } = event;
       console.log("🔐 Google credential received");
-      
+
       try {
         setIsLoading(true);
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-        // Send JWT to backend
         const response = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -86,7 +94,6 @@ const Login: FC = () => {
           throw new Error(data.message || "Google auth failed");
         }
 
-        // ✅ SAVE TOKEN
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         console.log("✅ Google auth successful");
@@ -131,71 +138,69 @@ const Login: FC = () => {
     return true;
   };
 
- const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setError(null);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
 
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-    console.log("📤 Sending to:", `${API_URL}${endpoint}`);
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-        name: formData.email.split("@")[0],
-        ...(isSigningIn && { rememberMe: formData.rememberMe }),
-      }),
-    });
-
-    console.log("📥 Response status:", response.status);
-
-    // 🧩 Safe JSON parser
-    let data: any;
     try {
-      data = await response.json();
-    } catch (parseError) {
-      const rawText = await response.text();
-      console.error("❌ Non-JSON response:", rawText);
-      throw new Error(`Server returned HTML or invalid JSON (${response.status})`);
+      const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+      console.log("📤 Sending to:", `${API_URL}${endpoint}`);
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name || formData.email.split("@")[0],
+          ...(isSigningIn && { rememberMe: formData.rememberMe }),
+        }),
+      });
+
+      console.log("📥 Response status:", response.status);
+
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        const rawText = await response.text();
+        console.error("❌ Non-JSON response:", rawText);
+        throw new Error(`Server returned HTML or invalid JSON (${response.status})`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Authentication failed");
+      }
+
+      if (data.token) {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("✅ Token saved");
+      }
+
+      console.log("✅ Auth successful");
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error("❌ Error:", err.message);
+      setError(err.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
     }
-
-    if (!response.ok) {
-      throw new Error(data.message || "Authentication failed");
-    }
-
-    // ✅ SAVE TOKEN
-    if (data.token) {
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      console.log("✅ Token saved");
-    }
-
-    console.log("✅ Auth successful");
-    router.push("/dashboard");
-  } catch (err: any) {
-    console.error("❌ Error:", err.message);
-    setError(err.message || "An error occurred");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   const toggleAuthMode = () => {
     setIsSigningIn(!isSigningIn);
     setError(null);
     setFormData({
+      name: '',
       email: "",
       password: "",
       confirmPassword: "",
@@ -204,26 +209,45 @@ const Login: FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans">
-      <header className="flex flex-col items-center mb-8">
-        <div className="flex items-center space-x-2">
-          <div className="p-3 mb-4 bg-indigo-100 rounded-full shadow-xl">
-            <Shield className="h-10 w-10 text-blue-600" />
-          </div>
+    // 🟩 [Animation Scope]
+    <div ref={scope} className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans">
+      
+      {/* 🟩 [Animation Target] Header */}
+      <header className="flex flex-col items-center justify-center text-center mb-10 login-title-group">
+        {/* Blue Shield Logo */}
+        <div className="login-logo flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 shadow-md mb-5">
+          <Shield className="h-10 w-10 text-blue-600" />
         </div>
 
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        {/* Title */}
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
           Deepfake Detector
         </h1>
-        <p className="mt-2 text-md text-gray-500 max-w-sm text-center">
+
+        {/* Subtitle */}
+        <p className="text-lg text-gray-500 max-w-md">
           {isSigningIn
             ? "Sign in to detect deepfakes and review past analyses"
             : "Create your account to start detecting deepfakes"}
         </p>
       </header>
 
-      <div className="w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100">
+      {/* 🟩 [Animation Target] Login Card */}
+      <div className="w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100 login-card">
         <form onSubmit={handleSubmit}>
+
+          {!isSigningIn && (
+            <AuthInput
+              label="Name"
+              type="text"
+              name="name"
+              value={formData.name || ""}
+              onChange={handleInputChange}
+              placeholder="Enter your full name"
+              InputIcon={Shield}
+            />
+          )}
+
           <AuthInput
             label="Email Address"
             type="email"
@@ -286,14 +310,16 @@ const Login: FC = () => {
             </div>
           )}
 
+          {/* 🟩 [Animation Target] Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white 
+            className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white 
                        bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-[1.01] active:scale-[0.99]
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] 
                        disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            <Shield className="h-5 w-5 text-white opacity-90" />
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
@@ -354,11 +380,7 @@ const Login: FC = () => {
       </div>
 
       {/* ✅ LOAD GOOGLE SCRIPT */}
-      <script
-        src="https://accounts.google.com/gsi/client"
-        async
-        defer
-      />
+      <script src="https://accounts.google.com/gsi/client" async defer />
     </div>
   );
 };

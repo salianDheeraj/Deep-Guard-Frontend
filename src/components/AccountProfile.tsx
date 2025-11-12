@@ -31,31 +31,35 @@ export default function AccountProfile({ profile, onProfileUpdate }: AccountProf
   const handleChangePhotoClick = () => {
     fileInputRef.current?.click();
   };
+const token = localStorage.getItem('authToken');
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaveState('SAVING');
-    
-    try {
-      const res = await fetch('/api/account', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(localProfile)
-      });
+const handleSave = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSaveState('SAVING');
+  
+  try {
+    const res = await fetch('/api/account', {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(localProfile)
+    });
 
-      if (res.ok) {
-        setSaveState('SUCCESS');
-        onProfileUpdate(localProfile);
-        setTimeout(() => setSaveState('IDLE'), 2000);
-      } else {
-        throw new Error('Failed to save');
-      }
-    } catch (error) {
-      console.error('Failed to save profile:', error);
-      setSaveState('IDLE');
-      alert('Failed to save profile. Please try again.');
+    if (res.ok) {
+      setSaveState('SUCCESS');
+      onProfileUpdate(localProfile);
+      setTimeout(() => setSaveState('IDLE'), 2000);
+    } else {
+      throw new Error('Failed to save');
     }
-  };
+  } catch (error) {
+    console.error('Failed to save profile:', error);
+    setSaveState('IDLE');
+    alert('Failed to save profile. Please try again.');
+  }
+};
 
   const handleCancel = () => {
     setLocalProfile(profile);

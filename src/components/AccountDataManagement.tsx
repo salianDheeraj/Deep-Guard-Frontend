@@ -72,44 +72,56 @@ export default function AccountDataManagement() {
     message: '',
     onConfirm: () => {},
   });
+const token = localStorage.getItem('authToken');
 
-  const openDeleteAllModal = () => {
-    setModalProps({
-      title: 'Delete All Analyses',
-      message: 'Are you sure you want to delete all analyses? This action cannot be undone.',
-      onConfirm: async () => {
-        try {
-          await fetch('/api/account/delete-analyses', { method: 'DELETE' });
-          console.log('Deleting all analyses...');
-          setIsModalOpen(false);
-          alert('All analyses deleted successfully!');
-        } catch (error) {
-          console.error('Failed to delete analyses:', error);
-          alert('Failed to delete analyses. Please try again.');
-        }
-      },
-    });
-    setIsModalOpen(true);
-  };
+const openDeleteAllModal = () => {
+  setModalProps({
+    title: 'Delete All Analyses',
+    message: 'Are you sure you want to delete all analyses? This action cannot be undone.',
+    onConfirm: async () => {
+      try {
+        await fetch('/api/account/delete-analyses', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log('Deleting all analyses...');
+        setIsModalOpen(false);
+        alert('All analyses deleted successfully!');
+      } catch (error) {
+        console.error('Failed to delete analyses:', error);
+        alert('Failed to delete analyses. Please try again.');
+      }
+    },
+  });
+  setIsModalOpen(true);
+};
 
-  const openDeleteAccountModal = () => {
-    setModalProps({
-      title: 'Delete Account',
-      message: 'Are you sure you want to delete your account? All your data will be permanently removed. This action is irreversible.',
-      onConfirm: async () => {
-        try {
-          await fetch('/api/account/delete-account', { method: 'DELETE' });
-          console.log('Deleting account...');
-          setIsModalOpen(false);
-          window.location.href = '/';
-        } catch (error) {
-          console.error('Failed to delete account:', error);
-          alert('Failed to delete account. Please try again.');
-        }
-      },
-    });
-    setIsModalOpen(true);
-  };
+const openDeleteAccountModal = () => {
+  setModalProps({
+    title: 'Delete Account',
+    message: 'Are you sure you want to delete your account? All your data will be permanently removed. This action is irreversible.',
+    onConfirm: async () => {
+      try {
+        await fetch('/api/account/delete-account', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log('Deleting account...');
+        setIsModalOpen(false);
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Failed to delete account:', error);
+        alert('Failed to delete account. Please try again.');
+      }
+    },
+  });
+  setIsModalOpen(true);
+};
+
 
   return (
     <>

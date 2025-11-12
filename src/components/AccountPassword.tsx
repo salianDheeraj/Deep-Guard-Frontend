@@ -15,48 +15,54 @@ export default function AccountPassword() {
 
   const [saveState, setSaveState] = useState<'IDLE' | 'SAVING' | 'SUCCESS'>('IDLE');
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPass !== confirmPass) {
-      alert('New passwords do not match!');
-      return;
-    }
+ const token = localStorage.getItem('authToken');
 
-    if (newPass.length < 8) {
-      alert('Password must be at least 8 characters long!');
-      return;
-    }
+const handlePasswordChange = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (newPass !== confirmPass) {
+    alert('New passwords do not match!');
+    return;
+  }
 
-    setSaveState('SAVING');
-    
-    try {
-      const res = await fetch('/api/account/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          current_password: currentPass, 
-          new_password: newPass 
-        })
-      });
+  if (newPass.length < 8) {
+    alert('Password must be at least 8 characters long!');
+    return;
+  }
 
-      if (res.ok) {
-        setSaveState('SUCCESS');
-        setCurrentPass("");
-        setNewPass("");
-        setConfirmPass("");
-        setTimeout(() => setSaveState('IDLE'), 2000);
-        alert('Password changed successfully!');
-      } else {
-        setSaveState('IDLE');
-        alert('Password change failed. Please check your current password.');
-      }
-    } catch (error) {
-      console.error('Failed to change password:', error);
+  setSaveState('SAVING');
+  
+  try {
+    const res = await fetch('/api/account/change-password', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        name: "Your Name" ,
+        current_password: currentPass, 
+        new_password: newPass 
+      })
+    });
+
+    if (res.ok) {
+      setSaveState('SUCCESS');
+      setCurrentPass("");
+      setNewPass("");
+      setConfirmPass("");
+      setTimeout(() => setSaveState('IDLE'), 2000);
+      alert('Password changed successfully!');
+    } else {
       setSaveState('IDLE');
-      alert('Failed to change password. Please try again.');
+      alert('Password change failed. Please check your current password.');
     }
-  };
+  } catch (error) {
+    console.error('Failed to change password:', error);
+    setSaveState('IDLE');
+    alert('Failed to change password. Please try again.');
+  }
+};
 
   const handleClear = () => {
     setCurrentPass("");

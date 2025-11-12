@@ -1,7 +1,8 @@
-// src/components/AnalysisPage.tsx - Chart LEFT, Frames RIGHT with stats cards below chart
+// src/components/AnalysisPage.tsx - FIXED: Frames LEFT, Chart RIGHT
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+
 import { useParams, useRouter } from 'next/navigation';
 import AnalysisHeader from './AnalysisHeader';
 import DeepfakeAlertCard from './DeepfakeAlertCard';
@@ -10,7 +11,7 @@ import FrameAnalysisSection from './FrameAnalysisSection';
 import UnderstandingConfidence from './UnderstandingConfidence';
 import { Loader, AlertCircle, Activity, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { useAnalysisStore } from '@/../lib/store/analysisStore';
-
+import { useAnalysisResultsAnimation } from '@/hooks/useAnalysisResultsAnimation';
 interface ConfidenceReport {
   video_id?: string;
   total_frames?: number;
@@ -41,6 +42,8 @@ export default function AnalysisPage() {
   const router = useRouter();
   const analysisId = params.id as string;
   
+const resultsRef = useRef<HTMLDivElement>(null);
+
   const { currentAnalysis, loading, error, setAnalysis, setLoading, setError, reset } = useAnalysisStore();
   const [deleting, setDeleting] = useState(false);
   const [initialMount, setInitialMount] = useState(true);
@@ -289,9 +292,20 @@ export default function AnalysisPage() {
           totalFrames={totalFrames}
         />
 
-        {/* Main Layout: Chart + Stats (LEFT) | Frame Analysis (RIGHT) */}
+        {/* Main Layout: Frame Analysis (LEFT) | Chart + Stats (RIGHT) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT COLUMN: Chart + Statistics */}
+          {/* LEFT COLUMN: Frame Analysis */}
+          <div className="h-full">
+            <FrameAnalysisSection
+              analysisId={analysisId}
+              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+              annotatedFramesPath={currentAnalysis.annotated_frames_path}
+              totalFrames={totalFrames}
+              averageConfidence={averageConfidence}
+            />
+          </div>
+
+          {/* RIGHT COLUMN: Chart + Statistics */}
           <div className="space-y-6">
             {/* Confidence Over Time Chart */}
             <ConfidenceOverTimeChart
@@ -340,17 +354,6 @@ export default function AnalysisPage() {
                 <p className="text-xs text-gray-500 mt-1">Frame classification split</p>
               </div>
             </div>
-          </div>
-
-          {/* RIGHT COLUMN: Frame Analysis */}
-          <div>
-            <FrameAnalysisSection
-              analysisId={analysisId}
-              frameWiseConfidences={currentAnalysis.frame_wise_confidences}
-              annotatedFramesPath={currentAnalysis.annotated_frames_path}
-              totalFrames={totalFrames}
-              averageConfidence={averageConfidence}
-            />
           </div>
         </div>
 
