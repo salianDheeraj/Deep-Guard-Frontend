@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, FC, FormEvent, ChangeEvent, useEffect, useRef } from "react";
-import { Shield, Mail, Lock } from "lucide-react";
+// ✅ Corrected Import (includes Eye and EyeOff)
+import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // 🟩 [Animation Import]
@@ -25,6 +26,7 @@ interface AuthInputProps {
   InputIcon?: FC<React.SVGProps<SVGSVGElement>>;
 }
 
+// ✅ Corrected AuthInput Component
 const AuthInput: FC<AuthInputProps> = ({
   label,
   type,
@@ -33,25 +35,53 @@ const AuthInput: FC<AuthInputProps> = ({
   value,
   onChange,
   InputIcon = Shield,
-}) => (
-  <div className="mb-4 login-form-element">{/* 🟩 [Animation Target] */}
-    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-    <div className="relative">
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-10 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
-        required
-      />
-      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-        <InputIcon className="h-5 w-5 text-gray-400" />
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+  const actualType = isPassword ? (showPassword ? 'text' : 'password') : type;
+
+  const toggleVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  
+  return (
+    <div className="mb-4 login-form-element">
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <div className="relative">
+        <input
+          type={actualType}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-20 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
+          required
+        />
+
+        {/* This is the show/hide "Eye" icon BUTTON */}
+        {isPassword && (
+          <button
+            type="button"
+            onClick={toggleVisibility}
+            className="absolute inset-y-0 right-3 flex items-center p-2 text-gray-500 hover:text-gray-700 z-10"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
+        )}
+
+        {/* This is your original Lock icon */}
+        
+        
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Login: FC = () => {
   const router = useRouter();
@@ -315,9 +345,9 @@ const Login: FC = () => {
             type="submit"
             disabled={isLoading}
             className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white 
-                       bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] 
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                      bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 
+                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Shield className="h-5 w-5 text-white opacity-90" />
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}

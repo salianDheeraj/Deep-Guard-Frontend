@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Loader, Download } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Loader, Download, X } from 'lucide-react';
 import JSZip from 'jszip';
 
 interface FrameAnalysisSectionProps {
@@ -30,8 +30,15 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
   const [frames, setFrames] = useState<FrameData[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [reportBlob, setReportBlob] = useState<Blob | null>(null);
 
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Effect to handle loading frames and the report blob
   useEffect(() => {
+    const objectUrls: string[] = []; // To store created object URLs for cleanup
+
     const loadFrames = async () => {
       try {
         setLoading(true);
@@ -48,7 +55,6 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
           };
         });
 
-        // Load annotated frames from ZIP
         if (annotatedFramesPath) {
           try {
             const token = localStorage.getItem('authToken');
@@ -60,25 +66,28 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
 
             if (response.ok) {
               const zipBlob = await response.blob();
+              setReportBlob(zipBlob); // Store the blob for download button
+
               const jszip = new JSZip();
               const zipData = await jszip.loadAsync(zipBlob);
 
               for (const [filename, file] of Object.entries(zipData.files)) {
                 const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
                 if (isImage && !file.dir) {
-                  const match = filename.match(/(\d+)(?=\.jpg|\.jpeg|\.png|\.gif|\.webp$)/i);
+                  const match = filename.match(/(\d+)(?!.*\d)/);
                   const idx = match ? parseInt(match[1], 10) : null;
 
                   if (idx !== null && idx >= 0 && idx < framesData.length) {
                     const imageBlob = await file.async('blob');
                     const url = URL.createObjectURL(imageBlob);
+                    objectUrls.push(url); // Store URL for cleanup
                     framesData[idx].url = url;
                   }
                 }
               }
             }
           } catch (err) {
-            console.warn('⚠️ Could not load images:', err);
+            console.warn('⚠️ Could not load images from ZIP:', err);
           }
         }
 
@@ -90,24 +99,32 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
     };
 
     loadFrames();
+
+    // Cleanup function: revoke URLs ONLY when the component unmounts or data changes
+    return () => {
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
   }, [analysisId, frameWiseConfidences, annotatedFramesPath]);
 
-  // ✅ Download ZIP report
+  // Download ZIP report handler
   const handleDownloadReport = async () => {
     try {
       setDownloading(true);
+      let blobToUse = reportBlob;
 
-      const token = localStorage.getItem('authToken');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      if (!blobToUse) {
+        console.warn("Report blob not found, re-fetching for download...");
+        const token = localStorage.getItem('authToken');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/analysis/${analysisId}/download`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to download report');
+        blobToUse = await response.blob();
+        setReportBlob(blobToUse); 
+      }
 
-      const response = await fetch(`${API_URL}/api/analysis/${analysisId}/download`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to download report');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(blobToUse as Blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `analysis_${analysisId}_report.zip`;
@@ -123,7 +140,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
     }
   };
 
-  // ✅ Display average confidence
+  // Display average confidence with proper formatting
   const getDisplayAverageConfidence = () => {
     const isFake = averageConfidence >= 0.5;
     return isFake
@@ -131,9 +148,48 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       : ((1 - averageConfidence) * 100).toFixed(2);
   };
 
+  // === Modal handlers ===
+  const openModal = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+  };
+
+  const closeModal = useCallback(() => {
+    setSelectedImageUrl(null);
+  }, []);
+
+  // Handle clicks outside the modal
+  const handleOverlayClick = useCallback((event: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      closeModal();
+    }
+  }, [closeModal]);
+
+  // Handle Escape key for closing modal
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    if (selectedImageUrl) {
+      document.addEventListener('keydown', handleKeydown);
+      document.addEventListener('mousedown', handleOverlayClick);
+    } else {
+      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener('mousedown', handleOverlayClick);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener('mousedown', handleOverlayClick);
+    };
+  }, [selectedImageUrl, closeModal, handleOverlayClick]);
+
+
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-lg shadow-lg p-6 h-full flex flex-col">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">Frame Analysis</h3>
         <div className="flex items-center justify-center py-8">
           <Loader className="w-6 h-6 animate-spin text-blue-600 mr-2" />
@@ -167,7 +223,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
 
         <button
           onClick={handleDownloadReport}
-          disabled={downloading}
+          disabled={downloading || !reportBlob}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
           {downloading ? (
@@ -185,11 +241,10 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       </div>
 
       {/* Scrollable Grid */}
-      <div className="max-h-[700px] overflow-y-auto pr-2">
+      <div className="max-h-[749px] overflow-y-auto pr-2">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {frames.map((frame) => (
             <div key={frame.id} className="flex flex-col rounded-lg overflow-hidden shadow-md">
-              {/* Image container with correct aspect ratio */}
               <div
                 className={`relative aspect-video bg-black border-2 border-b-0 ${
                   frame.isFake ? 'border-red-400' : 'border-green-400'
@@ -199,7 +254,8 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
                   <img
                     src={frame.url}
                     alt={`Frame ${frame.id + 1}`}
-                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-[1.02]"
+                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+                    onClick={() => openModal(frame.url!)}
                   />
                 ) : (
                   <div
@@ -234,6 +290,26 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       <div className="text-sm text-gray-600 border-t mt-4 pt-4">
         <span>Total: {frames.length} frames</span>
       </div>
+
+      {/* Image Modal (Lightbox) */}
+      {selectedImageUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+          <div ref={modalRef} className="relative max-w-full max-h-full bg-white rounded-lg shadow-xl">
+            <button
+              onClick={closeModal}
+              className="absolute -top-10 right-0 m-4 text-white hover:text-gray-300 transition-colors"
+              aria-label="Close image"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <img 
+              src={selectedImageUrl} 
+              alt="Enlarged Frame" 
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

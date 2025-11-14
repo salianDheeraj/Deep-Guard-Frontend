@@ -295,7 +295,7 @@ const resultsRef = useRef<HTMLDivElement>(null);
         {/* Main Layout: Frame Analysis (LEFT) | Chart + Stats (RIGHT) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT COLUMN: Frame Analysis */}
-          <div className="h-full">
+          <div className="lg:col-span-1 h-full">
             <FrameAnalysisSection
               analysisId={analysisId}
               frameWiseConfidences={currentAnalysis.frame_wise_confidences}
@@ -306,7 +306,8 @@ const resultsRef = useRef<HTMLDivElement>(null);
           </div>
 
           {/* RIGHT COLUMN: Chart + Statistics */}
-          <div className="space-y-6">
+          {/* ✅ THIS IS THE CORRECTED LINE */}
+          <div className="lg:col-span-1 space-y-6 h-full">
             {/* Confidence Over Time Chart */}
             <ConfidenceOverTimeChart
               frameWiseConfidences={currentAnalysis.frame_wise_confidences}
