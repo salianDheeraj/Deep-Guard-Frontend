@@ -1,6 +1,6 @@
 // src/components/NewAnalysisContent.tsx
 "use client";
-import { useNewAnalysisAnimation } from '@/hooks/useNewAnalysisAnimation ';
+import { useNewAnalysisAnimation } from '@/hooks/useNewAnalysisAnimation';
 import React, { useState, useCallback, useMemo, useRef, DragEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadCloud, CheckCircle, Shield, Cpu, Image as ImageIcon, LucideIcon, FileWarning, Loader2, X } from 'lucide-react';

@@ -70,7 +70,8 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
   useChartAnimation(chartContainerRef, [chartBars.length]);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 col-span-1 lg:col-span-3 border border-gray-200">
+    // ✅ THIS IS THE CORRECTED LINE
+    <div className="bg-white rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200">
       <h3 className="text-2xl font-bold text-gray-800 mb-6">
         Confidence Over Time (Frame by Frame)
       </h3>
@@ -95,14 +96,27 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
               <div className="flex-1 relative">
                 <div
                   ref={chartContainerRef}
-                  className="flex items-end gap-[1px] h-80 bg-white rounded-t-md border border-gray-300 overflow-hidden"
+                  className="flex items-end gap-[1px] h-80 bg-white rounded-t-md border border-gray-300 overflow-hidden relative"
                 >
+                  
+                  {/* ===== GRID LINES ===== */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {[10, 20, 30, 40, 50, 60, 70, 80, 90].map((v) => (
+                      <div
+                        key={v}
+                        className="absolute w-full border-t border-gray-300 border-dashed"
+                        style={{ bottom: `${v}%` }} 
+                      ></div>
+                    ))}
+                  </div>
+                  {/* ===== END GRID LINES ===== */}
+
                   {chartBars.map((bar, idx) => {
                     const barHeight = Math.max(bar.value * 100, 3);
                     return (
                       <div
                         key={idx}
-                        className={`flex-1 rounded-t-sm ${
+                        className={`flex-1 rounded-t-sm z-10 ${ 
                           bar.value >= 0.5
                             ? 'bg-gradient-to-t from-rose-500 to-rose-300 hover:from-rose-600 hover:to-rose-400'
                             : 'bg-gradient-to-t from-emerald-500 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400'

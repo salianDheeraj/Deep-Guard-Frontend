@@ -18,14 +18,14 @@ export function useLoginAnimation(scope: RefObject<HTMLDivElement>) {
       });
 
       gsap.set(scope.current, { perspective: 1000 });
-      gsap.set(".login-button", { y: 0 }); // lock baseline
+      gsap.set(".login-button", { y: 0 });
 
       // logo + title group
       tl.from(
         ".login-logo",
         {
           opacity: 0,
-          y: -30,
+          y: -3,
           scale: 0.9,
           filter: "blur(5px)",
           duration: 0.8,
@@ -52,7 +52,6 @@ export function useLoginAnimation(scope: RefObject<HTMLDivElement>) {
           scale: 0.96,
           transformOrigin: "center bottom",
           duration: 1,
-          ease: "power3.out",
         },
         "-=0.4"
       );
@@ -73,7 +72,7 @@ export function useLoginAnimation(scope: RefObject<HTMLDivElement>) {
         "-=0.5"
       );
 
-      // cleanup – leave transforms alone so layout doesn’t jump
+      // FIX: stop logo from shifting
       tl.to(
         [
           ".login-logo",
@@ -85,22 +84,12 @@ export function useLoginAnimation(scope: RefObject<HTMLDivElement>) {
         {
           opacity: 1,
           filter: "blur(0px)",
-          clearProps: "filter, opacity",
+          clearProps: "filter, opacity, transform",
         },
         "<"
       );
 
-      // gentle floating logo, starts after intro
-      context.add(() => {
-        gsap.to(".login-logo", {
-          y: "-=3",
-          repeat: -1,
-          yoyo: true,
-          duration: 2.8,
-          ease: "sine.inOut",
-          delay: tl.totalDuration() + 0.3,
-        });
-      });
+      // ❌ REMOVED FLOATING LOGO — stays perfectly still
     },
     { scope }
   );
