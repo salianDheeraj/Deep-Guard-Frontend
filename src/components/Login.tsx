@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, FC, FormEvent, ChangeEvent, useEffect, useRef } from "react";
-// ✅ Corrected Import (includes Eye and EyeOff)
 import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-// 🟩 [Animation Import]
 import { useLoginAnimation } from "@/hooks/useLoginAnimation";
 
 interface FormData {
@@ -26,7 +23,6 @@ interface AuthInputProps {
   InputIcon?: FC<React.SVGProps<SVGSVGElement>>;
 }
 
-// ✅ Corrected AuthInput Component
 const AuthInput: FC<AuthInputProps> = ({
   label,
   type,
@@ -37,13 +33,13 @@ const AuthInput: FC<AuthInputProps> = ({
   InputIcon = Shield,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const isPassword = type === 'password';
-  const actualType = isPassword ? (showPassword ? 'text' : 'password') : type;
+  const isPassword = type === "password";
+  const actualType = isPassword ? (showPassword ? "text" : "password") : type;
 
   const toggleVisibility = () => {
     setShowPassword(!showPassword);
   };
-  
+
   return (
     <div className="mb-4 login-form-element">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -57,8 +53,6 @@ const AuthInput: FC<AuthInputProps> = ({
           className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-20 transition duration-150 ease-in-out placeholder-gray-400 text-gray-800 font-semibold"
           required
         />
-
-        {/* This is the show/hide "Eye" icon BUTTON */}
         {isPassword && (
           <button
             type="button"
@@ -66,18 +60,9 @@ const AuthInput: FC<AuthInputProps> = ({
             className="absolute inset-y-0 right-3 flex items-center p-2 text-gray-500 hover:text-gray-700 z-10"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            
-            {showPassword ? (
-              <EyeOff className="h-5 w-5" />
-            ) : (
-              <Eye className="h-5 w-5" />
-            )}
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         )}
-
-        {/* This is your original Lock icon */}
-        
-        
       </div>
     </div>
   );
@@ -85,24 +70,46 @@ const AuthInput: FC<AuthInputProps> = ({
 
 const Login: FC = () => {
   const router = useRouter();
-
-  // 🟩 [Animation Setup]
   const scope = useRef<HTMLDivElement>(null);
-  useLoginAnimation(scope); // Run animated login form
+  useLoginAnimation(scope);
 
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    name: '',
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
     rememberMe: false,
   });
 
-  // ✅ LISTEN FOR GOOGLE SUCCESS
+  /* ---------------------------------------------------
+     🔄 AUTO REFRESH ACCESS TOKEN EVERY 14 MINUTES
+  ---------------------------------------------------- */
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    const interval = setInterval(async () => {
+      try {
+        await fetch(`${API_URL}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        console.log("🔁 Access token auto-refreshed");
+      } catch (err) {
+        console.error("❌ Auto-refresh failed:", err);
+      }
+    }, 14 * 60 * 1000); // 14 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  /* ---------------------------------------------------
+     GOOGLE LOGIN HANDLING
+  ---------------------------------------------------- */
   useEffect(() => {
     const handleGoogleSuccess = async (event: any) => {
       const { detail } = event;
@@ -112,10 +119,11 @@ const Login: FC = () => {
         setIsLoading(true);
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-        const response = await fetch(`${API_URL}/auth/login`, {
+        const response = await fetch(`${API_URL}/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ credentials: detail.credential }),
+          credentials: "include",
         });
 
         const data = await response.json();
@@ -124,10 +132,8 @@ const Login: FC = () => {
           throw new Error(data.message || "Google auth failed");
         }
 
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
         console.log("✅ Google auth successful");
-        
+
         router.push("/dashboard");
       } catch (err: any) {
         console.error("❌ Google error:", err.message);
@@ -141,6 +147,9 @@ const Login: FC = () => {
     return () => window.removeEventListener("googleSuccess", handleGoogleSuccess);
   }, [router]);
 
+  /* ---------------------------------------------------
+     INPUT CHANGE HANDLER
+  ---------------------------------------------------- */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -149,6 +158,9 @@ const Login: FC = () => {
     }));
   };
 
+  /* ---------------------------------------------------
+     VALIDATION
+  ---------------------------------------------------- */
   const validateForm = (): boolean => {
     if (!formData.email || !formData.password) {
       setError("Email and password are required");
@@ -168,6 +180,9 @@ const Login: FC = () => {
     return true;
   };
 
+  /* ---------------------------------------------------
+     SUBMIT HANDLER
+  ---------------------------------------------------- */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -180,43 +195,27 @@ const Login: FC = () => {
       const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-      console.log("📤 Sending to:", `${API_URL}${endpoint}`);
-
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
           name: formData.name || formData.email.split("@")[0],
-          ...(isSigningIn && { rememberMe: formData.rememberMe }),
         }),
       });
 
-      console.log("📥 Response status:", response.status);
-
-      let data: any;
-      try {
-        data = await response.json();
-      } catch (parseError) {
-        const rawText = await response.text();
-        console.error("❌ Non-JSON response:", rawText);
-        throw new Error(`Server returned HTML or invalid JSON (${response.status})`);
-      }
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Authentication failed");
       }
 
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("✅ Token saved");
-      }
-
       console.log("✅ Auth successful");
+
       router.push("/dashboard");
     } catch (err: any) {
       console.error("❌ Error:", err.message);
@@ -230,7 +229,7 @@ const Login: FC = () => {
     setIsSigningIn(!isSigningIn);
     setError(null);
     setFormData({
-      name: '',
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -239,33 +238,21 @@ const Login: FC = () => {
   };
 
   return (
-    // 🟩 [Animation Scope]
     <div ref={scope} className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans">
-      
-      {/* 🟩 [Animation Target] Header */}
       <header className="flex flex-col items-center justify-center text-center mb-10 login-title-group">
-        {/* Blue Shield Logo */}
         <div className="login-logo flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 shadow-md mb-5">
           <Shield className="h-10 w-10 text-blue-600" />
         </div>
 
-        {/* Title */}
-        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
-          Deepfake Detector
-        </h1>
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Deepfake Detector</h1>
 
-        {/* Subtitle */}
         <p className="text-lg text-gray-500 max-w-md">
-          {isSigningIn
-            ? "Sign in to detect deepfakes and review past analyses"
-            : "Create your account to start detecting deepfakes"}
+          {isSigningIn ? "Sign in to detect deepfakes and review past analyses" : "Create your account to start detecting deepfakes"}
         </p>
       </header>
 
-      {/* 🟩 [Animation Target] Login Card */}
       <div className="w-full max-w-sm bg-white p-8 shadow-2xl rounded-3xl border border-gray-100 login-card">
         <form onSubmit={handleSubmit}>
-
           {!isSigningIn && (
             <AuthInput
               label="Name"
@@ -325,36 +312,26 @@ const Login: FC = () => {
                   Remember me
                 </label>
               </div>
-              <a
-                href="#"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150"
-              >
+              <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150">
                 Forgot Password?
               </a>
             </div>
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
           )}
 
-          {/* 🟩 [Animation Target] Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white 
-                      bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 
-                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] 
-                      disabled:opacity-50 disabled:cursor-not-allowed"
+            className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Shield className="h-5 w-5 text-white opacity-90" />
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
 
-        {/* ✅ GOOGLE OAUTH BUTTON */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -408,9 +385,6 @@ const Login: FC = () => {
           </a>
         </p>
       </div>
-
-      {/* ✅ LOAD GOOGLE SCRIPT */}
-      <script src="https://accounts.google.com/gsi/client" async defer />
     </div>
   );
 };
