@@ -39,7 +39,7 @@ const NewAnalysisContent: React.FC = () => {
   const acceptedFileTypes: string = useMemo(() => {
     return SUPPORTED_FORMATS.map(f => `.${f.toLowerCase()}`).join(',');
   }, []);
-  
+
   const features: FeatureItem[] = useMemo(() => [
     { title: "Supported Formats", desc: `Images (JPG, PNG), Video (MP4)`, icon: ImageIcon },
     { title: "Secure Processing", desc: "All files are encrypted and automatically deleted after 30 days", icon: Shield },
@@ -48,33 +48,33 @@ const NewAnalysisContent: React.FC = () => {
 
   const handleCancelUpload = async () => {
     console.log('❌ Cancel Upload clicked');
-    
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       console.log('❌ Aborted upload');
     }
-    
+
     if (uploadTimerRef.current) {
       clearInterval(uploadTimerRef.current);
     }
 
     if (uploadedAnalysisIdRef.current) {
       try {
-        const token = localStorage.getItem('authToken');
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-        
+
         console.log(`🗑️ Deleting cancelled upload: ${uploadedAnalysisIdRef.current}`);
-        
+
+        // Use credentials: "include" so HttpOnly cookies are sent with request
         await fetch(`${API_URL}/api/analysis/${uploadedAnalysisIdRef.current}`, {
           method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+          credentials: 'include',
         });
-        
-        console.log('✅ Cancelled upload deleted from Supabase');
+
+        console.log('✅ Cancelled upload deleted from server');
       } catch (err) {
         console.error('❌ Failed to delete cancelled upload:', err);
       }
-      
+
       uploadedAnalysisIdRef.current = null;
     }
 
@@ -116,7 +116,7 @@ const NewAnalysisContent: React.FC = () => {
       setErrorMessage(`Unsupported file type. Please use ${SUPPORTED_FORMATS.join(', ')}.`);
       return false;
     }
-    
+
     return true;
   }, []);
 
@@ -129,7 +129,7 @@ const NewAnalysisContent: React.FC = () => {
     }
     setIsDragging(false);
   };
-  
+
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
@@ -157,7 +157,6 @@ const NewAnalysisContent: React.FC = () => {
         return null;
       }
 
-      const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
       console.log(`🔍 Starting ML analysis: ${analysisId}`);
@@ -173,13 +172,14 @@ const NewAnalysisContent: React.FC = () => {
         });
       }, 650);
 
+      // Send cookie-based auth via credentials: 'include'
       const response = await fetch(`${API_URL}/api/ml/analyze/${analysisId}`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           total_frames: frameCount,
           frames_to_analyze: framesToAnalyze
         }),
@@ -222,18 +222,18 @@ const NewAnalysisContent: React.FC = () => {
     const maxFramesToAnalyze = Math.min(200, totalFrames);
     const frameSkipInterval = Math.ceil(totalFrames / (framesToAnalyze || 1));
     const isInvalid = framesToAnalyze > maxFramesToAnalyze || framesToAnalyze < 20;
-    
+
     const presets = [
       { label: 'Quick', frames: 20, color: 'green' },
       { label: 'Standard', frames: 80, color: 'blue' },
       { label: 'Advanced', frames: 140, color: 'purple' },
       { label: 'Deep', frames: maxFramesToAnalyze, color: 'red' }
     ];
-    
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto flex flex-col">
-          
+
           <div className="sticky top-0 bg-white border-b p-6">
             <h3 className="text-2xl font-bold text-gray-800">
               🎬 Analysis Settings
@@ -250,7 +250,7 @@ const NewAnalysisContent: React.FC = () => {
 
             <div className="mb-6">
               <label className="block text-xs font-medium text-gray-600 mb-2">Slider:</label>
-              
+
               <input
                 type="range"
                 min="20"
@@ -260,7 +260,7 @@ const NewAnalysisContent: React.FC = () => {
                 onChange={(e) => setFramesToAnalyze(Number(e.target.value))}
                 className="w-full h-3 bg-gradient-to-r from-green-200 via-blue-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
-              
+
               <div className="relative mt-2 h-4">
                 <div className="absolute left-0 text-xs text-gray-500 font-semibold" style={{ left: '0%', transform: 'translateX(0%)' }}>
                   <span>20</span>
@@ -281,17 +281,17 @@ const NewAnalysisContent: React.FC = () => {
               {presets.map((preset) => {
                 const isSelected = framesToAnalyze === preset.frames;
                 const colorClasses = {
-                  green: isSelected 
-                    ? 'bg-green-600 text-white shadow-lg scale-105' 
+                  green: isSelected
+                    ? 'bg-green-600 text-white shadow-lg scale-105'
                     : 'bg-white text-green-600 border-green-400 hover:bg-green-50 hover:shadow-md',
-                  blue: isSelected 
-                    ? 'bg-blue-600 text-white shadow-lg scale-105' 
+                  blue: isSelected
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
                     : 'bg-white text-blue-600 border-blue-400 hover:bg-blue-50 hover:shadow-md',
-                  purple: isSelected 
-                    ? 'bg-purple-600 text-white shadow-lg scale-105' 
+                  purple: isSelected
+                    ? 'bg-purple-600 text-white shadow-lg scale-105'
                     : 'bg-white text-purple-600 border-purple-400 hover:bg-purple-50 hover:shadow-md',
-                  red: isSelected 
-                    ? 'bg-red-600 text-white shadow-lg scale-105' 
+                  red: isSelected
+                    ? 'bg-red-600 text-white shadow-lg scale-105'
                     : 'bg-white text-red-600 border-red-400 hover:bg-red-50 hover:shadow-md'
                 };
 
@@ -317,7 +317,7 @@ const NewAnalysisContent: React.FC = () => {
 
             <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-3 mb-4">
               <p className="text-gray-600 text-xs mb-2 font-semibold">📊 Summary:</p>
-              
+
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <div className="bg-white rounded p-2 text-center">
                   <p className="text-xs text-gray-500">Analyze</p>
@@ -377,159 +377,152 @@ const NewAnalysisContent: React.FC = () => {
     );
   };
 
- const startAnalysisPlaceholder = async () => {
-  if (selectedFile && validateFile(selectedFile)) {
-    setAnalysisState('UPLOADING');
-    setUploadProgress(0);
+  const startAnalysisPlaceholder = async () => {
+    if (selectedFile && validateFile(selectedFile)) {
+      setAnalysisState('UPLOADING');
+      setUploadProgress(0);
 
-    try {
-      let frameCount = 0;
-      if (selectedFile.type.startsWith('video')) {
-        frameCount = await getVideoFrameCount(selectedFile);
-        console.log(`🎬 Detected frames: ${frameCount}`);
-        
-        if (frameCount > 0 && !showFrameInput) {
-          setTotalFrames(frameCount);
-          setShowFrameInput(true);
+      try {
+        let frameCount = 0;
+        if (selectedFile.type.startsWith('video')) {
+          frameCount = await getVideoFrameCount(selectedFile);
+          console.log(`🎬 Detected frames: ${frameCount}`);
+
+          if (frameCount > 0 && !showFrameInput) {
+            setTotalFrames(frameCount);
+            setShowFrameInput(true);
+            return;
+          }
+        }
+        setTotalFrames(frameCount || 1);
+
+        // NOTE: we intentionally do NOT read auth token from localStorage.
+        // Instead we rely on HttpOnly cookies and send credentials: "include" on fetches.
+
+        // ✅ STEP 1: Simulate upload progress bar to 100% FIRST
+        console.log('📊 Simulating upload progress...');
+
+        let progressComplete = false;
+        uploadTimerRef.current = setInterval(() => {
+          setUploadProgress(prev => {
+            const newProgress = prev + Math.random() * 15;
+            if (newProgress >= 100) {
+              if (uploadTimerRef.current) clearInterval(uploadTimerRef.current);
+              progressComplete = true;
+              return 100;
+            }
+            return newProgress;
+          });
+        }, 300);
+
+        // ✅ STEP 2: Wait for progress bar to reach 100%
+        await new Promise<void>((resolve) => {
+          const checkProgress = setInterval(() => {
+            if (progressComplete || !uploadTimerRef.current) {
+              clearInterval(checkProgress);
+              resolve();
+            }
+          }, 100);
+        });
+
+        console.log('✅ Progress bar reached 100%, now uploading to backend...');
+
+        // ✅ STEP 3: NOW actually upload to backend/Supabase
+        abortControllerRef.current = new AbortController();
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('user_id', 'user_' + Math.random().toString(36).substr(2, 9));
+        formData.append('total_frames', frameCount.toString());
+        formData.append('frames_to_analyze', framesToAnalyze.toString());
+
+        console.log('📁 File:', selectedFile.name, selectedFile.size);
+        console.log('📊 Frames to analyze:', framesToAnalyze);
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+        // Upload with credentials so HttpOnly cookies are included
+        const response = await fetch(`${API_URL}/api/analysis/upload`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+          signal: abortControllerRef.current?.signal,
+        });
+
+        console.log('📥 Response status:', response.status);
+        const data = await response.json();
+        console.log('📥 Response data:', data);
+
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || 'Upload failed');
+        }
+
+        const analysisId = data.analysis_id || data.id || data.data?.analysis_id;
+        uploadedAnalysisIdRef.current = analysisId;
+
+        setAnalysisState('ANALYZING');
+        setCurrentFrame(0);
+        console.log(`📤 Upload complete. Starting ML...`);
+        console.log(`📋 Analysis ID: ${analysisId}`);
+        console.log(`🎬 Frame count: ${frameCount}`);
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        console.log(`⏱️ Calling ML endpoint now...`);
+
+        const mlSuccess = await startMLAnalysis(analysisId, frameCount);
+
+        console.log(`📊 mlSuccess result:`, mlSuccess);
+
+        if (mlSuccess && mlSuccess.success && analysisId) {
+          console.log(`✅ Analysis complete! Confidence: ${mlSuccess.confidence_score}`);
+          console.log(`🎯 Redirecting to: /dashboard/analysis/${analysisId}`);
+
+          uploadedAnalysisIdRef.current = null;
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          router.push(`/dashboard/analysis/${analysisId}`);
+        } else {
+          console.error(`❌ ML analysis failed or incomplete`);
+          setErrorMessage('Analysis failed or incomplete. Please try again.');
+          setAnalysisState('IDLE');
+
+          if (analysisId) {
+            try {
+              await fetch(`${API_URL}/api/analysis/${analysisId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+              });
+              console.log('🗑️ Deleted failed analysis');
+            } catch (err) {
+              console.error('Failed to delete failed analysis:', err);
+            }
+          }
+          uploadedAnalysisIdRef.current = null;
+        }
+
+      } catch (error: any) {
+        if (uploadTimerRef.current) clearInterval(uploadTimerRef.current);
+
+        if (error.name === 'AbortError') {
+          console.log('❌ Upload was cancelled');
+          setAnalysisState('IDLE');
+          setSelectedFile(null);
+          setUploadProgress(0);
+          setCurrentFrame(0);
+          setTotalFrames(0);
+          setFramesToAnalyze(20);
+          setErrorMessage(null);
           return;
         }
-      }
-      setTotalFrames(frameCount || 1);
-
-      const token = localStorage.getItem('authToken');
-      
-      if (!token) {
-        setErrorMessage('Not authenticated. Please login first.');
+        console.error('❌ Error:', error);
+        const errorMsg = error?.message || String(error) || 'Unknown error';
+        setErrorMessage(`Upload failed: ${errorMsg}`);
         setAnalysisState('IDLE');
-        return;
       }
-
-      // ✅ STEP 1: Simulate upload progress bar to 100% FIRST
-      console.log('📊 Simulating upload progress...');
-      
-      let progressComplete = false;
-      uploadTimerRef.current = setInterval(() => {
-        setUploadProgress(prev => {
-          const newProgress = prev + Math.random() * 15;
-          if (newProgress >= 100) {
-            if (uploadTimerRef.current) clearInterval(uploadTimerRef.current);
-            progressComplete = true;
-            return 100;
-          }
-          return newProgress;
-        });
-      }, 300);
-
-      // ✅ STEP 2: Wait for progress bar to reach 100%
-      await new Promise<void>((resolve) => {
-        const checkProgress = setInterval(() => {
-          if (progressComplete || !uploadTimerRef.current) {
-            clearInterval(checkProgress);
-            resolve();
-          }
-        }, 100);
-      });
-
-      console.log('✅ Progress bar reached 100%, now uploading to backend...');
-
-      // ✅ STEP 3: NOW actually upload to backend/Supabase
-      abortControllerRef.current = new AbortController();
-
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('user_id', 'user_' + Math.random().toString(36).substr(2, 9));
-      formData.append('total_frames', frameCount.toString());
-      formData.append('frames_to_analyze', framesToAnalyze.toString());
-
-      console.log('🔑 Token:', token ? 'Found' : 'NOT FOUND');
-      console.log('📁 File:', selectedFile.name, selectedFile.size);
-      console.log('📊 Frames to analyze:', framesToAnalyze);
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-      const response = await fetch(`${API_URL}/api/analysis/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-        signal: abortControllerRef.current?.signal,
-      });
-
-      console.log('📥 Response status:', response.status);
-      const data = await response.json();
-      console.log('📥 Response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data?.message || data?.error || 'Upload failed');
-      }
-
-      const analysisId = data.analysis_id || data.id || data.data?.analysis_id;
-      uploadedAnalysisIdRef.current = analysisId;
-
-      setAnalysisState('ANALYZING');
-      setCurrentFrame(0);
-      console.log(`📤 Upload complete. Starting ML...`);
-      console.log(`📋 Analysis ID: ${analysisId}`);
-      console.log(`🎬 Frame count: ${frameCount}`);
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      console.log(`⏱️ Calling ML endpoint now...`);
-      
-      const mlSuccess = await startMLAnalysis(analysisId, frameCount);
-
-      console.log(`📊 mlSuccess result:`, mlSuccess);
-
-      if (mlSuccess && mlSuccess.success && analysisId) {
-        console.log(`✅ Analysis complete! Confidence: ${mlSuccess.confidence_score}`);
-        console.log(`🎯 Redirecting to: /dashboard/analysis/${analysisId}`);
-        
-        uploadedAnalysisIdRef.current = null;
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        router.push(`/dashboard/analysis/${analysisId}`);
-      } else {
-        console.error(`❌ ML analysis failed or incomplete`);
-        setErrorMessage('Analysis failed or incomplete. Please try again.');
-        setAnalysisState('IDLE');
-        
-        if (analysisId) {
-          try {
-            await fetch(`${API_URL}/api/analysis/${analysisId}`, {
-              method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            console.log('🗑️ Deleted failed analysis');
-          } catch (err) {
-            console.error('Failed to delete failed analysis:', err);
-          }
-        }
-        uploadedAnalysisIdRef.current = null;
-      }
-
-    } catch (error: any) {
-      if (uploadTimerRef.current) clearInterval(uploadTimerRef.current);
-      
-      if (error.name === 'AbortError') {
-        console.log('❌ Upload was cancelled');
-        setAnalysisState('IDLE');
-        setSelectedFile(null);
-        setUploadProgress(0);
-        setCurrentFrame(0);
-        setTotalFrames(0);
-        setFramesToAnalyze(20);
-        setErrorMessage(null);
-        return;
-      }
-      console.error('❌ Error:', error);
-      const errorMsg = error?.message || String(error) || 'Unknown error';
-      setErrorMessage(`Upload failed: ${errorMsg}`);
-      setAnalysisState('IDLE');
     }
-  }
-};
+  };
 
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (errorMessage) {
@@ -537,7 +530,7 @@ const NewAnalysisContent: React.FC = () => {
       setErrorMessage(null);
       return;
     }
-    
+
     if (!selectedFile) {
       event.preventDefault();
       const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
@@ -550,11 +543,11 @@ const NewAnalysisContent: React.FC = () => {
   const renderUploadArea = () => {
     if (analysisState !== 'IDLE' && selectedFile) {
       const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(1);
-      
+
       return (
         <div className="text-left w-full">
           <p className="text-lg font-medium text-gray-800 mb-1">{selectedFile.name}</p>
-          
+
           <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
             <span>{analysisState === 'UPLOADING' ? 'Uploading...' : 'Processing file...'}</span>
             <span>{fileSizeMB} MB</span>
@@ -571,7 +564,7 @@ const NewAnalysisContent: React.FC = () => {
               <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
               <p className="text-xl font-semibold text-gray-800 mb-1">Uploading file...</p>
               <p className="text-sm text-gray-500 mb-4">Please wait while we upload your file</p>
-              
+
               <button
                 onClick={handleCancelUpload}
                 className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium text-sm flex items-center gap-2"
@@ -595,8 +588,8 @@ const NewAnalysisContent: React.FC = () => {
           <div className="bg-indigo-50 border-l-4 border-indigo-400 text-indigo-700 p-4 mt-4" role="alert">
             <p className="font-semibold">Note:</p>
             <p className="text-sm">
-              {analysisState === 'UPLOADING' 
-                ? 'You can cancel the upload before analysis begins.' 
+              {analysisState === 'UPLOADING'
+                ? 'You can cancel the upload before analysis begins.'
                 : 'Analysis may take 1-3 minutes. Once started, it cannot be cancelled.'}
             </p>
           </div>
@@ -613,7 +606,7 @@ const NewAnalysisContent: React.FC = () => {
         ) : (
           <UploadCloud className="w-12 h-12 text-indigo-500 mb-4" />
         )}
-        
+
         {errorMessage ? (
           <p className="text-red-600 font-medium mb-4 text-center">{errorMessage}</p>
         ) : (
@@ -634,9 +627,9 @@ const NewAnalysisContent: React.FC = () => {
             </span>
           ))}
         </div>
-        
+
         <p className="text-sm text-gray-400 mb-4">Maximum file size: {MAX_FILE_SIZE_MB}MB</p>
-        
+
         {selectedFile ? (
           <div className="flex gap-3">
             <button
@@ -681,7 +674,7 @@ const NewAnalysisContent: React.FC = () => {
       </div>
     );
   };
-  
+
   return (
     <main className="flex-1 overflow-y-auto bg-gray-50 p-10">
       {renderFrameInputModal()}

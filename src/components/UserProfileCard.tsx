@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { User, Loader2, AlertCircle } from "lucide-react";
-import Link from "next/link"; // Import the Next.js Link component
+import Link from "next/link";
 
 interface UserProfile {
   name: string;
   email: string;
-  profile_pic: string; // This key must match what your backend sends
+  profile_pic: string;
 }
 
 export default function UserProfileCard() {
@@ -18,34 +18,29 @@ export default function UserProfileCard() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          throw new Error("No auth token found");
-        }
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        if (!apiUrl) {
-          throw new Error("API URL is not configured");
-        }
-        
-       const res = await fetch(`${apiUrl}/auth/me`, {
+        // 🔥 Fully cookie-based auth (no token)
+        const res = await fetch(`${API_URL}/auth/me`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include", // ← IMPORTANT
           cache: "no-store",
         });
 
+        if (res.status === 401) {
+          throw new Error("Not authenticated");
+        }
+
         if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Failed to load profile");
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to fetch profile");
         }
 
         const data = await res.json();
         setProfile(data);
 
       } catch (err: any) {
-        console.error("Profile Fetch Error:", err);
+        console.error("❌ Profile Fetch Error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -55,7 +50,9 @@ export default function UserProfileCard() {
     fetchProfile();
   }, []);
 
-  // 🔵 1. LOADING STATE
+  // ===========================
+  // 1️⃣ Loading State
+  // ===========================
   if (loading) {
     return (
       <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-center min-h-[100px]">
@@ -64,7 +61,9 @@ export default function UserProfileCard() {
     );
   }
 
-  // 🔴 2. ERROR STATE
+  // ===========================
+  // 2️⃣ Error State
+  // ===========================
   if (error || !profile) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -72,7 +71,7 @@ export default function UserProfileCard() {
           <AlertCircle className="w-5 h-5 text-red-600" />
           <div className="ml-2">
             <p className="text-sm text-red-700">
-              {error || "Could not load profile."}
+              {error || "Could not load user profile."}
             </p>
           </div>
         </div>
@@ -80,7 +79,9 @@ export default function UserProfileCard() {
     );
   }
 
-  // 🟢 3. SUCCESS STATE
+  // ===========================
+  // 3️⃣ Success State
+  // ===========================
   return (
     <div className="bg-gray-50 rounded-lg p-4">
       <div className="flex items-center">
@@ -92,9 +93,7 @@ export default function UserProfileCard() {
           />
         ) : (
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-bold">
-            {profile.name
-              ? profile.name.charAt(0).toUpperCase()
-              : <User size={20} />}
+            {profile.name ? profile.name.charAt(0).toUpperCase() : <User size={20} />}
           </div>
         )}
 
@@ -106,6 +105,7 @@ export default function UserProfileCard() {
         </div>
       </div>
 
+      {/* Account Link */}
       <Link
         href="/dashboard/account"
         className="text-xs font-medium text-blue-600 hover:underline mt-2 block"

@@ -26,7 +26,8 @@ const AnalysisHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'date' | 'confidence'>('date');
-  const [animationTrigger, setAnimationTrigger] = useState(0); // ✅ ADDED
+  const [animationTrigger, setAnimationTrigger] = useState(0);
+
   const itemsPerPage = 10;
   const tableBodyRef = useRef<HTMLTableSectionElement>(null);
 
@@ -34,33 +35,25 @@ const AnalysisHistory: React.FC = () => {
     fetchAllAnalyses();
   }, []);
 
-  // ✅ ADDED: Trigger animation on page change
   React.useEffect(() => {
     if (analyses.length > 0) {
       setAnimationTrigger(prev => prev + 1);
     }
   }, [currentPage]);
 
+  // =============================
+  // ✅ FETCH ANALYSIS — COOKIE AUTH
+  // =============================
   const fetchAllAnalyses = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError('Not authenticated');
-        setLoading(false);
-        return;
-      }
-
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      
+
       const response = await fetch(`${API_URL}/api/analysis?limit=1000&offset=0`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        credentials: "include",              // 🔥 KEY FIX
       });
 
       if (!response.ok) throw new Error('Failed to fetch analyses');
@@ -68,7 +61,6 @@ const AnalysisHistory: React.FC = () => {
       const result = await response.json();
       setAnalyses(result.data || []);
     } catch (err: any) {
-      console.error('Error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -84,11 +76,8 @@ const AnalysisHistory: React.FC = () => {
   };
 
   const getDisplayedConfidence = (analysis: Analysis) => {
-    if (analysis.is_deepfake) {
-      return Math.round(analysis.confidence_score * 100);
-    } else {
-      return Math.round((1 - analysis.confidence_score) * 100);
-    }
+    if (analysis.is_deepfake) return Math.round(analysis.confidence_score * 100);
+    return Math.round((1 - analysis.confidence_score) * 100);
   };
 
   const filteredAnalyses = useMemo(() => {
@@ -98,14 +87,14 @@ const AnalysisHistory: React.FC = () => {
     });
 
     if (searchTerm) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.filename.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (sortBy === 'date') {
       filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    } else if (sortBy === 'confidence') {
+    } else {
       filtered.sort((a, b) => b.confidence_score - a.confidence_score);
     }
 
@@ -122,114 +111,98 @@ const AnalysisHistory: React.FC = () => {
   const endIndex = Math.min(currentPage * itemsPerPage, filteredAnalyses.length);
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(paginatedAnalyses.map(a => a.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
+    setSelectedIds(checked ? new Set(paginatedAnalyses.map(a => a.id)) : new Set());
   };
 
   const handleSelectOne = (id: string, checked: boolean) => {
     const newSelected = new Set(selectedIds);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
+    checked ? newSelected.add(id) : newSelected.delete(id);
     setSelectedIds(newSelected);
   };
 
-  const isAllSelected = paginatedAnalyses.length > 0 && 
-    paginatedAnalyses.every(a => selectedIds.has(a.id));
+  const isAllSelected =
+    paginatedAnalyses.length > 0 && paginatedAnalyses.every(a => selectedIds.has(a.id));
 
+  // =============================
+  // ✅ BULK DELETE — COOKIE AUTH
+  // =============================
   const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) {
-      alert('Please select at least one item to delete');
-      return;
-    }
+    if (selectedIds.size === 0) return alert('Select at least one item.');
 
-    if (!confirm(`Delete ${selectedIds.size} selected analyses?`)) return;
+    if (!confirm(`Delete ${selectedIds.size} analyses?`)) return;
 
     try {
-      const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-      const deletePromises = Array.from(selectedIds).map(id =>
-        fetch(`${API_URL}/api/analysis/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+      await Promise.all(
+        Array.from(selectedIds).map(id =>
+          fetch(`${API_URL}/api/analysis/${id}`, {
+            method: 'DELETE',
+            credentials: "include",     // 🔥 COOKIE AUTH
+          })
+        )
       );
 
-      await Promise.all(deletePromises);
-      
       setAnalyses(analyses.filter(a => !selectedIds.has(a.id)));
       setSelectedIds(new Set());
-      setAnimationTrigger(prev => prev + 1); // ✅ ADDED
+      setAnimationTrigger(prev => prev + 1);
     } catch (err: any) {
-      alert('Bulk delete failed: ' + (err.message || 'Unknown error'));
+      alert('Bulk delete failed: ' + err.message);
     }
   };
 
+  // =============================
+  // ✅ SINGLE DELETE — COOKIE AUTH
+  // =============================
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this analysis?')) return;
+    if (!confirm('Delete this analysis?')) return;
 
     try {
-      const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
       const response = await fetch(`${API_URL}/api/analysis/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: "include",            // 🔥 COOKIE AUTH
       });
 
       if (!response.ok) throw new Error('Delete failed');
 
       setAnalyses(analyses.filter(a => a.id !== id));
     } catch (err: any) {
-      alert('Delete failed: ' + (err.message || 'An unknown error occurred.'));
+      alert('Delete failed: ' + err.message);
     }
   };
 
-  useHistoryAnimation(tableBodyRef, [animationTrigger]); // ✅ CHANGED from [currentPage]
+  useHistoryAnimation(tableBodyRef, [animationTrigger]);
 
   const handleFilterChange = (filter: FilterType) => {
     setActiveFilter(filter);
     setCurrentPage(1);
-    setAnimationTrigger(prev => prev + 1); // ✅ ADDED
+    setAnimationTrigger(prev => prev + 1);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
-    setAnimationTrigger(prev => prev + 1); // ✅ ADDED
+    setAnimationTrigger(prev => prev + 1);
   };
 
   const getPageNumbers = () => {
     const pages: number[] = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       let start = Math.max(1, currentPage - 2);
       let end = Math.min(totalPages, currentPage + 2);
-      
-      if (currentPage <= 3) {
-        end = maxPagesToShow;
-      }
-      
-      if (currentPage >= totalPages - 2) {
-        start = totalPages - maxPagesToShow + 1;
-      }
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
+
+      if (currentPage <= 3) end = maxPagesToShow;
+      if (currentPage >= totalPages - 2) start = totalPages - maxPagesToShow + 1;
+
+      for (let i = start; i <= end; i++) pages.push(i);
     }
-    
+
     return pages;
   };
 
@@ -260,6 +233,8 @@ const AnalysisHistory: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
+
+      {/* Filter + Search */}
       <div className="flex justify-between items-center mb-0">
         <div className="flex space-x-2 items-center">
           {(['All', 'FAKE', 'REAL'] as FilterType[]).map((filter) => (
@@ -281,20 +256,20 @@ const AnalysisHistory: React.FC = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search by filename..."
+              placeholder="Search filename..."
               value={searchTerm}
               onChange={handleSearchChange}
               className="px-4 py-2 w-48 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
-          
+
           <div className="relative">
-            <select 
+            <select
               value={sortBy}
-              onChange={(e) => { // ✅ CHANGED
+              onChange={(e) => {
                 setSortBy(e.target.value as 'date' | 'confidence');
-                setAnimationTrigger(prev => prev + 1); // ✅ ADDED
+                setAnimationTrigger(prev => prev + 1);
               }}
               className="appearance-none px-4 py-2 w-40 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
@@ -305,10 +280,11 @@ const AnalysisHistory: React.FC = () => {
         </div>
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-lg shadow mt-4 flex-1 overflow-hidden flex flex-col">
         {paginatedAnalyses.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-gray-500">No analyses found matching current criteria.</p>
+            <p className="text-gray-500">No analyses match your filters.</p>
           </div>
         ) : (
           <>
@@ -331,6 +307,7 @@ const AnalysisHistory: React.FC = () => {
                     <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">ACTIONS</th>
                   </tr>
                 </thead>
+
                 <tbody ref={tableBodyRef}>
                   {paginatedAnalyses.map((item) => (
                     <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -378,14 +355,17 @@ const AnalysisHistory: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
+
               </table>
             </div>
 
+            {/* Pagination */}
             <div className="flex justify-between items-center p-4 border-t border-gray-200">
               <span className="text-sm text-gray-600">
-                Showing {startIndex}-{endIndex} of {filteredAnalyses.length} analyses
+                Showing {startIndex}-{endIndex} of {filteredAnalyses.length}
                 {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
               </span>
+
               <nav className="flex items-center space-x-1">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -394,7 +374,7 @@ const AnalysisHistory: React.FC = () => {
                 >
                   Previous
                 </button>
-                
+
                 {getPageNumbers().map(pageNum => (
                   <button
                     key={pageNum}
@@ -408,12 +388,12 @@ const AnalysisHistory: React.FC = () => {
                     {pageNum}
                   </button>
                 ))}
-                
+
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >  
+                >
                   Next
                 </button>
               </nav>
@@ -422,14 +402,16 @@ const AnalysisHistory: React.FC = () => {
         )}
       </div>
 
+      {/* Bulk Delete + Start New */}
       <div className="flex justify-between items-center mt-6">
         <button 
           onClick={handleBulkDelete}
           disabled={selectedIds.size === 0}
           className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Bulk Delete Selected {selectedIds.size > 0 && `(${selectedIds.size})`}
+          Bulk Delete {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
+
         <Link 
           href="/dashboard/new-analysis"
           className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"

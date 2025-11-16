@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useRef, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, PlusSquare, History, User, LogOut, ShieldCheck, LucideIcon } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import UserProfileCard from './UserProfileCard'; // ✅ IMPORTED
+import UserProfileCard from './UserProfileCard';
 
 interface NavItem {
     name: string;
@@ -16,7 +16,9 @@ interface NavItem {
 
 const Sidebar = () => {
     const pathname = usePathname();
-    const sidebarRef = useRef<HTMLDivElement>(null); 
+    const router = useRouter();
+
+    const sidebarRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLElement>(null);
     const indicatorRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -34,7 +36,9 @@ const Sidebar = () => {
         return false;
     };
 
-    // --- 1. Initial Load Animations ---
+    // ================================
+    // 1. Initial load animations
+    // ================================
     useGSAP(() => {
         gsap.from(sidebarRef.current, {
             x: -100,
@@ -43,14 +47,14 @@ const Sidebar = () => {
             ease: "power3.out",
         });
 
-        gsap.fromTo(".logo-shield-icon", 
-            { scale: 0.5, opacity: 0, rotation: -45 }, 
-            { 
-                scale: 1, 
-                opacity: 1, 
+        gsap.fromTo(".logo-shield-icon",
+            { scale: 0.5, opacity: 0, rotation: -45 },
+            {
+                scale: 1,
+                opacity: 1,
                 rotation: 0,
-                duration: 0.6, 
-                ease: "back.out(2)", 
+                duration: 0.6,
+                ease: "back.out(2)",
                 delay: 0.2
             }
         );
@@ -66,12 +70,14 @@ const Sidebar = () => {
 
     }, { scope: sidebarRef });
 
-    // --- 2. Dynamic Indicator Movement ---
+    // ================================
+    // 2. Active indicator movement
+    // ================================
     useEffect(() => {
         if (navRef.current) {
             const activeIndex = navItems.findIndex(item => isActive(item.href));
             const activeElement = itemRefs.current[activeIndex];
-            
+
             if (activeElement && indicatorRef.current) {
                 const navTop = navRef.current.getBoundingClientRect().top;
                 const elementTop = activeElement.getBoundingClientRect().top;
@@ -90,8 +96,9 @@ const Sidebar = () => {
         }
     }, [pathname, navItems]);
 
-
-    // 3. Link Hover Animation
+    // ================================
+    // 3. Hover animation
+    // ================================
     const handleLinkHover = (e: React.MouseEvent<HTMLAnchorElement>, isEntering: boolean) => {
         gsap.to(e.currentTarget, {
             scale: isEntering ? 1.02 : 1,
@@ -100,35 +107,52 @@ const Sidebar = () => {
             ease: "power1.inOut",
         });
     };
-    
+
     itemRefs.current = [];
+
+    // ================================
+    // 4. FIXED: Logout with HttpOnly cookie
+    // ================================
+    const handleLogout = async () => {
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+            await fetch(`${API_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include"      // 🔥 DELETE httpOnly cookies
+            });
+
+            router.push("/login");
+        } catch (err) {
+            console.error("Logout failed", err);
+        }
+    };
 
     return (
         <div ref={sidebarRef} className="w-64 h-screen bg-white shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100">
             <div>
-                {/* Logo/Title Section */}
+                {/* Logo */}
                 <div className="flex items-center justify-start p-6 border-b border-gray-100">
-                    <ShieldCheck size={28} className="text-blue-600 logo-shield-icon" /> 
+                    <ShieldCheck size={28} className="text-blue-600 logo-shield-icon" />
                     <h1 className="text-xl font-bold ml-2 text-blue-600">Deep-Guard</h1>
                 </div>
-                
-                {/* NAVIGATION CONTAINER */}
-                <nav ref={navRef} className="mt-6 relative"> 
-                    <div 
-                        ref={indicatorRef} 
+
+                {/* Nav */}
+                <nav ref={navRef} className="mt-6 relative">
+                    <div
+                        ref={indicatorRef}
                         className="absolute left-0 w-1 h-1 bg-blue-600 rounded-r-lg opacity-0"
                         style={{ transform: 'translateY(0px)' }}
                     />
-                    
+
                     {navItems.map((item, index) => (
                         <Link
                             key={item.name}
                             href={item.href}
-                            ref={el => { itemRefs.current[index] = el; }}
-                            className={`flex items-center py-3 px-6 text-gray-600 transition-colors nav-link-item 
-                                relative z-10 
-                                ${isActive(item.href) 
-                                    ? 'bg-gray-100 text-gray-900 font-medium active-link' 
+                            ref={(el) => { itemRefs.current[index] = el; }}
+                            className={`flex items-center py-3 px-6 text-gray-600 transition-colors nav-link-item relative z-10 
+                                ${isActive(item.href)
+                                    ? 'bg-gray-100 text-gray-900 font-medium'
                                     : 'hover:bg-gray-100 hover:text-gray-900'}`}
                             onMouseEnter={(e) => handleLinkHover(e, true)}
                             onMouseLeave={(e) => handleLinkHover(e, false)}
@@ -139,25 +163,23 @@ const Sidebar = () => {
                     ))}
                 </nav>
             </div>
-            
-            {/* ✅ Bottom Section (Profile + Logout) */}
+
+            {/* Bottom Section */}
             <div className="p-4 border-t border-gray-100 space-y-4">
-                
-                {/* ADDED User Profile Card */}
+
+                {/* User Profile */}
                 <div className="p-2 bg-gray-50 rounded-lg">
-                  <UserProfileCard />
+                    <UserProfileCard />
                 </div>
 
-                {/* Logout Link */}
-                <Link
-                    href="/logout"
-                    className="flex items-center py-2 px-3 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors"
-                    onMouseEnter={(e) => handleLinkHover(e, true)}
-                    onMouseLeave={(e) => handleLinkHover(e, false)}
+                {/* Logout */}
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors"
                 >
                     <LogOut size={20} className="mr-4" />
                     <span>Logout</span>
-                </Link>
+                </button>
             </div>
         </div>
     );

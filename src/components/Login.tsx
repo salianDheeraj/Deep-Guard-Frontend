@@ -85,9 +85,7 @@ const Login: FC = () => {
     rememberMe: false,
   });
 
-  /* ---------------------------------------------------
-     🔄 AUTO REFRESH ACCESS TOKEN EVERY 14 MINUTES
-  ---------------------------------------------------- */
+  /* Auto refresh access token every 14 minutes */
   useEffect(() => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -97,19 +95,29 @@ const Login: FC = () => {
           method: "POST",
           credentials: "include",
         });
-
         console.log("🔁 Access token auto-refreshed");
       } catch (err) {
         console.error("❌ Auto-refresh failed:", err);
       }
-    }, 14 * 60 * 1000); // 14 minutes
+    }, 14 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  /* ---------------------------------------------------
-     GOOGLE LOGIN HANDLING
-  ---------------------------------------------------- */
+  /* Load Google Sign-In SDK */
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  /* Google Login Handler */
   useEffect(() => {
     const handleGoogleSuccess = async (event: any) => {
       const { detail } = event;
@@ -126,7 +134,6 @@ const Login: FC = () => {
           credentials: "include",
         });
 
-        // robust handling for JSON / non-JSON responses
         const contentType = response.headers.get("content-type") || "";
         const data = contentType.includes("application/json")
           ? await response.json()
@@ -150,9 +157,6 @@ const Login: FC = () => {
     return () => window.removeEventListener("googleSuccess", handleGoogleSuccess);
   }, [router]);
 
-  /* ---------------------------------------------------
-     INPUT CHANGE HANDLER
-  ---------------------------------------------------- */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -161,9 +165,6 @@ const Login: FC = () => {
     }));
   };
 
-  /* ---------------------------------------------------
-     VALIDATION
-  ---------------------------------------------------- */
   const validateForm = (): boolean => {
     if (!formData.email || !formData.password) {
       setError("Email and password are required");
@@ -183,9 +184,6 @@ const Login: FC = () => {
     return true;
   };
 
-  /* ---------------------------------------------------
-     SUBMIT HANDLER (PATCHED FOR RELIABLE JSON + DEBUG)
-  ---------------------------------------------------- */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -203,31 +201,25 @@ const Login: FC = () => {
         name: formData.name || (formData.email ? formData.email.split("@")[0] : ""),
       };
 
-      // --- DEBUG: safe masked log (do NOT print full password) ---
       console.log(`📤 Auth request -> ${API_URL}${endpoint}`);
-      console.log(`📤 Payload (masked):`, { email: payload.email, password: payload.password ? "********" : null, name: payload.name });
 
-      // Send request with HttpOnly cookie support
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // IMPORTANT: allow httpOnly cookie
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
-      // handle JSON or plain text responses (robust)
       const ct = response.headers.get("content-type") || "";
       const data = ct.includes("application/json") ? await response.json() : { message: await response.text() };
 
       if (!response.ok) {
-        // show server-provided message when available
         throw new Error(data?.message || `Auth failed (${response.status})`);
       }
 
       console.log("✅ Auth successful (cookie set)");
-      // Clear sensitive fields after successful auth
       setFormData((f) => ({ ...f, password: "", confirmPassword: "" }));
 
       router.push("/dashboard");
@@ -345,45 +337,65 @@ const Login: FC = () => {
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
+{/* 🔥 GOOGLE LOGIN SECTION (FINAL + CLEAN) */}
+<div className="mt-6">
+  <div className="relative">
+    <div className="absolute inset-0 flex items-center">
+      <div className="w-full border-t border-gray-300" />
+    </div>
+    <div className="relative flex justify-center text-sm">
+      <span className="px-2 bg-white text-gray-500">Or continue with</span>
+    </div>
+  </div>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
-            </div>
-          </div>
+  {/* ⭐ OFFICIAL GOOGLE ONE TAP BUTTON ⭐ */}
+  <div
+    id="g_id_onload"
+    data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+    data-callback="handleCredentialResponse"
+    data-auto_prompt="false"
+  ></div>
 
-          <div className="mt-6">
-            <div
-              id="g_id_onload"
-              data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-              data-callback="handleCredentialResponse"
-            />
-            <div
-              id="g_id_signin"
-              data-type="standard"
-              data-size="large"
-              data-theme="outline"
-              data-text="signin_with"
-              data-shape="rectangular"
-              data-logo_alignment="left"
-            />
-          </div>
+  <div
+    id="g_id_signin"
+    className="flex justify-center mt-5"
+    data-type="standard"
+    data-size="large"
+    data-theme="outline"
+    data-text="signin_with"
+    data-logo_alignment="left"
+    data-shape="rectangular"
+    data-width="100%"
+  ></div>
 
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.handleCredentialResponse = (response) => {
-                  const event = new CustomEvent('googleSuccess', { detail: response });
-                  window.dispatchEvent(event);
-                };
-              `,
-            }}
-          />
-        </div>
+  {/* ⭐ REQUIRED: Handle Google Credential Token ⭐ */}
+  <script
+    dangerouslySetInnerHTML={{
+      __html: `
+        window.handleCredentialResponse = (response) => {
+          const event = new CustomEvent('googleSuccess', { detail: response });
+          window.dispatchEvent(event);
+        };
+      `,
+    }}
+  />
+
+  {/* ⭐ CUSTOM GOOGLE REDIRECT BUTTON (backup option) ⭐ */}
+  <button
+    onClick={() => {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      window.location.href = API_URL + "/auth/google";
+    }}
+    className="w-full mt-4 flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-gray-700 font-medium shadow-sm"
+  >
+    <img
+      src="https://www.svgrepo.com/show/475656/google-color.svg"
+      className="w-5 h-5"
+      alt="Google"
+    />
+    Continue with Google
+  </button>
+</div>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           {isSigningIn ? "Don't have an account?" : "Already have an account?"}
@@ -404,3 +416,6 @@ const Login: FC = () => {
 };
 
 export default Login;
+
+
+
