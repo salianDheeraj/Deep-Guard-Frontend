@@ -60,50 +60,60 @@ export default function RecentAnalyses() {
     fetchAnalyses();
   }, []);
 
+const fetchAnalyses = async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-  const fetchAnalyses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+    // 1️⃣ Check session first
+    const me = await fetch(`${API_URL}/auth/me`, {
+      method: 'GET',
+      credentials: 'include',
+    });
 
-      const token = localStorage.getItem('authToken');
-      
-      if (!token) {
-        console.error('❌ No auth token found');
+    if (me.status === 401) {
+      setError('Not authenticated. Please login.');
+      setLoading(false);
+      return;
+    }
+
+    // OPTIONAL: auto refresh if expired
+    if (!me.ok) {
+      const refresh = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!refresh.ok) {
         setError('Not authenticated. Please login.');
         setLoading(false);
         return;
       }
-
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-
-      const response = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
-      }
-
-
-      const result = await response.json();
-      setAnalyses(result.data || []);
-    } catch (err: any) {
-      console.error('❌ Error fetching analyses:', err);
-      setError(err.message || 'Failed to load recent analyses');
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // 2️⃣ Now fetch actual analyses
+    const response = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
+      method: 'GET',
+      credentials: 'include',   // ⭐ Cookie-based auth
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    setAnalyses(result.data || []);
+
+  } catch (err: any) {
+    console.error('❌ Error fetching analyses:', err);
+    setError(err.message || 'Failed to load recent analyses');
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   if (error) {

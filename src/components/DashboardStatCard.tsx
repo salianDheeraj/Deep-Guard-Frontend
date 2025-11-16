@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Video, AlertTriangle } from "lucide-react";
-import { useDashboardAnimations } from '@/hooks/useDashboardAnimations '; // ✅ Uncomment this
-
+import { useDashboardAnimations } from '@/hooks/useDashboardAnimations ';
 
 interface StatsData {
   totalVideos: number;
@@ -22,48 +21,70 @@ export default function DashboardStatCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useDashboardAnimations(gridRef); // ✅ Uncomment this
+  useDashboardAnimations(gridRef);
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        setLoading(true);
-        setError(null);
+useEffect(() => {
+  async function fetchStats() {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const token = localStorage.getItem("authToken");
-        if (!token) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+      // 1️⃣ CHECK AUTH FIRST
+      const me = await fetch(`${API_URL}/auth/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (me.status === 401) {
+        setError("Not authenticated. Please login.");
+        setLoading(false);
+        return;
+      }
+
+      // 2️⃣ CHECK IF ACCESS TOKEN IS EXPIRED → try refresh
+      if (!me.ok) {
+        const refresh = await fetch(`${API_URL}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!refresh.ok) {
           setError("Not authenticated. Please login.");
           setLoading(false);
           return;
         }
-
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-        const response = await fetch(`${API_URL}/api/analysis?limit=1000&offset=0`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch analyses: HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-        const analyses = result.data || [];
-
-        const totalVideos = analyses.length;
-        const realVideos = analyses.filter((a: any) => !a.is_deepfake).length;
-        const fakeVideos = totalVideos - realVideos;
-
-        setStats({ totalVideos, realVideos, fakeVideos });
-      } catch (err: any) {
-        setError(err.message || "Error fetching stats");
-      } finally {
-        setLoading(false);
       }
-    }
 
-    fetchStats();
-  }, []);
+      // 3️⃣ NOW fetch stats (secured route)
+      const response = await fetch(`${API_URL}/api/analysis?limit=1000&offset=0`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch analyses: HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      const analyses = result.data || [];
+
+      const totalVideos = analyses.length;
+      const realVideos = analyses.filter((a: any) => !a.is_deepfake).length;
+      const fakeVideos = totalVideos - realVideos;
+
+      setStats({ totalVideos, realVideos, fakeVideos });
+
+    } catch (err: any) {
+      setError(err.message || "Error fetching stats");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  fetchStats();
+}, []);
 
   if (loading) {
     return <p className="text-center py-8">Loading statistics...</p>;
@@ -75,6 +96,7 @@ export default function DashboardStatCard() {
 
   return (
     <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Total Videos */}
       <div className="stat-card p-6 bg-white rounded-xl shadow flex flex-col">
         <div className="flex items-center mb-2">
           <span className="rounded-full bg-blue-100 text-blue-600 p-2 mr-3">
@@ -88,6 +110,7 @@ export default function DashboardStatCard() {
         </div>
       </div>
 
+      {/* Real Videos */}
       <div className="stat-card p-6 bg-white rounded-xl shadow flex flex-col">
         <div className="flex items-center mb-2">
           <span className="rounded-full bg-green-100 text-green-600 p-2 mr-3">
@@ -101,6 +124,7 @@ export default function DashboardStatCard() {
         </div>
       </div>
 
+      {/* Fake Videos */}
       <div className="stat-card p-6 bg-white rounded-xl shadow flex flex-col">
         <div className="flex items-center mb-2">
           <span className="rounded-full bg-red-100 text-red-600 p-2 mr-3">

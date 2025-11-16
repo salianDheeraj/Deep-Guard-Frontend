@@ -126,18 +126,21 @@ const Login: FC = () => {
           credentials: "include",
         });
 
-        const data = await response.json();
+        // robust handling for JSON / non-JSON responses
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await response.json()
+          : { message: await response.text() };
 
         if (!response.ok) {
           throw new Error(data.message || "Google auth failed");
         }
 
         console.log("✅ Google auth successful");
-
         router.push("/dashboard");
       } catch (err: any) {
-        console.error("❌ Google error:", err.message);
-        setError(err.message);
+        console.error("❌ Google error:", err.message || err);
+        setError(err.message || "Google login failed");
       } finally {
         setIsLoading(false);
       }
@@ -181,7 +184,7 @@ const Login: FC = () => {
   };
 
   /* ---------------------------------------------------
-     SUBMIT HANDLER
+     SUBMIT HANDLER (PATCHED FOR RELIABLE JSON + DEBUG)
   ---------------------------------------------------- */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -194,31 +197,42 @@ const Login: FC = () => {
     try {
       const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const payload = {
+        email: (formData.email || "").trim(),
+        password: formData.password,
+        name: formData.name || (formData.email ? formData.email.split("@")[0] : ""),
+      };
 
+      // --- DEBUG: safe masked log (do NOT print full password) ---
+      console.log(`📤 Auth request -> ${API_URL}${endpoint}`);
+      console.log(`📤 Payload (masked):`, { email: payload.email, password: payload.password ? "********" : null, name: payload.name });
+
+      // Send request with HttpOnly cookie support
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name || formData.email.split("@")[0],
-        }),
+        credentials: "include", // IMPORTANT: allow httpOnly cookie
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      // handle JSON or plain text responses (robust)
+      const ct = response.headers.get("content-type") || "";
+      const data = ct.includes("application/json") ? await response.json() : { message: await response.text() };
 
       if (!response.ok) {
-        throw new Error(data.message || "Authentication failed");
+        // show server-provided message when available
+        throw new Error(data?.message || `Auth failed (${response.status})`);
       }
 
-      console.log("✅ Auth successful");
+      console.log("✅ Auth successful (cookie set)");
+      // Clear sensitive fields after successful auth
+      setFormData((f) => ({ ...f, password: "", confirmPassword: "" }));
 
       router.push("/dashboard");
     } catch (err: any) {
-      console.error("❌ Error:", err.message);
+      console.error("❌ Error:", err.message || err);
       setError(err.message || "An error occurred");
     } finally {
       setIsLoading(false);
