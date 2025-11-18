@@ -4,6 +4,7 @@ import React, { useState, FC, FormEvent, ChangeEvent, useEffect, useRef } from "
 import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLoginAnimation } from "@/hooks/useLoginAnimation";
+import ForgotPasswordModal from "./ForgetPasswordModal"; // Added import
 
 interface FormData {
   name?: string;
@@ -76,6 +77,7 @@ const Login: FC = () => {
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false); // Added state
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -318,9 +320,19 @@ const Login: FC = () => {
                   Remember me
                 </label>
               </div>
-              <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150">
+              {/* Added Forgot Password button */}
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150"
+              >
                 Forgot Password?
-              </a>
+              </button>
+              {/* Forgot Password Modal */}
+              <ForgotPasswordModal 
+                isOpen={showForgotPassword} 
+                onClose={() => setShowForgotPassword(false)} 
+              />
             </div>
           )}
 
@@ -337,65 +349,66 @@ const Login: FC = () => {
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
-{/* 🔥 GOOGLE LOGIN SECTION (FINAL + CLEAN) */}
-<div className="mt-6">
-  <div className="relative">
-    <div className="absolute inset-0 flex items-center">
-      <div className="w-full border-t border-gray-300" />
-    </div>
-    <div className="relative flex justify-center text-sm">
-      <span className="px-2 bg-white text-gray-500">Or continue with</span>
-    </div>
-  </div>
 
-  {/* ⭐ OFFICIAL GOOGLE ONE TAP BUTTON ⭐ */}
-  <div
-    id="g_id_onload"
-    data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-    data-callback="handleCredentialResponse"
-    data-auto_prompt="false"
-  ></div>
+        {/* GOOGLE LOGIN SECTION */}
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
 
-  <div
-    id="g_id_signin"
-    className="flex justify-center mt-5"
-    data-type="standard"
-    data-size="large"
-    data-theme="outline"
-    data-text="signin_with"
-    data-logo_alignment="left"
-    data-shape="rectangular"
-    data-width="100%"
-  ></div>
+          {/* GOOGLE ONE TAP BUTTON */}
+          <div
+            id="g_id_onload"
+            data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+            data-callback="handleCredentialResponse"
+            data-auto_prompt="false"
+          ></div>
 
-  {/* ⭐ REQUIRED: Handle Google Credential Token ⭐ */}
-  <script
-    dangerouslySetInnerHTML={{
-      __html: `
-        window.handleCredentialResponse = (response) => {
-          const event = new CustomEvent('googleSuccess', { detail: response });
-          window.dispatchEvent(event);
-        };
-      `,
-    }}
-  />
+          <div
+            id="g_id_signin"
+            className="flex justify-center mt-5"
+            data-type="standard"
+            data-size="large"
+            data-theme="outline"
+            data-text="signin_with"
+            data-logo_alignment="left"
+            data-shape="rectangular"
+            data-width="100%"
+          ></div>
 
-  {/* ⭐ CUSTOM GOOGLE REDIRECT BUTTON (backup option) ⭐ */}
-  <button
-    onClick={() => {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      window.location.href = API_URL + "/auth/google";
-    }}
-    className="w-full mt-4 flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-gray-700 font-medium shadow-sm"
-  >
-    <img
-      src="https://www.svgrepo.com/show/475656/google-color.svg"
-      className="w-5 h-5"
-      alt="Google"
-    />
-    Continue with Google
-  </button>
-</div>
+          {/* Handle Google Credential Token */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.handleCredentialResponse = (response) => {
+                  const event = new CustomEvent('googleSuccess', { detail: response });
+                  window.dispatchEvent(event);
+                };
+              `,
+            }}
+          />
+
+          {/* Google redirect button (backup) */}
+          <button
+            onClick={() => {
+              const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+              window.location.href = API_URL + "/auth/google";
+            }}
+            className="w-full mt-4 flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-gray-700 font-medium shadow-sm"
+          >
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              className="w-5 h-5"
+              alt="Google"
+            />
+            Continue with Google
+          </button>
+        </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           {isSigningIn ? "Don't have an account?" : "Already have an account?"}
@@ -416,6 +429,3 @@ const Login: FC = () => {
 };
 
 export default Login;
-
-
-
