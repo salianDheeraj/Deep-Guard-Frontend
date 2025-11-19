@@ -1,4 +1,3 @@
-// src/components/NewAnalysisContent.tsx
 "use client";
 import { useNewAnalysisAnimation } from '@/hooks/useNewAnalysisAnimation';
 import React, { useState, useCallback, useMemo, useRef, DragEvent, ChangeEvent } from 'react';
@@ -231,25 +230,26 @@ const NewAnalysisContent: React.FC = () => {
     ];
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto flex flex-col">
+      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        {/* ✅ Dark Mode Modal */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto flex flex-col border border-gray-100 dark:border-gray-700">
 
-          <div className="sticky top-0 bg-white border-b p-6">
-            <h3 className="text-2xl font-bold text-gray-800">
+          <div className="sticky top-0 bg-white dark:bg-slate-800 border-b dark:border-gray-700 p-6">
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
               🎬 Analysis Settings
             </h3>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
               How Many Frames to Analyze?
             </label>
-            <p className="text-xs text-gray-500 mb-4">
-              📊 Total: <span className="font-bold text-indigo-600">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600">{maxFramesToAnalyze}</span>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              📊 Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600 dark:text-indigo-400">{maxFramesToAnalyze}</span>
             </p>
 
             <div className="mb-6">
-              <label className="block text-xs font-medium text-gray-600 mb-2">Slider:</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Slider:</label>
 
               <input
                 type="range"
@@ -262,16 +262,16 @@ const NewAnalysisContent: React.FC = () => {
               />
 
               <div className="relative mt-2 h-4">
-                <div className="absolute left-0 text-xs text-gray-500 font-semibold" style={{ left: '0%', transform: 'translateX(0%)' }}>
+                <div className="absolute left-0 text-xs text-gray-500 dark:text-gray-400 font-semibold" style={{ left: '0%', transform: 'translateX(0%)' }}>
                   <span>20</span>
                 </div>
-                <div className="absolute text-xs text-gray-500 font-semibold" style={{ left: `${((80 - 20) / (maxFramesToAnalyze - 20)) * 100}%`, transform: 'translateX(-50%)' }}>
+                <div className="absolute text-xs text-gray-500 dark:text-gray-400 font-semibold" style={{ left: `${((80 - 20) / (maxFramesToAnalyze - 20)) * 100}%`, transform: 'translateX(-50%)' }}>
                   <span>80</span>
                 </div>
-                <div className="absolute text-xs text-gray-500 font-semibold" style={{ left: `${((140 - 20) / (maxFramesToAnalyze - 20)) * 100}%`, transform: 'translateX(-50%)' }}>
+                <div className="absolute text-xs text-gray-500 dark:text-gray-400 font-semibold" style={{ left: `${((140 - 20) / (maxFramesToAnalyze - 20)) * 100}%`, transform: 'translateX(-50%)' }}>
                   <span>140</span>
                 </div>
-                <div className="absolute text-xs text-gray-500 font-semibold" style={{ left: '100%', transform: 'translateX(-100%)' }}>
+                <div className="absolute text-xs text-gray-500 dark:text-gray-400 font-semibold" style={{ left: '100%', transform: 'translateX(-100%)' }}>
                   <span>200</span>
                 </div>
               </div>
@@ -283,16 +283,16 @@ const NewAnalysisContent: React.FC = () => {
                 const colorClasses = {
                   green: isSelected
                     ? 'bg-green-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-green-600 border-green-400 hover:bg-green-50 hover:shadow-md',
+                    : 'bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 border-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:shadow-md',
                   blue: isSelected
                     ? 'bg-blue-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-blue-600 border-blue-400 hover:bg-blue-50 hover:shadow-md',
+                    : 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:shadow-md',
                   purple: isSelected
                     ? 'bg-purple-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-purple-600 border-purple-400 hover:bg-purple-50 hover:shadow-md',
+                    : 'bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-400 border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-md',
                   red: isSelected
                     ? 'bg-red-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-red-600 border-red-400 hover:bg-red-50 hover:shadow-md'
+                    : 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 border-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:shadow-md'
                 };
 
                 return (
@@ -315,45 +315,45 @@ const NewAnalysisContent: React.FC = () => {
               })}
             </div>
 
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-3 mb-4">
-              <p className="text-gray-600 text-xs mb-2 font-semibold">📊 Summary:</p>
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-2 border-indigo-200 dark:border-indigo-800 rounded-lg p-3 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 text-xs mb-2 font-semibold">📊 Summary:</p>
 
               <div className="grid grid-cols-2 gap-2 mb-2">
-                <div className="bg-white rounded p-2 text-center">
-                  <p className="text-xs text-gray-500">Analyze</p>
-                  <p className="text-2xl font-bold text-indigo-600">{framesToAnalyze}</p>
+                <div className="bg-white dark:bg-slate-700 rounded p-2 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Analyze</p>
+                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{framesToAnalyze}</p>
                 </div>
-                <div className="bg-white rounded p-2 text-center">
-                  <p className="text-xs text-gray-500">Max</p>
-                  <p className="text-2xl font-bold text-gray-600">{maxFramesToAnalyze}</p>
+                <div className="bg-white dark:bg-slate-700 rounded p-2 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                  <p className="text-2xl font-bold text-gray-600 dark:text-white">{maxFramesToAnalyze}</p>
                 </div>
               </div>
 
               {isInvalid && (
-                <div className="bg-red-50 border border-red-200 rounded p-2 mb-2">
-                  <p className="text-xs text-red-700 font-bold">⚠️ Invalid! Enter 20-{maxFramesToAnalyze} (multiples of 4)</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2 mb-2">
+                  <p className="text-xs text-red-700 dark:text-red-400 font-bold">⚠️ Invalid! Enter 20-{maxFramesToAnalyze} (multiples of 4)</p>
                 </div>
               )}
 
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 Skip every <span className="font-bold">{frameSkipInterval}</span> frame (from {totalFrames} total)
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2 text-xs text-blue-800 dark:text-blue-300">
               <p className="font-bold mb-1">✅ Example:</p>
               <p>Video: 279 frames → Pick: 100 → AI analyzes exactly 100</p>
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-white border-t p-4 flex gap-3">
+          <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t dark:border-gray-700 p-4 flex gap-3">
             <button
               onClick={() => {
                 setShowFrameInput(false);
                 setFramesToAnalyze(20);
                 setAnalysisState('IDLE');
               }}
-              className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-sm"
+              className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition font-medium text-sm"
             >
               ❌ Cancel
             </button>
@@ -365,7 +365,7 @@ const NewAnalysisContent: React.FC = () => {
               disabled={isInvalid}
               className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${
                 isInvalid
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
               }`}
             >
@@ -546,13 +546,13 @@ const NewAnalysisContent: React.FC = () => {
 
       return (
         <div className="text-left w-full">
-          <p className="text-lg font-medium text-gray-800 mb-1">{selectedFile.name}</p>
+          <p className="text-lg font-medium text-gray-800 dark:text-white mb-1">{selectedFile.name}</p>
 
-          <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+          <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
             <span>{analysisState === 'UPLOADING' ? 'Uploading...' : 'Processing file...'}</span>
             <span>{fileSizeMB} MB</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5 mb-6">
             <div
               className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${analysisState === 'UPLOADING' ? uploadProgress : 100}%` }}
@@ -562,8 +562,8 @@ const NewAnalysisContent: React.FC = () => {
           {analysisState === 'UPLOADING' && (
             <div className="flex flex-col items-center justify-center py-6">
               <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
-              <p className="text-xl font-semibold text-gray-800 mb-1">Uploading file...</p>
-              <p className="text-sm text-gray-500 mb-4">Please wait while we upload your file</p>
+              <p className="text-xl font-semibold text-gray-800 dark:text-white mb-1">Uploading file...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Please wait while we upload your file</p>
 
               <button
                 onClick={handleCancelUpload}
@@ -578,14 +578,14 @@ const NewAnalysisContent: React.FC = () => {
           {analysisState === 'ANALYZING' && (
             <div ref={analysisContainerRef} className="flex flex-col items-center justify-center py-6">
               <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
-              <p className="text-xl font-semibold text-gray-800 mb-1">Analyzing frames...</p>
-              <p className="text-gray-500">Processing frame <span className="frame-counter">{currentFrame}</span> of {framesToAnalyze}.</p>
-              <p className="text-xs text-gray-400 mt-2">Total frames: {totalFrames}</p>
-              <p className="text-xs text-amber-600 mt-4 font-medium">⏳ Analysis in progress - please do not close this page</p>
+              <p className="text-xl font-semibold text-gray-800 dark:text-white mb-1">Analyzing frames...</p>
+              <p className="text-gray-500 dark:text-gray-400">Processing frame <span className="frame-counter">{currentFrame}</span> of {framesToAnalyze}.</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Total frames: {totalFrames}</p>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-4 font-medium">⏳ Analysis in progress - please do not close this page</p>
             </div>
           )}
 
-          <div className="bg-indigo-50 border-l-4 border-indigo-400 text-indigo-700 p-4 mt-4" role="alert">
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-400 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 p-4 mt-4" role="alert">
             <p className="font-semibold">Note:</p>
             <p className="text-sm">
               {analysisState === 'UPLOADING'
@@ -611,10 +611,10 @@ const NewAnalysisContent: React.FC = () => {
           <p className="text-red-600 font-medium mb-4 text-center">{errorMessage}</p>
         ) : (
           <>
-            <p className="text-xl text-gray-700 mb-2">
+            <p className="text-xl text-gray-700 dark:text-gray-200 mb-2">
               {selectedFile ? `File Selected: ${selectedFile.name}` : 'Drop files to analyze'}
             </p>
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
               {selectedFile ? 'Ready to analyze.' : 'or click to browse from your device'}
             </p>
           </>
@@ -622,13 +622,13 @@ const NewAnalysisContent: React.FC = () => {
 
         <div className="flex space-x-2 mb-4">
           {SUPPORTED_FORMATS.map(format => (
-            <span key={format} className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-md border border-gray-200">
+            <span key={format} className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded-md border border-gray-200 dark:border-gray-600">
               {format}
             </span>
           ))}
         </div>
 
-        <p className="text-sm text-gray-400 mb-4">Maximum file size: {MAX_FILE_SIZE_MB}MB</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Maximum file size: {MAX_FILE_SIZE_MB}MB</p>
 
         {selectedFile ? (
           <div className="flex gap-3">
@@ -640,7 +640,7 @@ const NewAnalysisContent: React.FC = () => {
                 setFramesToAnalyze(20);
                 setTotalFrames(0);
               }}
-              className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition duration-150 flex items-center gap-2"
+              className="px-6 py-3 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition duration-150 flex items-center gap-2"
             >
               <X size={18} />
               Cancel
@@ -676,17 +676,19 @@ const NewAnalysisContent: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 overflow-y-auto bg-gray-50 p-10">
+    <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-10 transition-colors">
       {renderFrameInputModal()}
 
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">New Deepfake Analysis</h2>
-        <p className="text-gray-500 mb-10">Upload media files to detect potential deepfakes using AI analysis</p>
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">New Deepfake Analysis</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-10">Upload media files to detect potential deepfakes using AI analysis</p>
 
         <div
           className={`
-            border-2 rounded-xl p-16 text-center bg-white shadow-xl transition-all duration-300 flex justify-center items-center
-            ${isDragging && analysisState === 'IDLE' ? 'border-indigo-500 bg-indigo-50 border-solid' : 'border-indigo-200 border-dashed'}
+            border-2 rounded-xl p-16 text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
+            ${isDragging && analysisState === 'IDLE' 
+              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid' 
+              : 'border-indigo-200 dark:border-indigo-800/50 border-dashed'}
             ${analysisState !== 'IDLE' ? 'p-10' : ''}
           `}
           onDragOver={analysisState === 'IDLE' ? handleDragOver : undefined}
@@ -700,10 +702,10 @@ const NewAnalysisContent: React.FC = () => {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={feature.title} className={`flex flex-col items-center w-[30%] p-4 ${index === 1 ? 'border-l border-r border-gray-100' : ''}`}>
+              <div key={feature.title} className={`flex flex-col items-center w-[30%] p-4 ${index === 1 ? 'border-l border-r border-gray-100 dark:border-gray-700' : ''}`}>
                 <Icon className="w-6 h-6 text-indigo-500 mb-3" />
-                <h3 className="font-semibold text-gray-800 text-center mb-1">{feature.title}</h3>
-                <p className="text-sm text-gray-500 text-center">{feature.desc}</p>
+                <h3 className="font-semibold text-gray-800 dark:text-white text-center mb-1">{feature.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">{feature.desc}</p>
               </div>
             );
           })}

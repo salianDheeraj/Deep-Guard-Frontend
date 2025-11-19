@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo, useRef} from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Search, ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
+import { FileText, Search, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useHistoryAnimation } from '@/hooks/useHistoryAnimation';
 
@@ -41,9 +41,6 @@ const AnalysisHistory: React.FC = () => {
     }
   }, [currentPage]);
 
-  // =============================
-  // ✅ FETCH ANALYSIS — COOKIE AUTH
-  // =============================
   const fetchAllAnalyses = async () => {
     try {
       setLoading(true);
@@ -53,7 +50,7 @@ const AnalysisHistory: React.FC = () => {
 
       const response = await fetch(`${API_URL}/api/analysis?limit=1000&offset=0`, {
         method: 'GET',
-        credentials: "include",              // 🔥 KEY FIX
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error('Failed to fetch analyses');
@@ -123,12 +120,8 @@ const AnalysisHistory: React.FC = () => {
   const isAllSelected =
     paginatedAnalyses.length > 0 && paginatedAnalyses.every(a => selectedIds.has(a.id));
 
-  // =============================
-  // ✅ BULK DELETE — COOKIE AUTH
-  // =============================
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return alert('Select at least one item.');
-
     if (!confirm(`Delete ${selectedIds.size} analyses?`)) return;
 
     try {
@@ -138,7 +131,7 @@ const AnalysisHistory: React.FC = () => {
         Array.from(selectedIds).map(id =>
           fetch(`${API_URL}/api/analysis/${id}`, {
             method: 'DELETE',
-            credentials: "include",     // 🔥 COOKIE AUTH
+            credentials: "include",
           })
         )
       );
@@ -151,9 +144,6 @@ const AnalysisHistory: React.FC = () => {
     }
   };
 
-  // =============================
-  // ✅ SINGLE DELETE — COOKIE AUTH
-  // =============================
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this analysis?')) return;
 
@@ -162,7 +152,7 @@ const AnalysisHistory: React.FC = () => {
 
       const response = await fetch(`${API_URL}/api/analysis/${id}`, {
         method: 'DELETE',
-        credentials: "include",            // 🔥 COOKIE AUTH
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error('Delete failed');
@@ -208,21 +198,21 @@ const AnalysisHistory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 flex items-center justify-center h-40">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-8 flex items-center justify-center h-40 transition-colors">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-        <AlertCircle size={20} className="text-red-600" />
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3 transition-colors">
+        <AlertCircle size={20} className="text-red-600 dark:text-red-400" />
         <div>
-          <p className="text-red-800 font-medium">{error}</p>
+          <p className="text-red-800 dark:text-red-300 font-medium">{error}</p>
           <button
             onClick={fetchAllAnalyses}
-            className="text-sm text-red-600 hover:text-red-800 mt-1 underline"
+            className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 mt-1 underline"
           >
             Try again
           </button>
@@ -244,7 +234,7 @@ const AnalysisHistory: React.FC = () => {
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeFilter === filter
                   ? 'bg-blue-600 text-white'
-                  : 'bg-transparent text-gray-700 hover:bg-gray-100'
+                  : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
               }`}
             >
               {filter}
@@ -259,9 +249,9 @@ const AnalysisHistory: React.FC = () => {
               placeholder="Search filename..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="px-4 py-2 w-48 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 w-48 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             />
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
           </div>
 
           <div className="relative">
@@ -271,7 +261,7 @@ const AnalysisHistory: React.FC = () => {
                 setSortBy(e.target.value as 'date' | 'confidence');
                 setAnimationTrigger(prev => prev + 1);
               }}
-              className="appearance-none px-4 py-2 w-40 border border-gray-300 rounded-lg text-sm bg-white font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="appearance-none px-4 py-2 w-40 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors"
             >
               <option value="date">Sort by Date</option>
               <option value="confidence">Sort by Confidence</option>
@@ -281,73 +271,73 @@ const AnalysisHistory: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow mt-4 flex-1 overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-4 flex-1 overflow-hidden flex flex-col transition-colors">
         {paginatedAnalyses.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-gray-500">No analyses match your filters.</p>
+            <p className="text-gray-500 dark:text-gray-400">No analyses match your filters.</p>
           </div>
         ) : (
           <>
             <div className='overflow-x-auto'>
               <table className="min-w-full text-left">
                 <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
+                  <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-700/50 transition-colors">
                     <th className="p-4 w-12">
                       <input
                         type="checkbox"
                         checked={isAllSelected}
                         onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                        className="w-4 h-4 text-blue-600 rounded cursor-pointer accent-blue-600"
                       />
                     </th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-20">DATE</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-auto">FILE NAME</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">VERDICT</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">CONFIDENCE</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase w-32">ACTIONS</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-20">DATE</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-auto">FILE NAME</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">VERDICT</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">CONFIDENCE</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">ACTIONS</th>
                   </tr>
                 </thead>
 
                 <tbody ref={tableBodyRef}>
                   {paginatedAnalyses.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr key={item.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
                       <td className="p-4">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(item.id)}
                           onChange={(e) => handleSelectOne(item.id, e.target.checked)}
-                          className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                          className="w-4 h-4 text-blue-600 rounded cursor-pointer accent-blue-600"
                         />
                       </td>
-                      <td className="p-4 text-sm text-gray-700">{formatDate(item.created_at)}</td>
-                      <td className="p-4 text-sm text-gray-800 font-medium flex items-center">
-                        <FileText size={16} className="mr-2 text-gray-400 flex-shrink-0" />
+                      <td className="p-4 text-sm text-gray-700 dark:text-gray-300">{formatDate(item.created_at)}</td>
+                      <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium flex items-center">
+                        <FileText size={16} className="mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                         {item.filename}
                       </td>
                       <td className="p-4">
                         <span
                           className={`px-2 py-0.5 text-xs font-semibold rounded ${
                             item.is_deepfake
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-green-100 text-green-700'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                           }`}
                         >
                           {item.is_deepfake ? 'FAKE' : 'REAL'}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-gray-800 font-medium">
+                      <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
                         {getDisplayedConfidence(item)}%
                       </td>
                       <td className="p-4 text-sm font-medium space-x-4">
                         <button
                           onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
                         >
                           View
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="text-red-600 hover:underline ml-4"
+                          className="text-red-600 dark:text-red-400 hover:underline ml-4"
                         >
                           Delete
                         </button>
@@ -360,8 +350,8 @@ const AnalysisHistory: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-between items-center p-4 border-t border-gray-200">
-              <span className="text-sm text-gray-600">
+            <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {startIndex}-{endIndex} of {filteredAnalyses.length}
                 {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
               </span>
@@ -370,7 +360,7 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
@@ -379,10 +369,10 @@ const AnalysisHistory: React.FC = () => {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-1 rounded-md text-sm ${
-                      currentPage === pageNum 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-gray-600 hover:bg-gray-100 border border-transparent'
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-transparent'
                     }`}
                   >
                     {pageNum}
@@ -392,7 +382,7 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>
@@ -404,7 +394,7 @@ const AnalysisHistory: React.FC = () => {
 
       {/* Bulk Delete + Start New */}
       <div className="flex justify-between items-center mt-6">
-        <button 
+        <button
           onClick={handleBulkDelete}
           disabled={selectedIds.size === 0}
           className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -412,7 +402,7 @@ const AnalysisHistory: React.FC = () => {
           Bulk Delete {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
 
-        <Link 
+        <Link
           href="/dashboard/new-analysis"
           className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
         >
