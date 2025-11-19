@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, FC, FormEvent, ChangeEvent, useEffect, useRef } from "react";
+import React, { useState, FC, FormEvent, ChangeEvent, useRef, useEffect } from "react";
 import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLoginAnimation } from "@/hooks/useLoginAnimation";
@@ -122,58 +122,7 @@ const Login: FC = () => {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  /* Load Google Sign-In SDK */
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  /* Google Login Handler */
-  useEffect(() => {
-    const handleGoogleSuccess = async (event: any) => {
-      const { detail } = event;
-      console.log("🔐 Google credential received");
-
-      try {
-        setIsLoading(true);
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-        const response = await fetch(`${API_URL}/auth/google`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ credentials: detail.credential }),
-          credentials: "include",
-        });
-
-        const contentType = response.headers.get("content-type") || "";
-        const data = contentType.includes("application/json")
-          ? await response.json()
-          : { message: await response.text() };
-
-        if (!response.ok) {
-          throw new Error(data.message || "Google auth failed");
-        }
-
-        console.log("✅ Google auth successful");
-        router.push("/dashboard");
-      } catch (err: any) {
-        console.error("❌ Google error:", err.message || err);
-        setError(err.message || "Google login failed");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    window.addEventListener("googleSuccess", handleGoogleSuccess);
-    return () => window.removeEventListener("googleSuccess", handleGoogleSuccess);
-  }, [router]);
+  // Google sign-in removed. Authentication handled via email/password and OTP flows.
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -465,9 +414,9 @@ const Login: FC = () => {
                 Forgot Password?
               </button>
               {/* Forgot Password Modal */}
-              <ForgotPasswordModal 
-                isOpen={showForgotPassword} 
-                onClose={() => setShowForgotPassword(false)} 
+              <ForgotPasswordModal
+                isOpen={showForgotPassword}
+                onClose={() => setShowForgotPassword(false)}
               />
             </div>
           )}
@@ -486,65 +435,7 @@ const Login: FC = () => {
           </button>
         </form>
 
-        {/* GOOGLE LOGIN SECTION */}
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
-            </div>
-          </div>
-
-          {/* GOOGLE ONE TAP BUTTON */}
-          <div
-            id="g_id_onload"
-            data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-            data-callback="handleCredentialResponse"
-            data-auto_prompt="false"
-          ></div>
-
-          <div
-            id="g_id_signin"
-            className="flex justify-center mt-5"
-            data-type="standard"
-            data-size="large"
-            data-theme="outline"
-            data-text="signin_with"
-            data-logo_alignment="left"
-            data-shape="rectangular"
-            data-width="100%"
-          ></div>
-
-          {/* Handle Google Credential Token */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.handleCredentialResponse = (response) => {
-                  const event = new CustomEvent('googleSuccess', { detail: response });
-                  window.dispatchEvent(event);
-                };
-              `,
-            }}
-          />
-
-          {/* Google redirect button (backup) */}
-          <button
-            onClick={() => {
-              const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-              window.location.href = API_URL + "/auth/google";
-            }}
-            className="w-full mt-4 flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-gray-700 font-medium shadow-sm"
-          >
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              className="w-5 h-5"
-              alt="Google"
-            />
-            Continue with Google
-          </button>
-        </div>
+        {/* Google authentication removed */}
 
         <p className="mt-6 text-center text-sm text-gray-600">
           {isSigningIn ? "Don't have an account?" : "Already have an account?"}

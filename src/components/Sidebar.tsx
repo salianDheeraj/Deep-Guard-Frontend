@@ -111,20 +111,36 @@ const Sidebar = () => {
     itemRefs.current = [];
 
     // ================================
-    // 4. FIXED: Logout with HttpOnly cookie
+    // 4. Proper logout: server + client
     // ================================
     const handleLogout = async () => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            // lazy import helper to keep logic centralized
+            const { performLogout } = await import('@/../lib/auth');
 
-            await fetch(`${API_URL}/auth/logout`, {
-                method: "POST",
-                credentials: "include"      // 🔥 DELETE httpOnly cookies
-            });
+            await performLogout();
 
-            router.push("/login");
+            // Reset any client stores (analysis store) if present
+            try {
+                const { useAnalysisStore } = await import('@/../lib/store/analysisStore');
+                useAnalysisStore.getState()?.reset?.();
+            } catch (e) {
+                // ignore if store not present
+            }
+
+            // Ensure localStorage cleared (defensive)
+            try {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+            } catch (e) {
+                // ignore
+            }
+
+            router.push('/login');
         } catch (err) {
-            console.error("Logout failed", err);
+            console.error('Logout failed', err);
+            // still redirect to login as a fallback
+            try { router.push('/login'); } catch {};
         }
     };
 
