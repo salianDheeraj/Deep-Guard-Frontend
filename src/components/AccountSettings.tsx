@@ -18,27 +18,37 @@ export default function AccountSettings() {
     email: "",
     profile_pic: "",
   });
-  const [loading, setLoading] = useState(true);
 
-  // Ref for animation container
+  const [loading, setLoading] = useState(true);
   const mainContentRef = useRef<HTMLElement>(null);
 
-  // Fetch profile on mount
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // =========================================================
+  // 🔥 FETCH USER PROFILE WITH COOKIE AUTH
+  // =========================================================
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("authToken");
-        const res = await fetch("/api/account", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+
+        const res = await fetch(`${API_URL}/auth/me`, {
+          method: "GET",
+          credentials: "include", // 🔥 HttpOnly cookie auth
         });
+
         if (!res.ok) throw new Error("Failed to fetch profile");
+
         const data = await res.json();
-        setProfile(data);
-      } catch (error) {
-        console.error("❌ Failed to fetch profile:", error);
+        setProfile({
+          name: data.name,
+          email: data.email,
+          profile_pic: data.profile_pic || "",
+        });
+
+      } catch (err) {
+        console.error("❌ Profile fetch failed:", err);
       } finally {
         setLoading(false);
       }
@@ -47,14 +57,17 @@ export default function AccountSettings() {
     fetchProfile();
   }, []);
 
-  // GSAP Animation on load
+  // =========================================================
+  // 🔥 GSAP Animations
+  // =========================================================
   const hasAnimated = useRef(false);
+
   useLayoutEffect(() => {
     if (!loading && mainContentRef.current && !hasAnimated.current) {
       hasAnimated.current = true;
+
       const container = mainContentRef.current;
 
-      // Set up 3D perspective for section entry animation
       gsap.set(container, { perspective: 1000 });
 
       const allSections = gsap.utils.toArray<HTMLElement>(container.children);
@@ -65,10 +78,8 @@ export default function AccountSettings() {
         defaults: { ease: "power3.out", duration: 1 },
       });
 
-      // Header animation — smooth slide in
       tl.from(header, { y: -30, opacity: 0, duration: 0.6 });
 
-      // Animate sections — flip and reveal effect
       tl.from(
         contentSections,
         {
@@ -90,7 +101,6 @@ export default function AccountSettings() {
         "-=0.8"
       );
 
-      // Cleanup on unmount for safety in Strict Mode
       return () => {
         gsap.killTweensOf(container);
         gsap.killTweensOf(header);
@@ -99,10 +109,16 @@ export default function AccountSettings() {
     }
   }, [loading]);
 
+  // =========================================================
+  // Profile updated from child component
+  // =========================================================
   const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
   };
 
+  // =========================================================
+  // Loading UI
+  // =========================================================
   if (loading) {
     return (
       <main className="flex-1 p-6 flex items-center justify-center h-full">
@@ -114,26 +130,22 @@ export default function AccountSettings() {
     );
   }
 
+  // =========================================================
+  // UI
+  // =========================================================
   return (
     <main
       ref={mainContentRef}
       className="flex-1 p-6 flex flex-col h-full overflow-y-auto"
     >
-      {/* Header Section */}
+      {/* Header */}
       <div className="flex flex-col mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Account Settings
-        </h1>
-        <p className="text-gray-500 mt-2">
-          Manage your profile and preferences
-        </p>
+        <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
+        <p className="text-gray-500 mt-2">Manage your profile and preferences</p>
       </div>
 
-      {/* Subsections */}
-      <AccountProfile
-        profile={profile}
-        onProfileUpdate={handleProfileUpdate}
-      />
+      {/* Sections */}
+      <AccountProfile profile={profile} onProfileUpdate={handleProfileUpdate} />
       <AccountPassword />
       <AccountDataManagement />
     </main>

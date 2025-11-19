@@ -70,7 +70,6 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
   useChartAnimation(chartContainerRef, [chartBars.length]);
 
   return (
-    // ✅ THIS IS THE CORRECTED LINE
     <div className="bg-white rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200">
       <h3 className="text-2xl font-bold text-gray-800 mb-6">
         Confidence Over Time (Frame by Frame)
@@ -85,6 +84,7 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
           {/* Chart Section */}
           <div className="bg-gray-50 p-4 rounded-xl mb-6 border border-gray-200">
             <div className="flex gap-2">
+
               {/* Y-axis */}
               <div className="flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 font-semibold">
                 {[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map((v) => (
@@ -98,25 +98,34 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
                   ref={chartContainerRef}
                   className="flex items-end gap-[1px] h-80 bg-white rounded-t-md border border-gray-300 overflow-hidden relative"
                 >
-                  
-                  {/* ===== GRID LINES ===== */}
+
+                  {/* GRID LINES */}
                   <div className="absolute inset-0 pointer-events-none">
                     {[10, 20, 30, 40, 50, 60, 70, 80, 90].map((v) => (
                       <div
                         key={v}
                         className="absolute w-full border-t border-gray-300 border-dashed"
-                        style={{ bottom: `${v}%` }} 
+                        style={{ bottom: `${v}%` }}
                       ></div>
                     ))}
                   </div>
-                  {/* ===== END GRID LINES ===== */}
 
                   {chartBars.map((bar, idx) => {
-                    const barHeight = Math.max(bar.value * 100, 3);
+                    const fakePercent = bar.value * 100;
+                    const realPercent = (1 - bar.value) * 100;
+
+                    // real bars show real %, fake bars show fake %
+                    const barHeight = Math.max(
+                      bar.value >= 0.5 ? fakePercent : realPercent,
+                      3
+                    );
+
+                    const displayPercent = bar.value >= 0.5 ? fakePercent : realPercent;
+
                     return (
                       <div
                         key={idx}
-                        className={`flex-1 rounded-t-sm z-10 ${ 
+                        className={`flex-1 rounded-t-sm z-10 ${
                           bar.value >= 0.5
                             ? 'bg-gradient-to-t from-rose-500 to-rose-300 hover:from-rose-600 hover:to-rose-400'
                             : 'bg-gradient-to-t from-emerald-500 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400'
@@ -126,7 +135,7 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
                           minHeight: '3px',
                         }}
                         title={`Frame ${bar.index + 1}: ${Math.round(
-                          bar.value * 100
+                          displayPercent
                         )}% ${bar.value >= 0.5 ? 'FAKE' : 'REAL'}`}
                       />
                     );
