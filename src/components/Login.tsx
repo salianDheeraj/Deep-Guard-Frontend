@@ -11,6 +11,7 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword?: string;
+  otp?: string;
   rememberMe?: boolean;
 }
 
@@ -78,12 +79,17 @@ const Login: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false); // Added state
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpStatus, setOtpStatus] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    otp: "",
     rememberMe: false,
   });
 
@@ -105,6 +111,16 @@ const Login: FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+
+    const interval = setInterval(() => {
+      setOtpTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpTimer]);
 
   /* Load Google Sign-In SDK */
   useEffect(() => {
@@ -161,29 +177,83 @@ const Login: FC = () => {
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+
+    if (name === "email") {
+      setOtpSent(false);
+      setOtpTimer(0);
+      setOtpStatus(null);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+      ...(name === "email" ? { otp: "" } : {}),
     }));
   };
 
-  const validateForm = (): boolean => {
+  const validateSignin = (): boolean => {
+    if (!formData.email || !formData.password) {
+      setError("Email and password are required");
+      return false;
+    }
+    return true;
+  };
+
+  const validateSignup = (): boolean => {
     if (!formData.email || !formData.password) {
       setError("Email and password are required");
       return false;
     }
 
-    if (!isSigningIn && formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return false;
     }
 
-    if (!isSigningIn && formData.password.length < 8) {
+    if ((formData.password || "").length < 8) {
       setError("Password must be at least 8 characters");
       return false;
     }
 
     return true;
+  };
+
+  const validateForm = () => (isSigningIn ? validateSignin() : validateSignup());
+
+  const handleSendOtp = async () => {
+    setError(null);
+    setOtpStatus(null);
+
+    if (!validateSignup()) return;
+
+    try {
+      setIsSendingOtp(true);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API_URL}/auth/signup/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: (formData.email || "").trim(),
+          name: formData.name,
+        }),
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : { message: await response.text() };
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to send OTP");
+      }
+
+      setOtpSent(true);
+      setOtpStatus("OTP sent! Please check your email.");
+      setOtpTimer(60);
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP");
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -192,15 +262,29 @@ const Login: FC = () => {
 
     if (!validateForm()) return;
 
+    if (!isSigningIn) {
+      if (!otpSent) {
+        setError("Please request an OTP before signing up");
+        return;
+      }
+
+      if (!formData.otp) {
+        setError("Please enter the OTP sent to your email");
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
       const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const trimmedEmail = (formData.email || "").trim();
       const payload = {
-        email: (formData.email || "").trim(),
+        email: trimmedEmail,
         password: formData.password,
         name: formData.name || (formData.email ? formData.email.split("@")[0] : ""),
+        ...(isSigningIn ? {} : { otp: (formData.otp || "").trim() }),
       };
 
       console.log(`📤 Auth request -> ${API_URL}${endpoint}`);
@@ -222,7 +306,17 @@ const Login: FC = () => {
       }
 
       console.log("✅ Auth successful (cookie set)");
-      setFormData((f) => ({ ...f, password: "", confirmPassword: "" }));
+      setFormData((f) => ({
+        ...f,
+        password: "",
+        confirmPassword: "",
+        otp: "",
+      }));
+      if (!isSigningIn) {
+        setOtpSent(false);
+        setOtpTimer(0);
+        setOtpStatus(null);
+      }
 
       router.push("/dashboard");
     } catch (err: any) {
@@ -241,8 +335,12 @@ const Login: FC = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      otp: "",
       rememberMe: false,
     });
+    setOtpSent(false);
+    setOtpTimer(0);
+    setOtpStatus(null);
   };
 
   return (
@@ -294,15 +392,53 @@ const Login: FC = () => {
           />
 
           {!isSigningIn && (
-            <AuthInput
-              label="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword || ""}
-              onChange={handleInputChange}
-              placeholder="Re-enter your password"
-              InputIcon={Lock}
-            />
+            <>
+              <AuthInput
+                label="Confirm Password"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword || ""}
+                onChange={handleInputChange}
+                placeholder="Re-enter your password"
+                InputIcon={Lock}
+              />
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={isSendingOtp || otpTimer > 0}
+                  className="px-4 py-2 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {isSendingOtp
+                    ? "Sending..."
+                    : otpSent
+                      ? "Resend OTP"
+                      : "Send OTP"}
+                </button>
+                {otpTimer > 0 && (
+                  <span className="text-sm text-gray-500">Resend available in {otpTimer}s</span>
+                )}
+              </div>
+
+              {otpStatus && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+                  {otpStatus}
+                </div>
+              )}
+
+              {otpSent && (
+                <AuthInput
+                  label="OTP Code"
+                  type="text"
+                  name="otp"
+                  value={formData.otp || ""}
+                  onChange={handleInputChange}
+                  placeholder="Enter the 6-digit code"
+                  InputIcon={Mail}
+                />
+              )}
+            </>
           )}
 
           {isSigningIn && (

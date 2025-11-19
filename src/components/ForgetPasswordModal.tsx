@@ -271,7 +271,7 @@ className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text
 
             {/* TIMER */}
             <p className="text-sm text-gray-600 text-center">
-              OTP expires in:{" "}
+              Resend Otp :{" "}
               <span className="font-semibold text-red-600">
                 {Math.floor(otpTimer / 60)}:
                 {(otpTimer % 60).toString().padStart(2, "0")}
