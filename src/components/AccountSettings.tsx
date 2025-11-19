@@ -18,37 +18,27 @@ export default function AccountSettings() {
     email: "",
     profile_pic: "",
   });
-
   const [loading, setLoading] = useState(true);
+
+  // Ref for animation container
   const mainContentRef = useRef<HTMLElement>(null);
 
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-  // =========================================================
-  // 🔥 FETCH USER PROFILE WITH COOKIE AUTH
-  // =========================================================
+  // Fetch profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-
-        const res = await fetch(`${API_URL}/auth/me`, {
-          method: "GET",
-          credentials: "include", // 🔥 HttpOnly cookie auth
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("/api/account", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-
         if (!res.ok) throw new Error("Failed to fetch profile");
-
         const data = await res.json();
-        setProfile({
-          name: data.name,
-          email: data.email,
-          profile_pic: data.profile_pic || "",
-        });
-
-      } catch (err) {
-        console.error("❌ Profile fetch failed:", err);
+        setProfile(data);
+      } catch (error) {
+        console.error("❌ Failed to fetch profile:", error);
       } finally {
         setLoading(false);
       }
@@ -57,68 +47,42 @@ export default function AccountSettings() {
     fetchProfile();
   }, []);
 
-  // =========================================================
-  // 🔥 GSAP Animations
-  // =========================================================
+  // GSAP Animation on load
   const hasAnimated = useRef(false);
-
   useLayoutEffect(() => {
     if (!loading && mainContentRef.current && !hasAnimated.current) {
       hasAnimated.current = true;
-
       const container = mainContentRef.current;
+      const items = container.children;
 
-      gsap.set(container, { perspective: 1000 });
-
-      const allSections = gsap.utils.toArray<HTMLElement>(container.children);
-      const header = allSections[0];
-      const contentSections = allSections.slice(1);
-
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out", duration: 1 },
+      // 1. Set initial state (Hidden, slightly smaller, pushed down)
+      gsap.set(items, { 
+        opacity: 0, 
+        y: 40, 
+        scale: 0.95 
       });
 
-      tl.from(header, { y: -30, opacity: 0, duration: 0.6 });
-
-      tl.from(
-        contentSections,
-        {
-          opacity: 0,
-          y: 50,
-          rotateX: -90,
-          transformOrigin: "bottom center",
-          clipPath: "polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%)",
-          stagger: 0.15,
-        },
-        "-=0.3"
-      ).to(
-        contentSections,
-        {
-          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-          duration: 1.2,
-          ease: "power2.out",
-        },
-        "-=0.8"
-      );
+      // 2. Animate to final state with a "Back" ease (subtle bounce)
+      gsap.to(items, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.15,         // 0.15s delay between each card
+        ease: "back.out(1.2)", // The "1.2" controls the amount of overshoot/bounce
+        clearProps: "all"
+      });
 
       return () => {
-        gsap.killTweensOf(container);
-        gsap.killTweensOf(header);
-        gsap.killTweensOf(contentSections);
+        gsap.killTweensOf(items);
       };
     }
   }, [loading]);
 
-  // =========================================================
-  // Profile updated from child component
-  // =========================================================
   const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
   };
 
-  // =========================================================
-  // Loading UI
-  // =========================================================
   if (loading) {
     return (
       <main className="flex-1 p-6 flex items-center justify-center h-full">
@@ -130,22 +94,26 @@ export default function AccountSettings() {
     );
   }
 
-  // =========================================================
-  // UI
-  // =========================================================
   return (
     <main
       ref={mainContentRef}
       className="flex-1 p-6 flex flex-col h-full overflow-y-auto"
     >
-      {/* Header */}
-      <div className="flex flex-col mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
-        <p className="text-gray-500 mt-2">Manage your profile and preferences</p>
+      {/* Header Section */}
+      <div className="flex flex-col mb-6 origin-left">
+        <h1 className="text-3xl font-bold text-gray-800">
+          Account Settings
+        </h1>
+        <p className="text-gray-500 mt-2">
+          Manage your profile and preferences
+        </p>
       </div>
 
-      {/* Sections */}
-      <AccountProfile profile={profile} onProfileUpdate={handleProfileUpdate} />
+      {/* Subsections */}
+      <AccountProfile
+        profile={profile}
+        onProfileUpdate={handleProfileUpdate}
+      />
       <AccountPassword />
       <AccountDataManagement />
     </main>
