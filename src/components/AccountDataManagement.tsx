@@ -94,7 +94,7 @@ export default function AccountDataManagement() {
         "Are you sure you want to delete ALL analyses? This action cannot be undone.",
       onConfirm: async () => {
         try {
-          const res = await fetch(`${API_URL}/auth/delete-analyses`, {
+          const res = await fetch(`${API_URL}/api/account/delete-analyses`, {
             method: "DELETE",
             credentials: "include", // 🔥 COOKIE AUTH
           });
@@ -128,7 +128,7 @@ export default function AccountDataManagement() {
         "Are you sure you want to delete your account? All your data will be permanently removed.",
       onConfirm: async () => {
         try {
-          const res = await fetch(`${API_URL}/auth/delete-account`, {
+          const res = await fetch(`${API_URL}/api/account/delete-account`, {
             method: "DELETE",
             credentials: "include", // 🔥 COOKIE AUTH
           });

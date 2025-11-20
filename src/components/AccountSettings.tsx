@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import AccountProfile from "../components/AccountProfile";
-import AccountPassword from "../components/AccountPassword";
 import AccountDataManagement from "../components/AccountDataManagement";
 import { gsap } from "gsap";
 
@@ -33,7 +32,7 @@ export default function AccountSettings() {
       try {
         setLoading(true);
 
-        const res = await fetch(`${API_URL}/auth/me`, {
+        const res = await fetch(`${API_URL}/api/account/me`, {
           method: "GET",
           credentials: "include", // 🔥 HttpOnly cookie auth
         });
@@ -146,7 +145,6 @@ export default function AccountSettings() {
 
       {/* Sections */}
       <AccountProfile profile={profile} onProfileUpdate={handleProfileUpdate} />
-      <AccountPassword />
       <AccountDataManagement />
     </main>
   );
