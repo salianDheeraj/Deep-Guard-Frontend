@@ -1,151 +1,377 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
-import AccountProfile from "../components/AccountProfile";
-import AccountDataManagement from "../components/AccountDataManagement";
-import { gsap } from "gsap";
+import React, { useEffect, useState, useRef } from "react";
+import { useAccountPageAnimations } from "@/hooks/useAccountPageAnimations";
 
-interface UserProfile {
+type UserProfile = {
+  id?: string;
   name: string;
   email: string;
-  profile_pic: string;
-}
+  profile_picture?: string | null;
+};
 
-export default function AccountSettings() {
+type SaveState = "IDLE" | "SAVING" | "SUCCESS" | "ERROR";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+export default function AccountSettings(): JSX.Element {
+  // ============================================
+  // ANIMATION SCOPE
+  // ============================================
+  const pageRef = useRef<HTMLDivElement>(null);
+  useAccountPageAnimations(pageRef);
+
+  // ============================================
+  // STATE
+  // ============================================
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     email: "",
-    profile_pic: "",
+    profile_picture: null,
+  });
+
+  const [local, setLocal] = useState<UserProfile>({
+    name: "",
+    email: "",
+    profile_picture: null,
   });
 
   const [loading, setLoading] = useState(true);
-  const mainContentRef = useRef<HTMLElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const [profileSaveState, setProfileSaveState] =
+    useState<SaveState>("IDLE");
 
-  // =========================================================
-  // 🔥 FETCH USER PROFILE WITH COOKIE AUTH
-  // =========================================================
+  const [currentPass, setCurrentPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [passwordSaveState, setPasswordSaveState] =
+    useState<SaveState>("IDLE");
+
+  // ============================================
+  // LOAD PROFILE
+  // ============================================
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
+    (async function load() {
+      setLoading(true);
+      setError(null);
 
+      try {
         const res = await fetch(`${API_URL}/api/account/me`, {
           method: "GET",
-          credentials: "include", // 🔥 HttpOnly cookie auth
+          credentials: "include",
         });
 
-        if (!res.ok) throw new Error("Failed to fetch profile");
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt.substring(0, 200));
+        }
 
         const data = await res.json();
-        setProfile({
-          name: data.name,
-          email: data.email,
-          profile_pic: data.profile_pic || "",
-        });
-
-      } catch (err) {
-        console.error("❌ Profile fetch failed:", err);
+        setProfile(data);
+        setLocal(data);
+      } catch (err: any) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchProfile();
+    })();
   }, []);
 
-  // =========================================================
-  // 🔥 GSAP Animations
-  // =========================================================
-  const hasAnimated = useRef(false);
+  // ============================================
+  // SAVE PROFILE — NAME ONLY
+  // ============================================
+  const saveProfile = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setProfileSaveState("SAVING");
+    setError(null);
 
-  useLayoutEffect(() => {
-    if (!loading && mainContentRef.current && !hasAnimated.current) {
-      hasAnimated.current = true;
+    try {
+      const payload = { name: local.name };
 
-      const container = mainContentRef.current;
-
-      gsap.set(container, { perspective: 1000 });
-
-      const allSections = gsap.utils.toArray<HTMLElement>(container.children);
-      const header = allSections[0];
-      const contentSections = allSections.slice(1);
-
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out", duration: 1 },
+      const res = await fetch(`${API_URL}/api/account/update-profile`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      tl.from(header, { y: -30, opacity: 0, duration: 0.6 });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.message || "Update failed");
+      }
 
-      tl.from(
-        contentSections,
-        {
-          opacity: 0,
-          y: 50,
-          rotateX: -90,
-          transformOrigin: "bottom center",
-          clipPath: "polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%)",
-          stagger: 0.15,
-        },
-        "-=0.3"
-      ).to(
-        contentSections,
-        {
-          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-          duration: 1.2,
-          ease: "power2.out",
-        },
-        "-=0.8"
-      );
+      const data = await res.json();
+      const updated = data.user || data;
 
-      return () => {
-        gsap.killTweensOf(container);
-        gsap.killTweensOf(header);
-        gsap.killTweensOf(contentSections);
-      };
+      setProfile(updated);
+      setLocal(updated);
+      setProfileSaveState("SUCCESS");
+    } catch (err: any) {
+      setError(err.message);
+      setProfileSaveState("ERROR");
+    } finally {
+      setTimeout(() => setProfileSaveState("IDLE"), 1500);
     }
-  }, [loading]);
-
-  // =========================================================
-  // Profile updated from child component
-  // =========================================================
-  const handleProfileUpdate = (updatedProfile: UserProfile) => {
-    setProfile(updatedProfile);
   };
 
-  // =========================================================
-  // Loading UI
-  // =========================================================
+  // ============================================
+  // CHANGE PASSWORD
+  // ============================================
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSaveState("SAVING");
+    setError(null);
+
+    if (newPass !== confirmPass) {
+      setError("New passwords do not match");
+      setPasswordSaveState("ERROR");
+      return;
+    }
+
+    if (newPass.length < 8) {
+      setError("Password must be at least 8 characters");
+      setPasswordSaveState("ERROR");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/account/change-password`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_password: currentPass,
+          new_password: newPass,
+        }),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.message || "Password change failed");
+      }
+
+      setPasswordSaveState("SUCCESS");
+      setCurrentPass("");
+      setNewPass("");
+      setConfirmPass("");
+    } catch (err: any) {
+      setError(err.message);
+      setPasswordSaveState("ERROR");
+    } finally {
+      setTimeout(() => setPasswordSaveState("IDLE"), 1500);
+    }
+  };
+
+  // ============================================
+  // DELETE ANALYSES
+  // ============================================
+  const deleteAllAnalyses = async () => {
+    if (!confirm("Delete all analyses?")) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/account/delete-analyses`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed");
+
+      alert("All analyses deleted.");
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // ============================================
+  // LOGOUT OTHER DEVICES
+  // ============================================
+  const logoutOtherDevices = async () => {
+    if (!confirm("Log out from all other devices?")) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/account/logout-all`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.message || "Failed to logout other devices");
+      }
+
+      alert("Logged out from all other devices.");
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // ============================================
+  // DELETE ACCOUNT
+  // ============================================
+  const deleteAccount = async () => {
+    if (!confirm("Delete account permanently?")) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/account/delete-account`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed");
+
+      window.location.href = "/login";
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // ============================================
+  // UI
+  // ============================================
   if (loading) {
     return (
       <main className="flex-1 p-6 flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your profile...</p>
-        </div>
+        <p>Loading account settings...</p>
       </main>
     );
   }
 
-  // =========================================================
-  // UI
-  // =========================================================
   return (
-    <main
-      ref={mainContentRef}
-      className="flex-1 p-6 flex flex-col h-full overflow-y-auto"
-    >
-      {/* Header */}
-      <div className="flex flex-col mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
-        <p className="text-gray-500 mt-2">Manage your profile and preferences</p>
-      </div>
+    <main ref={pageRef} className="flex-1 p-6 flex flex-col h-full space-y-6">
+      <h1 className="text-3xl font-bold account-header">Account Settings</h1>
 
-      {/* Sections */}
-      <AccountProfile profile={profile} onProfileUpdate={handleProfileUpdate} />
-      <AccountDataManagement />
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-3 text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* PROFILE */}
+      <section className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
+        <form onSubmit={saveProfile} className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold">
+              {local.name?.charAt(0).toUpperCase()}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Full name</label>
+              <input
+                value={local.name}
+                onChange={(e) =>
+                  setLocal((s) => ({ ...s, name: e.target.value }))
+                }
+                className="mt-1 block w-full px-3 py-2 border rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Email</label>
+              <input
+                value={local.email}
+                disabled
+                className="mt-1 block w-full px-3 py-2 border bg-gray-50 cursor-not-allowed rounded"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded action-button"
+              disabled={profileSaveState === "SAVING"}
+            >
+              {profileSaveState === "SAVING" ? "Saving..." : "Save changes"}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* PASSWORD */}
+      <section className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
+        <h2 className="text-lg font-semibold mb-4">Change password</h2>
+
+        <form onSubmit={changePassword} className="space-y-3">
+          <div>
+            <label className="block text-sm">Current password</label>
+            <input
+              type="password"
+              value={currentPass}
+              onChange={(e) => setCurrentPass(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border rounded"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm">New password</label>
+            <input
+              type="password"
+              value={newPass}
+              onChange={(e) => setNewPass(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border rounded"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm">Confirm new password</label>
+            <input
+              type="password"
+              value={confirmPass}
+              onChange={(e) => setConfirmPass(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border rounded"
+            />
+          </div>
+
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded action-button"
+            disabled={passwordSaveState === "SAVING"}
+          >
+            {passwordSaveState === "SAVING"
+              ? "Changing..."
+              : "Change password"}
+          </button>
+        </form>
+      </section>
+
+      {/* DANGER ZONE */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
+          <h3 className="font-semibold">Data management</h3>
+          <p className="text-sm text-gray-500 my-2">
+            Remove all analyses stored in your account.
+          </p>
+          <button
+            onClick={deleteAllAnalyses}
+            className="px-4 py-2 border text-red-600 rounded danger-button"
+          >
+            Delete all analyses
+          </button>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
+          <h3 className="font-semibold text-red-600">Danger zone</h3>
+          <p className="text-sm text-gray-500 my-2">
+            Deleting your account removes all data permanently.
+          </p>
+
+          {/* NEW BUTTON */}
+          <button
+            onClick={logoutOtherDevices}
+            className="px-4 py-2 border text-yellow-700 rounded mb-3 action-button"
+          >
+            Logout other devices
+          </button>
+
+          <button
+            onClick={deleteAccount}
+            className="px-4 py-2 bg-red-600 text-white rounded danger-button"
+          >
+            Delete account
+          </button>
+        </div>
+      </section>
     </main>
   );
 }

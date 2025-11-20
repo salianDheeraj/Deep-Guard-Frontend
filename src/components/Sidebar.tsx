@@ -7,6 +7,7 @@ import { LayoutDashboard, PlusSquare, History, User, LogOut, ShieldCheck, Lucide
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
+import ThemeToggleButton from './ThemeToggleButton'; // 👈 Added Import
 
 interface NavItem {
     name: string;
@@ -116,6 +117,7 @@ const Sidebar = () => {
     const handleLogout = async () => {
         try {
             // lazy import helper to keep logic centralized
+            // Note: Ensure this path exists in your project
             const { performLogout } = await import('@/../lib/auth');
 
             await performLogout();
@@ -145,19 +147,22 @@ const Sidebar = () => {
     };
 
     return (
-        <div ref={sidebarRef} className="w-64 h-screen bg-white shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100">
+        <div 
+            ref={sidebarRef} 
+            className="w-64 h-screen bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100 dark:border-gray-800 transition-colors duration-300"
+        >
             <div>
                 {/* Logo */}
-                <div className="flex items-center justify-start p-6 border-b border-gray-100">
-                    <ShieldCheck size={28} className="text-blue-600 logo-shield-icon" />
-                    <h1 className="text-xl font-bold ml-2 text-blue-600">Deep-Guard</h1>
+                <div className="flex items-center justify-start p-6 border-b border-gray-100 dark:border-gray-800">
+                    <ShieldCheck size={28} className="text-blue-600 dark:text-blue-400 logo-shield-icon" />
+                    <h1 className="text-xl font-bold ml-2 text-blue-600 dark:text-blue-400">Deep-Guard</h1>
                 </div>
 
                 {/* Nav */}
                 <nav ref={navRef} className="mt-6 relative">
                     <div
                         ref={indicatorRef}
-                        className="absolute left-0 w-1 h-1 bg-blue-600 rounded-r-lg opacity-0"
+                        className="absolute left-0 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-r-lg opacity-0"
                         style={{ transform: 'translateY(0px)' }}
                     />
 
@@ -166,10 +171,10 @@ const Sidebar = () => {
                             key={item.name}
                             href={item.href}
                             ref={(el) => { itemRefs.current[index] = el; }}
-                            className={`flex items-center py-3 px-6 text-gray-600 transition-colors nav-link-item relative z-10 
+                            className={`flex items-center py-3 px-6 text-gray-600 dark:text-gray-400 transition-colors nav-link-item relative z-10 
                                 ${isActive(item.href)
-                                    ? 'bg-gray-100 text-gray-900 font-medium'
-                                    : 'hover:bg-gray-100 hover:text-gray-900'}`}
+                                    ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white font-medium'
+                                    : 'hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'}`}
                             onMouseEnter={(e) => handleLinkHover(e, true)}
                             onMouseLeave={(e) => handleLinkHover(e, false)}
                         >
@@ -181,17 +186,22 @@ const Sidebar = () => {
             </div>
 
             {/* Bottom Section */}
-            <div className="p-4 border-t border-gray-100 space-y-4">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
+
+                {/* 👇 Added Theme Toggle Button Here */}
+                <div className="flex justify-center pb-2">
+                     <ThemeToggleButton />
+                </div>
 
                 {/* User Profile */}
-                <div className="p-2 bg-gray-50 rounded-lg">
+                <div className="p-2 bg-gray-50 dark:bg-slate-800 rounded-lg transition-colors">
                     <UserProfileCard />
                 </div>
 
                 {/* Logout */}
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors"
+                    className="w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 rounded-lg transition-colors"
                 >
                     <LogOut size={20} className="mr-4" />
                     <span>Logout</span>
