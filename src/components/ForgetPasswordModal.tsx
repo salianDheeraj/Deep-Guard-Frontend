@@ -186,20 +186,20 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 relative transition-colors duration-300">
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
         >
           <X className="h-6 w-6" />
         </button>
 
         <div className="text-center mb-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 shadow mx-auto mb-3">
-            <KeyRound className="h-7 w-7 text-blue-600" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 shadow mx-auto mb-3">
+            <KeyRound className="h-7 w-7 text-blue-600 dark:text-blue-400" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Reset Password</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Reset Password</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {step === "email" && "Enter your email to receive a reset code"}
             {step === "otp" && "Enter the OTP and set a new password"}
             {step === "success" && "Password reset successful!"}
@@ -215,11 +215,11 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Enter your email"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             />
 
             {error && (
-              <p className="text-red-600 text-sm bg-red-50 p-2 rounded">
+              <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
                 {error}
               </p>
             )}
@@ -228,7 +228,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -236,7 +236,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {isLoading ? "Sending..." : "Continue"}
               </button>
@@ -254,12 +254,12 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               value={formData.otp}
               onChange={handleInputChange}
               placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text-center tracking-widest"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg text-center tracking-widest placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             />
 
-            <p className="text-sm text-gray-600 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
               Resend OTP:{" "}
-              <span className="font-semibold text-red-600">
+              <span className="font-semibold text-red-600 dark:text-red-400">
                 {Math.floor(otpTimer / 60)}:
                 {(otpTimer % 60).toString().padStart(2, "0")}
               </span>
@@ -269,7 +269,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               type="button"
               onClick={resendOtp}
               disabled={cooldown > 0}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
             >
               <RotateCcw className="h-4 w-4" />
               {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
@@ -283,7 +283,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               onChange={handleInputChange}
               placeholder="New password"
               disabled={formData.otp.length !== 6}
-              className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-colors"
             />
 
             <input
@@ -293,11 +293,11 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               onChange={handleInputChange}
               placeholder="Confirm password"
               disabled={formData.otp.length !== 6}
-              className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-colors"
             />
 
             {error && (
-              <p className="text-red-600 text-sm bg-red-50 p-2 rounded">
+              <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
                 {error}
               </p>
             )}
@@ -306,7 +306,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -314,7 +314,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
               </button>
@@ -325,11 +325,11 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
         {/* STEP 3 */}
         {step === "success" && (
           <div className="text-center py-4">
-            <p className="text-green-600 font-medium">{successMessage}</p>
+            <p className="text-green-600 dark:text-green-400 font-medium">{successMessage}</p>
 
             <button
               onClick={handleClose}
-              className="mt-4 px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100"
+              className="mt-4 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               Close
             </button>
