@@ -148,72 +148,77 @@ const NewAnalysisContent: React.FC = () => {
       processFiles(event.target.files);
     }
   };
+const startMLAnalysis = async (analysisId: string, frameCount: number) => {
+  try {
+    if (!analysisId) {
+      console.error('❌ analysisId is required');
+      return null;
+    }
 
-  const startMLAnalysis = async (analysisId: string, frameCount: number) => {
-    try {
-      if (!analysisId) {
-        console.error('❌ analysisId is required');
-        return null;
-      }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    // Detect file type
+    const isImage = selectedFile?.type.startsWith("image/");
+    const isVideo = selectedFile?.type.startsWith("video/");
 
-      console.log(`🔍 Starting ML analysis: ${analysisId}`);
-      console.log(`🎬 Total frames: ${frameCount}`);
-      console.log(`📊 Frames to analyze: ${framesToAnalyze}`);
+    // Pick correct ML endpoint
+    const mlEndpoint = isImage
+      ? `${API_URL}/api/ml/images/${analysisId}`     // IMAGE ROUTE
+      : `${API_URL}/api/ml/analyze/${analysisId}`;   // VIDEO ROUTE
 
+    console.log(`🔍 Starting ML analysis: ${analysisId}`);
+    console.log(`📂 File: ${selectedFile?.name}`);
+    console.log(`📁 Type: ${selectedFile?.type}`);
+    console.log(`📡 Endpoint: ${mlEndpoint}`);
+
+    // Only animate frames for video
+    if (isVideo) {
       frameIntervalRef.current = setInterval(() => {
         setCurrentFrame(prev => {
-          if (prev >= framesToAnalyze) {
-            return framesToAnalyze;
-          }
+          if (prev >= framesToAnalyze) return framesToAnalyze;
           return prev + 1;
         });
       }, 650);
+    } else {
+      // For images, just show 1 frame
+      setCurrentFrame(1);
+    }
 
-      // Send cookie-based auth via credentials: 'include'
-      const response = await fetch(`${API_URL}/api/ml/analyze/${analysisId}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          total_frames: frameCount,
-          frames_to_analyze: framesToAnalyze
-        }),
-      });
+    // Make ML request
+    const response = await fetch(mlEndpoint, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        total_frames: isImage ? 1 : frameCount,
+        frames_to_analyze: isImage ? 1 : framesToAnalyze
+      })
+    });
 
-      if (frameIntervalRef.current) {
-        clearInterval(frameIntervalRef.current);
-      }
-      setCurrentFrame(framesToAnalyze);
+    if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
+    setCurrentFrame(isImage ? 1 : framesToAnalyze);
 
-      console.log(`📊 Response status: ${response.status}`);
-      const data = await response.json();
-      console.log(`📥 Response data:`, data);
+    const data = await response.json();
+    console.log("📥 ML Response:", data);
 
-      if (!response.ok) {
-        console.error('❌ ML error:', data.message || data);
-        return null;
-      }
-
-      console.log(`✅ ML completed:`, data.data);
-
-      return {
-        success: true,
-        is_deepfake: data.data.is_deepfake,
-        confidence_score: data.data.confidence_score,
-      };
-
-    } catch (error: any) {
-      if (frameIntervalRef.current) {
-        clearInterval(frameIntervalRef.current);
-      }
-      console.error('❌ ML error:', error);
+    if (!response.ok) {
+      console.error("❌ ML error:", data.message || data);
       return null;
     }
-  };
+
+    return {
+      success: true,
+      is_deepfake: data.data.is_deepfake,
+      confidence_score: data.data.confidence_score,
+    };
+
+  } catch (error: any) {
+    if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
+    console.error("❌ ML error:", error);
+    return null;
+  }
+};
+
 
   const renderFrameInputModal = () => {
     if (!showFrameInput || !selectedFile) return null;

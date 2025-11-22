@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, FC, FormEvent, ChangeEvent, useEffect } from "react";
-import { Shield, Mail, X, KeyRound, RotateCcw } from "lucide-react";
+import { X, KeyRound, RotateCcw } from "lucide-react";
 import ReactDOM from "react-dom";
 
 interface ForgotPasswordModalProps {
@@ -19,8 +19,8 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
-  const [cooldown, setCooldown] = useState(0); // seconds before OTP resend allowed
-  const [otpTimer, setOtpTimer] = useState(120); // 2-minute countdown
+  const [cooldown, setCooldown] = useState(0);
+  const [otpTimer, setOtpTimer] = useState(120);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -31,14 +31,12 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
   useEffect(() => setIsClient(true), []);
 
-  /* Countdown for resend cooldown */
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setInterval(() => setCooldown((s) => s - 1), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
 
-  /* OTP expiry countdown timer */
   useEffect(() => {
     if (step !== "otp") return;
     if (otpTimer <= 0) return;
@@ -71,7 +69,6 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
     onClose();
   };
 
-  /* SEND OTP (Step 1) */
   const handleSendOtp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -97,8 +94,8 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
 
-      setCooldown(60); // 60 sec cooldown
-      setOtpTimer(120); // 2 minutes
+      setCooldown(60);
+      setOtpTimer(120);
       setSuccessMessage("OTP sent to your email!");
       setStep("otp");
     } catch (err: any) {
@@ -108,7 +105,6 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
     }
   };
 
-  /* RESET PASSWORD (Step 2) */
   const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -158,7 +154,6 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
     }
   };
 
-  /* REQUEST NEW OTP (cooldown enforced) */
   const resendOtp = async () => {
     if (cooldown > 0) return;
 
@@ -189,11 +184,9 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
   if (!isOpen || !isClient) return null;
 
-  /* MAIN MODAL */
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
-        {/* Close Button */}
         <button
           onClick={handleClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
@@ -201,7 +194,6 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
           <X className="h-6 w-6" />
         </button>
 
-        {/* Header */}
         <div className="text-center mb-4">
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 shadow mx-auto mb-3">
             <KeyRound className="h-7 w-7 text-blue-600" />
@@ -214,7 +206,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
           </p>
         </div>
 
-        {/* STEP 1: Email */}
+        {/* STEP 1 */}
         {step === "email" && (
           <form onSubmit={handleSendOtp} className="space-y-3">
             <input
@@ -224,7 +216,6 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               onChange={handleInputChange}
               placeholder="Enter your email"
               className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500"
-              required
             />
 
             {error && (
@@ -253,10 +244,9 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
           </form>
         )}
 
-        {/* STEP 2: OTP PAGE */}
+        {/* STEP 2 */}
         {step === "otp" && (
           <form onSubmit={handleResetPassword} className="space-y-3">
-            {/* OTP FIELD */}
             <input
               type="text"
               name="otp"
@@ -264,21 +254,17 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               value={formData.otp}
               onChange={handleInputChange}
               placeholder="Enter 6-digit OTP"
-className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text-center tracking-widest"
-
-              required
+              className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text-center tracking-widest"
             />
 
-            {/* TIMER */}
             <p className="text-sm text-gray-600 text-center">
-              Resend Otp :{" "}
+              Resend OTP:{" "}
               <span className="font-semibold text-red-600">
                 {Math.floor(otpTimer / 60)}:
                 {(otpTimer % 60).toString().padStart(2, "0")}
               </span>
             </p>
 
-            {/* RESEND */}
             <button
               type="button"
               onClick={resendOtp}
@@ -289,16 +275,15 @@ className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text
               {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
             </button>
 
-            {/* PASSWORDS */}
+            {/* PASSWORD FIELDS — FIX APPLIED */}
             <input
               type="password"
               name="newPassword"
               value={formData.newPassword}
               onChange={handleInputChange}
               placeholder="New password"
-             className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg"
-
-              required
+              disabled={formData.otp.length !== 6}
+              className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg"
             />
 
             <input
@@ -307,9 +292,8 @@ className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text
               value={formData.confirmPassword}
               onChange={handleInputChange}
               placeholder="Confirm password"
-            className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg"
-
-              required
+              disabled={formData.otp.length !== 6}
+              className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg"
             />
 
             {error && (
@@ -318,7 +302,6 @@ className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text
               </p>
             )}
 
-            {/* ACTIONS */}
             <div className="flex justify-between items-center mt-3">
               <button
                 type="button"
@@ -339,7 +322,7 @@ className="w-full px-4 py-2 border border-gray-300 text-gray-900 rounded-lg text
           </form>
         )}
 
-        {/* STEP 3: SUCCESS */}
+        {/* STEP 3 */}
         {step === "success" && (
           <div className="text-center py-4">
             <p className="text-green-600 font-medium">{successMessage}</p>
