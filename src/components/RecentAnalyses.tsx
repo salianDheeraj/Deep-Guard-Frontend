@@ -1,9 +1,9 @@
 "use client";
 
-import { ChevronRight, Loader2, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
-import React, { useState, useEffect, useRef } from 'react';
-import { useRecentAnalysesAnimation } from '@/hooks/useRecentAnalysesAnimation'; 
+import { ChevronRight, Loader2, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import React, { useState, useEffect, useRef } from "react";
+import { useRecentAnalysesAnimation } from "@/hooks/useRecentAnalysesAnimation";
 
 interface Analysis {
   id: string;
@@ -15,7 +15,7 @@ interface Analysis {
 }
 
 const getAvatarPlaceholder = (name: string) => {
-  const colors = ['bg-pink-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-yellow-400'];
+  const colors = ["bg-pink-400", "bg-blue-400", "bg-green-400", "bg-purple-400", "bg-yellow-400"];
   const index = name.length % colors.length;
   return colors[index];
 };
@@ -25,7 +25,7 @@ const formatTimeAgo = (dateString: string) => {
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (seconds < 60) return 'just now';
+  if (seconds < 60) return "just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
@@ -33,11 +33,9 @@ const formatTimeAgo = (dateString: string) => {
 };
 
 const getDisplayedConfidence = (analysis: Analysis) => {
-  if (analysis.is_deepfake) {
-    return Math.round(analysis.confidence_score * 100);
-  } else {
-    return Math.round((1 - analysis.confidence_score) * 100);
-  }
+  return analysis.is_deepfake
+    ? Math.round(analysis.confidence_score * 100)
+    : Math.round((1 - analysis.confidence_score) * 100);
 };
 
 export default function RecentAnalyses() {
@@ -52,56 +50,41 @@ export default function RecentAnalyses() {
     fetchAnalyses();
   }, []);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   const fetchAnalyses = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-      // 1️⃣ Check session first
-      const me = await fetch(`${API_URL}/auth/me`, {
-        method: 'GET',
-        credentials: 'include',
+      // First call — may trigger middleware to auto-refresh
+      let res = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
+        credentials: "include",
       });
 
-      if (me.status === 401) {
-        setError('Not authenticated. Please login.');
-        setLoading(false);
-        return;
-      }
-
-      // OPTIONAL: auto refresh if expired
-      if (!me.ok) {
-        const refresh = await fetch(`${API_URL}/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
+      if (res.status === 401) {
+        // Retry ONCE — middleware might refresh tokens
+        res = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
+          credentials: "include",
         });
 
-        if (!refresh.ok) {
-          setError('Not authenticated. Please login.');
+        if (res.status === 401) {
+          setError("Not authenticated. Please login.");
           setLoading(false);
           return;
         }
       }
 
-      // 2️⃣ Now fetch actual analyses
-      const response = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
-        method: 'GET',
-        credentials: 'include',   // ⭐ Cookie-based auth
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || `HTTP ${res.status}`);
       }
 
-      const result = await response.json();
+      const result = await res.json();
       setAnalyses(result.data || []);
-
     } catch (err: any) {
-      console.error('❌ Error fetching analyses:', err);
-      setError(err.message || 'Failed to load recent analyses');
+      console.error("❌ Error fetching analyses:", err);
+      setError(err.message || "Failed to load recent analyses");
     } finally {
       setLoading(false);
     }
@@ -144,7 +127,10 @@ export default function RecentAnalyses() {
 
   return (
     <div ref={containerRef} className="rounded-xl bg-white dark:bg-slate-800 shadow-md border border-gray-100 dark:border-gray-700 transition-colors">
-      <h2 className="text-xl font-bold p-4 border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white">Recent Analyses</h2>
+      <h2 className="text-xl font-bold p-4 border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white">
+        Recent Analyses
+      </h2>
+
       {analyses.map((analysis) => (
         <Link
           href={`/dashboard/analysis/${analysis.id}`}
@@ -152,7 +138,11 @@ export default function RecentAnalyses() {
           className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
         >
           <div className="flex items-center space-x-4 flex-1">
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarPlaceholder(analysis.filename)}`}>
+            <div
+              className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarPlaceholder(
+                analysis.filename
+              )}`}
+            >
               {analysis.filename.substring(0, 1).toUpperCase()}
             </div>
 
@@ -170,11 +160,11 @@ export default function RecentAnalyses() {
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold uppercase whitespace-nowrap ${
                 analysis.is_deepfake
-                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
               }`}
             >
-              {analysis.is_deepfake ? 'FAKE' : 'REAL'}
+              {analysis.is_deepfake ? "FAKE" : "REAL"}
             </span>
 
             <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
