@@ -58,9 +58,10 @@ export function useLoginAnimation(scope: RefObject<HTMLDivElement>) {
 
       // form elements
       const formElements = gsap.utils.toArray(
-        ".login-form-element, .login-button",
-        scope.current
-      );
+  ".login-form-element",
+  scope.current
+);
+
       tl.from(
         formElements,
         {

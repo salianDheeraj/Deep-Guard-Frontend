@@ -68,11 +68,7 @@ const AuthInput: FC<AuthInputProps> = ({
             onClick={() => setShowPassword(!showPassword)}
             className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
           >
-            {showPassword ? (
-              <EyeOff className="h-5 w-5" />
-            ) : (
-              <Eye className="h-5 w-5" />
-            )}
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         )}
       </div>
@@ -85,7 +81,6 @@ const Login: FC = () => {
   const scope = useRef<HTMLDivElement>(null);
   useLoginAnimation(scope);
 
-  // UI state
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -95,7 +90,6 @@ const Login: FC = () => {
   const [otpStatus, setOtpStatus] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  // Form state
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -107,7 +101,6 @@ const Login: FC = () => {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // OTP countdown
   useEffect(() => {
     if (otpTimer <= 0) return;
     const interval = setInterval(() => {
@@ -116,7 +109,6 @@ const Login: FC = () => {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  // Input Handler
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
 
@@ -133,7 +125,6 @@ const Login: FC = () => {
     }));
   };
 
-  // Validation
   const validateSignin = () => {
     if (!formData.email || !formData.password) {
       setError("Email and password are required");
@@ -161,7 +152,6 @@ const Login: FC = () => {
   const validateForm = () =>
     isSigningIn ? validateSignin() : validateSignup();
 
-  // Send Signup OTP
   const handleSendOtp = async () => {
     setError(null);
     if (!validateSignup()) return;
@@ -191,7 +181,6 @@ const Login: FC = () => {
     }
   };
 
-  // Submit
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -240,7 +229,6 @@ const Login: FC = () => {
     }
   };
 
-  // Toggle Signin/Signup
   const toggleAuthMode = () => {
     setIsSigningIn((x) => !x);
     setError(null);
@@ -262,10 +250,13 @@ const Login: FC = () => {
       ref={scope}
       className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4"
     >
-      <header className="text-center mb-10">
-        <div className="flex items-center justify-center w-20 h-20 bg-blue-50 rounded-full shadow mb-5">
-          <Shield className="h-10 w-10 text-blue-600" />
-        </div>
+      {/* ADD REQUIRED ANIMATION CLASS HERE */}
+      <header className="text-center mb-10 login-title-group">
+        <div className="login-logo flex items-center justify-center w-20 h-20 bg-blue-50 rounded-full shadow mb-5 mx-auto">
+  <Shield className="h-10 w-10 text-blue-600" />
+</div>
+
+
         <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
           Deepfake Detector
         </h1>
@@ -277,7 +268,8 @@ const Login: FC = () => {
         </p>
       </header>
 
-      <div className="w-full max-w-sm bg-white p-8 shadow-xl rounded-3xl border border-gray-100">
+      {/* ADD REQUIRED ANIMATION CLASS HERE */}
+      <div className="w-full max-w-sm bg-white p-8 shadow-xl rounded-3xl border border-gray-100 login-card">
         <form onSubmit={handleSubmit}>
           {!isSigningIn && (
             <AuthInput
@@ -374,10 +366,7 @@ const Login: FC = () => {
                   onChange={handleInputChange}
                   className="h-4 w-4"
                 />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 text-sm text-gray-900"
-                >
+                <label htmlFor="remember-me" className="ml-2 text-sm text-gray-900">
                   Remember me
                 </label>
               </div>
@@ -403,16 +392,14 @@ const Login: FC = () => {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 rounded-xl text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-500 hover:scale-[1.01] active:scale-[0.97] transition disabled:opacity-50"
-          >
-            {isLoading
-              ? "Processing..."
-              : isSigningIn
-              ? "Sign In"
-              : "Sign Up"}
+          {/* ADD REQUIRED ANIMATION CLASS HERE */}
+         <button
+  type="submit"
+  disabled={isLoading}
+  className="login-button w-full py-3 px-4 rounded-xl text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-500 hover:scale-[1.01] active:scale-[0.97] transition disabled:opacity-50"
+>
+
+            {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
 

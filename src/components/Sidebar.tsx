@@ -7,7 +7,9 @@ import { LayoutDashboard, PlusSquare, History, User, LogOut, ShieldCheck, Lucide
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
-import ThemeToggleButton from './ThemeToggleButton'; // 👈 Added Import
+import ThemeToggleButton from './ThemeToggleButton';
+ // 👈 Added Import
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface NavItem {
     name: string;
@@ -113,38 +115,19 @@ const Sidebar = () => {
 
     // ================================
     // 4. Proper logout: server + client
-    // ================================
-    const handleLogout = async () => {
-        try {
-            // lazy import helper to keep logic centralized
-            // Note: Ensure this path exists in your project
-            const { performLogout } = await import('@/../lib/auth');
+    // ----------------------------
+ const handleLogout = async () => {
+  try {
+   await fetch(`${API_URL}/auth/logout`, {
+       method: "POST",
+      credentials: "include",
+    });
 
-            await performLogout();
-
-            // Reset any client stores (analysis store) if present
-            try {
-                const { useAnalysisStore } = await import('@/../lib/store/analysisStore');
-                useAnalysisStore.getState()?.reset?.();
-            } catch (e) {
-                // ignore if store not present
-            }
-
-            // Ensure localStorage cleared (defensive)
-            try {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('user');
-            } catch (e) {
-                // ignore
-            }
-
-            router.push('/login');
-        } catch (err) {
-            console.error('Logout failed', err);
-            // still redirect to login as a fallback
-            try { router.push('/login'); } catch {};
-        }
-    };
+    router.push("/login");
+  } catch (err) {
+    console.error("Logout failed:", err);
+  }
+};
 
     return (
         <div 
