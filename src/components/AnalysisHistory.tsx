@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Search, Loader2, AlertCircle } from 'lucide-react';
+import { FileText, Search, Loader2, AlertCircle, Trash2, X, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useHistoryAnimation } from '@/hooks/useHistoryAnimation';
 
@@ -16,6 +16,63 @@ interface Analysis {
 
 type FilterType = "All" | "FAKE" | "REAL";
 
+// --- CUSTOM DELETE MODAL COMPONENT ---
+interface DeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  count: number;
+  isBulk: boolean;
+  isDeleting: boolean;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({ 
+  isOpen, onClose, onConfirm, count, isBulk, isDeleting 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 dark:border-gray-700 transform transition-all scale-100">
+        
+        <div className="flex items-center gap-4 mb-5">
+          <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full flex-shrink-0">
+            <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Confirm Deletion
+          </h3>
+        </div>
+
+        <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+          Are you sure you want to permanently delete {isBulk ? <span className="font-bold text-gray-900 dark:text-white">{count} analyses</span> : 'this analysis'}? 
+          <br /><span className="text-sm text-red-500 mt-2 block">This action cannot be undone.</span>
+        </p>
+
+        <div className="flex gap-3 justify-end">
+          <button 
+            onClick={onClose}
+            disabled={isDeleting}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN COMPONENT ---
+
 const AnalysisHistory: React.FC = () => {
   const router = useRouter();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -27,6 +84,13 @@ const AnalysisHistory: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'date' | 'confidence'>('date');
   const [animationTrigger, setAnimationTrigger] = useState(0);
+
+  // Modal State
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; type: 'single' | 'bulk'; id?: string }>({ 
+    isOpen: false, 
+    type: 'single' 
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const itemsPerPage = 10;
   const tableBodyRef = useRef<HTMLTableSectionElement>(null);
@@ -120,15 +184,27 @@ const AnalysisHistory: React.FC = () => {
   const isAllSelected =
     paginatedAnalyses.length > 0 && paginatedAnalyses.every(a => selectedIds.has(a.id));
 
-  const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) return alert('Select at least one item.');
-    if (!confirm(`Delete ${selectedIds.size} analyses?`)) return;
+  // --- DELETE HANDLERS ---
 
+  const openBulkDeleteModal = () => {
+    if (selectedIds.size === 0) return;
+    setDeleteModal({ isOpen: true, type: 'bulk' });
+  };
+
+  const openSingleDeleteModal = (id: string) => {
+    setDeleteModal({ isOpen: true, type: 'single', id });
+  };
+
+  const executeDelete = async () => {
+    setIsDeleting(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const idsToDelete = deleteModal.type === 'bulk' 
+        ? Array.from(selectedIds) 
+        : [deleteModal.id!];
 
       await Promise.all(
-        Array.from(selectedIds).map(id =>
+        idsToDelete.map(id =>
           fetch(`${API_URL}/api/analysis/${id}`, {
             method: 'DELETE',
             credentials: "include",
@@ -136,30 +212,16 @@ const AnalysisHistory: React.FC = () => {
         )
       );
 
-      setAnalyses(analyses.filter(a => !selectedIds.has(a.id)));
-      setSelectedIds(new Set());
+      // UI Updates after successful delete
+      setAnalyses(prev => prev.filter(a => !idsToDelete.includes(a.id)));
+      if (deleteModal.type === 'bulk') setSelectedIds(new Set());
       setAnimationTrigger(prev => prev + 1);
-    } catch (err: any) {
-      alert('Bulk delete failed: ' + err.message);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this analysis?')) return;
-
-    try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-      const response = await fetch(`${API_URL}/api/analysis/${id}`, {
-        method: 'DELETE',
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error('Delete failed');
-
-      setAnalyses(analyses.filter(a => a.id !== id));
+      
     } catch (err: any) {
       alert('Delete failed: ' + err.message);
+    } finally {
+      setIsDeleting(false);
+      setDeleteModal({ isOpen: false, type: 'single' }); // Close modal
     }
   };
 
@@ -222,7 +284,17 @@ const AnalysisHistory: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      
+      {/* --- CUSTOM MODAL RENDER --- */}
+      <DeleteConfirmationModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={executeDelete}
+        isBulk={deleteModal.type === 'bulk'}
+        count={selectedIds.size}
+        isDeleting={isDeleting}
+      />
 
       {/* Filter + Search */}
       <div className="flex justify-between items-center mb-0">
@@ -294,13 +366,13 @@ const AnalysisHistory: React.FC = () => {
                     <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-auto">FILE NAME</th>
                     <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">VERDICT</th>
                     <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">CONFIDENCE</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">ACTIONS</th>
+                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-24 text-center">ACTIONS</th>
                   </tr>
                 </thead>
 
                 <tbody ref={tableBodyRef}>
                   {paginatedAnalyses.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+                    <tr key={item.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group">
                       <td className="p-4">
                         <input
                           type="checkbox"
@@ -309,10 +381,12 @@ const AnalysisHistory: React.FC = () => {
                           className="w-4 h-4 text-blue-600 rounded cursor-pointer accent-blue-600"
                         />
                       </td>
-                      <td className="p-4 text-sm text-gray-700 dark:text-gray-300">{formatDate(item.created_at)}</td>
-                      <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium flex items-center">
-                        <FileText size={16} className="mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                        {item.filename}
+                      <td className="p-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{formatDate(item.created_at)}</td>
+                      <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
+                        <div className="flex items-center">
+                          <FileText size={16} className="mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          <span className="truncate max-w-[200px] sm:max-w-xs" title={item.filename}>{item.filename}</span>
+                        </div>
                       </td>
                       <td className="p-4">
                         <span
@@ -328,19 +402,23 @@ const AnalysisHistory: React.FC = () => {
                       <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
                         {getDisplayedConfidence(item)}%
                       </td>
-                      <td className="p-4 text-sm font-medium space-x-4">
-                        <button
-                          onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                          className="text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="text-red-600 dark:text-red-400 hover:underline ml-4"
-                        >
-                          Delete
-                        </button>
+                      <td className="p-4 text-sm font-medium">
+                        <div className="flex items-center justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
+                                className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                title="View Details"
+                            >
+                                <Search size={18} />
+                            </button>
+                            <button
+                                onClick={() => openSingleDeleteModal(item.id)}
+                                className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                title="Delete"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -395,16 +473,16 @@ const AnalysisHistory: React.FC = () => {
       {/* Bulk Delete + Start New */}
       <div className="flex justify-between items-center mt-6">
         <button
-          onClick={handleBulkDelete}
+          onClick={openBulkDeleteModal}
           disabled={selectedIds.size === 0}
-          className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-red-500/20"
         >
           Bulk Delete {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
 
         <Link
           href="/dashboard/new-analysis"
-          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md shadow-blue-500/20"
         >
           Start New Analysis
         </Link>
