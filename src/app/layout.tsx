@@ -1,5 +1,5 @@
 import "./globals.css";
-import { ThemeProvider } from "./theme-provider";
+import { ThemeProvider } from "@/lib/theme";
 
 export const metadata = {
   title: "Deepfake Detector",

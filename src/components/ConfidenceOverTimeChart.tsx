@@ -70,23 +70,23 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
   useChartAnimation(chartContainerRef, [chartBars.length]);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
         Confidence Over Time (Frame by Frame)
       </h3>
 
       {!frameWiseConfidences || frameWiseConfidences.length === 0 ? (
-        <div className="text-center text-gray-500 py-16">
+        <div className="text-center text-gray-500 dark:text-gray-400 py-16">
           <p>No confidence data available</p>
         </div>
       ) : (
         <>
           {/* Chart Section */}
-          <div className="bg-gray-50 p-4 rounded-xl mb-6 border border-gray-200">
+          <div className="bg-gray-50 dark:bg-slate-900/50 p-4 rounded-xl mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
             <div className="flex gap-2">
 
               {/* Y-axis */}
-              <div className="flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 font-semibold">
+              <div className="flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 dark:text-gray-400 font-semibold">
                 {[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map((v) => (
                   <span key={v}>{v}</span>
                 ))}
@@ -96,7 +96,7 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
               <div className="flex-1 relative">
                 <div
                   ref={chartContainerRef}
-                  className="flex items-end gap-[1px] h-80 bg-white rounded-t-md border border-gray-300 overflow-hidden relative"
+                  className="flex items-end gap-[1px] h-80 bg-white dark:bg-slate-800 rounded-t-md border border-gray-300 dark:border-gray-600 overflow-hidden relative transition-colors"
                 >
 
                   {/* GRID LINES */}
@@ -104,7 +104,7 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
                     {[10, 20, 30, 40, 50, 60, 70, 80, 90].map((v) => (
                       <div
                         key={v}
-                        className="absolute w-full border-t border-gray-300 border-dashed"
+                        className="absolute w-full border-t border-gray-300 dark:border-gray-600 border-dashed"
                         style={{ bottom: `${v}%` }}
                       ></div>
                     ))}
@@ -143,10 +143,10 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
                 </div>
 
                 {/* X-axis line */}
-                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-400" />
+                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-400 dark:bg-gray-600" />
 
                 {/* X-axis labels */}
-                <div className="absolute -bottom-5 left-0 right-0 flex justify-between text-xs text-gray-500 font-medium">
+                <div className="absolute -bottom-5 left-0 right-0 flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
                   <span>0</span>
                   <span>{Math.floor(stats.totalFrames / 2)}</span>
                   <span>{stats.totalFrames}</span>
@@ -155,7 +155,7 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
             </div>
 
             {/* Legend */}
-            <div className="flex justify-between items-center mt-10 text-sm text-gray-700 font-semibold">
+            <div className="flex justify-between items-center mt-10 text-sm text-gray-700 dark:text-gray-300 font-semibold">
               <span className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-gradient-to-t from-emerald-500 to-emerald-300 rounded"></div>
                 (Real)
@@ -170,14 +170,14 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
 
           {/* Real vs Fake Summary */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-rose-50 p-4 rounded-lg border border-rose-200 shadow-sm">
-              <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold">
+            <div className="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-lg border border-rose-200 dark:border-rose-800 shadow-sm transition-colors">
+              <p className="text-xs text-gray-600 dark:text-rose-200 uppercase tracking-wide font-semibold">
                 Fake Frames
               </p>
-              <p className="text-4xl font-bold text-rose-600">
+              <p className="text-4xl font-bold text-rose-600 dark:text-rose-400">
                 {stats.fakeFrames}
               </p>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                 {stats.totalFrames > 0
                   ? Math.round((stats.fakeFrames / stats.totalFrames) * 100)
                   : 0}
@@ -185,14 +185,14 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
               </p>
             </div>
 
-            <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 shadow-sm">
-              <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 shadow-sm transition-colors">
+              <p className="text-xs text-gray-600 dark:text-emerald-200 uppercase tracking-wide font-semibold">
                 Real Frames
               </p>
-              <p className="text-4xl font-bold text-emerald-600">
+              <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
                 {stats.realFrames}
               </p>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                 {stats.totalFrames > 0
                   ? Math.round((stats.realFrames / stats.totalFrames) * 100)
                   : 0}
@@ -203,58 +203,58 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
 
           {/* Metric Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 rounded-lg shadow-sm p-4 border border-blue-200 hover:shadow-md transition-all duration-300">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-sm p-4 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   Volatility
                 </span>
-                <Activity className="w-4 h-4 text-blue-500" />
+                <Activity className="w-4 h-4 text-blue-500 dark:text-blue-400" />
               </div>
-              <p className="text-2xl font-bold text-blue-700">
+              <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                 {(stats.stdDeviation * 100).toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-600 mt-1">Confidence variance</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Confidence variance</p>
             </div>
 
-            <div className="bg-violet-50 rounded-lg shadow-sm p-4 border border-violet-200 hover:shadow-md transition-all duration-300">
+            <div className="bg-violet-50 dark:bg-violet-900/20 rounded-lg shadow-sm p-4 border border-violet-200 dark:border-violet-800 hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   Fake/Real Ratio
                 </span>
-                <BarChart3 className="w-4 h-4 text-violet-500" />
+                <BarChart3 className="w-4 h-4 text-violet-500 dark:text-violet-400" />
               </div>
-              <p className="text-2xl font-bold text-violet-700">
+              <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">
                 {stats.fakeFrames}/{stats.realFrames}
               </p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                 Frame classification split
               </p>
             </div>
 
-            <div className="bg-emerald-50 rounded-lg shadow-sm p-4 border border-emerald-200 hover:shadow-md transition-all duration-300">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg shadow-sm p-4 border border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   Lowest Confidence
                 </span>
-                <TrendingDown className="w-4 h-4 text-emerald-600" />
+                <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <p className="text-2xl font-bold text-emerald-700">
+              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
                 {(stats.minConfidence * 100).toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-600 mt-1">Most authentic frame</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Most authentic frame</p>
             </div>
 
-            <div className="bg-rose-50 rounded-lg shadow-sm p-4 border border-rose-200 hover:shadow-md transition-all duration-300">
+            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-lg shadow-sm p-4 border border-rose-200 dark:border-rose-800 hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   Peak Confidence
                 </span>
-                <TrendingUp className="w-4 h-4 text-rose-500" />
+                <TrendingUp className="w-4 h-4 text-rose-500 dark:text-rose-400" />
               </div>
-              <p className="text-2xl font-bold text-rose-700">
+              <p className="text-2xl font-bold text-rose-700 dark:text-rose-400">
                 {(stats.maxConfidence * 100).toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                 Highest fake probability
               </p>
             </div>

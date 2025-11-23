@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
+import { debug } from '@/lib/logger';
 import gsap from 'gsap';
 import { RefObject } from 'react';
 
@@ -24,7 +25,7 @@ export function useDashboardAnimations(scope: RefObject<HTMLDivElement>) {
       const cards = scope.current.querySelectorAll('.stat-card');
       
       if (cards && cards.length > 0) {
-        console.log('✅ Animating', cards.length, 'cards');
+        debug('✅ Animating', cards.length, 'cards');
         
         // Animate cards
         gsap.fromTo(cards, 

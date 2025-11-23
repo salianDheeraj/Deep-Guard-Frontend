@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
+import { debug } from '@/lib/logger';
 import gsap from 'gsap';
 import { RefObject } from 'react';
 
@@ -25,7 +26,7 @@ export function useRecentAnalysesAnimation(scope: RefObject<HTMLDivElement>) {
       const items = scope.current.querySelectorAll('a');
       
       if (items && items.length > 0) {
-        console.log('✅ Animating', items.length, 'recent analyses');
+        debug('✅ Animating', items.length, 'recent analyses');
         
         // Make sure items are visible first (safety fallback)
         items.forEach(item => {
