@@ -171,22 +171,22 @@ export default function AnalysisPage() {
   // ----------------------------------------------------
   if (loading || initialMount) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Loader className="w-12 h-12 animate-spin text-blue-600" />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors">
+        <Loader className="w-12 h-12 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     );
   }
 
   if (error || !currentAnalysis) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-100 dark:bg-slate-900 p-4 transition-colors">
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow max-w-md w-full text-center">
+          <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-600 dark:text-red-500 mb-2">Error</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
           >
             Back to Dashboard
           </button>
@@ -207,7 +207,7 @@ export default function AnalysisPage() {
     currentAnalysis.confidence_score;
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-gray-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-6">
 
         <AnalysisHeader
