@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
+import { debug } from '@/lib/logger';
 import gsap from 'gsap';
 import { RefObject } from 'react';
 
@@ -27,7 +28,7 @@ export function useHistoryAnimation(
       const rows = scope.current.querySelectorAll('tr');
       
       if (rows && rows.length > 0 && !animationComplete) {
-        console.log('✅ Animating', rows.length, 'table rows');
+        debug('✅ Animating', rows.length, 'table rows');
         
         // Kill any existing animations on these rows
         gsap.killTweensOf(rows);

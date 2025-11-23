@@ -4,7 +4,8 @@ import React, { useState, FC, FormEvent, ChangeEvent, useRef, useEffect } from "
 import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLoginAnimation } from "@/hooks/useLoginAnimation";
-import ForgotPasswordModal from "./ForgetPasswordModal"; 
+import { debug } from '@/lib/logger';
+import ForgotPasswordModal from "./ForgetPasswordModal";
 import ThemeToggleButton from "@/components/ThemeToggleButton"; // 1. Added Import
 
 interface FormData {
@@ -104,7 +105,7 @@ const Login: FC = () => {
           method: "POST",
           credentials: "include",
         });
-        console.log("🔁 Access token auto-refreshed");
+        debug("🔁 Access token auto-refreshed");
       } catch (err) {
         console.error("❌ Auto-refresh failed:", err);
       }
@@ -235,7 +236,7 @@ const Login: FC = () => {
         ...(isSigningIn ? {} : { otp: (formData.otp || "").trim() }),
       };
 
-      console.log(`📤 Auth request -> ${API_URL}${endpoint}`);
+      debug(`📤 Auth request -> ${API_URL}${endpoint}`);
 
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
@@ -253,7 +254,7 @@ const Login: FC = () => {
         throw new Error(data?.message || `Auth failed (${response.status})`);
       }
 
-      console.log("✅ Auth successful (cookie set)");
+      debug("✅ Auth successful (cookie set)");
       setFormData((f) => ({
         ...f,
         password: "",
@@ -294,7 +295,7 @@ const Login: FC = () => {
   return (
     // 2. Added relative positioning for button and dark mode background
     <div ref={scope} className="relative min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-4 font-sans transition-colors duration-300">
-      
+
       {/* 3. Added Theme Toggle Button */}
       <div className="absolute top-5 right-5 z-50">
         <ThemeToggleButton />

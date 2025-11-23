@@ -3,6 +3,7 @@ import { useNewAnalysisAnimation } from '@/hooks/useNewAnalysisAnimation';
 import React, { useState, useCallback, useMemo, useRef, DragEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadCloud, CheckCircle, Shield, Cpu, Image as ImageIcon, LucideIcon, FileWarning, Loader2, X } from 'lucide-react';
+import { debug } from '@/lib/logger';
 
 interface FeatureItem {
   title: string;
@@ -46,11 +47,11 @@ const NewAnalysisContent: React.FC = () => {
   ], []);
 
   const handleCancelUpload = async () => {
-    console.log('❌ Cancel Upload clicked');
+    debug('❌ Cancel Upload clicked');
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-      console.log('❌ Aborted upload');
+      debug('❌ Aborted upload');
     }
 
     if (uploadTimerRef.current) {
@@ -61,7 +62,7 @@ const NewAnalysisContent: React.FC = () => {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-        console.log(`🗑️ Deleting cancelled upload: ${uploadedAnalysisIdRef.current}`);
+        debug(`🗑️ Deleting cancelled upload: ${uploadedAnalysisIdRef.current}`);
 
         // Use credentials: "include" so HttpOnly cookies are sent with request
         await fetch(`${API_URL}/api/analysis/${uploadedAnalysisIdRef.current}`, {
@@ -69,7 +70,7 @@ const NewAnalysisContent: React.FC = () => {
           credentials: 'include',
         });
 
-        console.log('✅ Cancelled upload deleted from server');
+        debug('✅ Cancelled upload deleted from server');
       } catch (err) {
         console.error('❌ Failed to delete cancelled upload:', err);
       }
@@ -84,7 +85,7 @@ const NewAnalysisContent: React.FC = () => {
     setTotalFrames(0);
     setFramesToAnalyze(20);
     setErrorMessage(null);
-    console.log('❌ Upload cancelled by user');
+    debug('❌ Upload cancelled by user');
   };
 
   const getVideoFrameCount = (file: File): Promise<number> => {
@@ -148,76 +149,76 @@ const NewAnalysisContent: React.FC = () => {
       processFiles(event.target.files);
     }
   };
-const startMLAnalysis = async (analysisId: string, frameCount: number) => {
-  try {
-    if (!analysisId) {
-      console.error('❌ analysisId is required');
+  const startMLAnalysis = async (analysisId: string, frameCount: number) => {
+    try {
+      if (!analysisId) {
+        console.error('❌ analysisId is required');
+        return null;
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+      // Detect file type
+      const isImage = selectedFile?.type.startsWith("image/");
+      const isVideo = selectedFile?.type.startsWith("video/");
+
+      // Pick correct ML endpoint
+      const mlEndpoint = isImage
+        ? `${API_URL}/api/ml/images/${analysisId}`     // IMAGE ROUTE
+        : `${API_URL}/api/ml/analyze/${analysisId}`;   // VIDEO ROUTE
+
+      debug(`🔍 Starting ML analysis: ${analysisId}`);
+      debug(`📂 File: ${selectedFile?.name}`);
+      debug(`📁 Type: ${selectedFile?.type}`);
+      debug(`📡 Endpoint: ${mlEndpoint}`);
+
+      // Only animate frames for video
+      if (isVideo) {
+        frameIntervalRef.current = setInterval(() => {
+          setCurrentFrame(prev => {
+            if (prev >= framesToAnalyze) return framesToAnalyze;
+            return prev + 1;
+          });
+        }, 650);
+      } else {
+        // For images, just show 1 frame
+        setCurrentFrame(1);
+      }
+
+      // Make ML request
+      const response = await fetch(mlEndpoint, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          total_frames: isImage ? 1 : frameCount,
+          frames_to_analyze: isImage ? 1 : framesToAnalyze
+        })
+      });
+
+      if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
+      setCurrentFrame(isImage ? 1 : framesToAnalyze);
+
+      const data = await response.json();
+      debug("📥 ML Response:", data);
+
+      if (!response.ok) {
+        console.error("❌ ML error:", data.message || data);
+        return null;
+      }
+
+      return {
+        success: true,
+        is_deepfake: data.data.is_deepfake,
+        confidence_score: data.data.confidence_score,
+      };
+
+    } catch (error: any) {
+      if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
+      console.error("❌ ML error:", error);
       return null;
     }
-
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-    // Detect file type
-    const isImage = selectedFile?.type.startsWith("image/");
-    const isVideo = selectedFile?.type.startsWith("video/");
-
-    // Pick correct ML endpoint
-    const mlEndpoint = isImage
-      ? `${API_URL}/api/ml/images/${analysisId}`     // IMAGE ROUTE
-      : `${API_URL}/api/ml/analyze/${analysisId}`;   // VIDEO ROUTE
-
-    console.log(`🔍 Starting ML analysis: ${analysisId}`);
-    console.log(`📂 File: ${selectedFile?.name}`);
-    console.log(`📁 Type: ${selectedFile?.type}`);
-    console.log(`📡 Endpoint: ${mlEndpoint}`);
-
-    // Only animate frames for video
-    if (isVideo) {
-      frameIntervalRef.current = setInterval(() => {
-        setCurrentFrame(prev => {
-          if (prev >= framesToAnalyze) return framesToAnalyze;
-          return prev + 1;
-        });
-      }, 650);
-    } else {
-      // For images, just show 1 frame
-      setCurrentFrame(1);
-    }
-
-    // Make ML request
-    const response = await fetch(mlEndpoint, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        total_frames: isImage ? 1 : frameCount,
-        frames_to_analyze: isImage ? 1 : framesToAnalyze
-      })
-    });
-
-    if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
-    setCurrentFrame(isImage ? 1 : framesToAnalyze);
-
-    const data = await response.json();
-    console.log("📥 ML Response:", data);
-
-    if (!response.ok) {
-      console.error("❌ ML error:", data.message || data);
-      return null;
-    }
-
-    return {
-      success: true,
-      is_deepfake: data.data.is_deepfake,
-      confidence_score: data.data.confidence_score,
-    };
-
-  } catch (error: any) {
-    if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
-    console.error("❌ ML error:", error);
-    return null;
-  }
-};
+  };
 
 
   const renderFrameInputModal = () => {
@@ -368,11 +369,10 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
                 startAnalysisPlaceholder();
               }}
               disabled={isInvalid}
-              className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${
-                isInvalid
+              className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${isInvalid
                   ? 'bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
+                }`}
             >
               ✅ Start Analysis
             </button>
@@ -391,7 +391,7 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
         let frameCount = 0;
         if (selectedFile.type.startsWith('video')) {
           frameCount = await getVideoFrameCount(selectedFile);
-          console.log(`🎬 Detected frames: ${frameCount}`);
+          debug(`🎬 Detected frames: ${frameCount}`);
 
           if (frameCount > 0 && !showFrameInput) {
             setTotalFrames(frameCount);
@@ -405,7 +405,7 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
         // Instead we rely on HttpOnly cookies and send credentials: "include" on fetches.
 
         // ✅ STEP 1: Simulate upload progress bar to 100% FIRST
-        console.log('📊 Simulating upload progress...');
+        debug('📊 Simulating upload progress...');
 
         let progressComplete = false;
         uploadTimerRef.current = setInterval(() => {
@@ -430,7 +430,7 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
           }, 100);
         });
 
-        console.log('✅ Progress bar reached 100%, now uploading to backend...');
+        debug('✅ Progress bar reached 100%, now uploading to backend...');
 
         // ✅ STEP 3: NOW actually upload to backend/Supabase
         abortControllerRef.current = new AbortController();
@@ -441,8 +441,8 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
         formData.append('total_frames', frameCount.toString());
         formData.append('frames_to_analyze', framesToAnalyze.toString());
 
-        console.log('📁 File:', selectedFile.name, selectedFile.size);
-        console.log('📊 Frames to analyze:', framesToAnalyze);
+        debug('📁 File:', selectedFile.name, selectedFile.size);
+        debug('📊 Frames to analyze:', framesToAnalyze);
 
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -454,9 +454,9 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
           signal: abortControllerRef.current?.signal,
         });
 
-        console.log('📥 Response status:', response.status);
+        debug('📥 Response status:', response.status);
         const data = await response.json();
-        console.log('📥 Response data:', data);
+        debug('📥 Response data:', data);
 
         if (!response.ok) {
           throw new Error(data?.message || data?.error || 'Upload failed');
@@ -467,21 +467,21 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
 
         setAnalysisState('ANALYZING');
         setCurrentFrame(0);
-        console.log(`📤 Upload complete. Starting ML...`);
-        console.log(`📋 Analysis ID: ${analysisId}`);
-        console.log(`🎬 Frame count: ${frameCount}`);
+        debug(`📤 Upload complete. Starting ML...`);
+        debug(`📋 Analysis ID: ${analysisId}`);
+        debug(`🎬 Frame count: ${frameCount}`);
 
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        console.log(`⏱️ Calling ML endpoint now...`);
+        debug(`⏱️ Calling ML endpoint now...`);
 
         const mlSuccess = await startMLAnalysis(analysisId, frameCount);
 
-        console.log(`📊 mlSuccess result:`, mlSuccess);
+        debug(`📊 mlSuccess result:`, mlSuccess);
 
         if (mlSuccess && mlSuccess.success && analysisId) {
-          console.log(`✅ Analysis complete! Confidence: ${mlSuccess.confidence_score}`);
-          console.log(`🎯 Redirecting to: /dashboard/analysis/${analysisId}`);
+          debug(`✅ Analysis complete! Confidence: ${mlSuccess.confidence_score}`);
+          debug(`🎯 Redirecting to: /dashboard/analysis/${analysisId}`);
 
           uploadedAnalysisIdRef.current = null;
 
@@ -499,7 +499,7 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
                 method: 'DELETE',
                 credentials: 'include',
               });
-              console.log('🗑️ Deleted failed analysis');
+              debug('🗑️ Deleted failed analysis');
             } catch (err) {
               console.error('Failed to delete failed analysis:', err);
             }
@@ -511,7 +511,7 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
         if (uploadTimerRef.current) clearInterval(uploadTimerRef.current);
 
         if (error.name === 'AbortError') {
-          console.log('❌ Upload was cancelled');
+          debug('❌ Upload was cancelled');
           setAnalysisState('IDLE');
           setSelectedFile(null);
           setUploadProgress(0);
@@ -691,8 +691,8 @@ const startMLAnalysis = async (analysisId: string, frameCount: number) => {
         <div
           className={`
             border-2 rounded-xl p-16 text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
-            ${isDragging && analysisState === 'IDLE' 
-              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid' 
+            ${isDragging && analysisState === 'IDLE'
+              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid'
               : 'border-indigo-200 dark:border-indigo-800/50 border-dashed'}
             ${analysisState !== 'IDLE' ? 'p-10' : ''}
           `}
