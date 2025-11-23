@@ -314,11 +314,33 @@ const NewAnalysisContent: React.FC = () => {
         signal: abortControllerRef.current.signal,
       });
 
-      const uploadData = await uploadRes.json();
+      const uploadData = await uploadRes.json().catch(() => ({}));
       debug("📥 Upload response:", uploadData);
 
       if (!uploadRes.ok) {
-        throw new Error(uploadData.message || "Upload failed");
+        // Surface backend message to UI for easier debugging
+        const backendMsg = uploadData?.message || `Upload failed (${uploadRes.status})`;
+
+        // Specific helpful hint for large image uploads
+        if (uploadRes.status === 413) {
+          setErrorMessage(`Upload rejected: file too large. Maximum ${MAX_FILE_SIZE_MB}MB.`);
+        } else {
+          setErrorMessage(backendMsg);
+        }
+
+        debug("❌ Upload error details:", { status: uploadRes.status, body: uploadData });
+
+        // If session expired / unauthorized, redirect to login so user can re-authenticate.
+        if (uploadRes.status === 401 || String(backendMsg).toLowerCase().includes("session") || String(backendMsg).toLowerCase().includes("auth")) {
+          debug("🔒 Session expired detected during upload; redirecting to login");
+          setAnalysisState("IDLE");
+          setUploadProgress(0);
+          setSelectedFile(null);
+          router.push("/login");
+          throw new Error(backendMsg);
+        }
+
+        throw new Error(backendMsg);
       }
 
       const analysisId =

@@ -1,13 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/lib/theme";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export default function ThemeToggleButton({ className }: { className?: string }) {
+  // Call hooks in the same order every render: useTheme must be called
+  // unconditionally to avoid Rules of Hooks violations.
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid rendering visual bits until mounted to prevent SSR hydration mismatch
+  if (!mounted) return null;
 
   return (
     <div

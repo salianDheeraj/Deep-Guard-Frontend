@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
 import { User, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -18,13 +19,9 @@ export default function UserProfileCard() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-        // FIXED: correct route
-        const res = await fetch(`${API_URL}/api/account/me`, {
+        // Use shared apiFetch which prefixes the API URL, forwards credentials
+        const res = await apiFetch(`/api/account/me`, {
           method: "GET",
-          credentials: "include",
           cache: "no-store",
         });
 
