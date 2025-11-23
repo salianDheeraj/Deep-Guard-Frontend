@@ -1,67 +1,266 @@
-// src/components/ConfidenceOverTimeChart.tsx
-import React from 'react';
+'use client';
 
-const ConfidenceOverTimeChart: React.FC = () => {
-  // 1. Data now has a 'type' (FAKE or REAL) and a 'height'
-  // This 20-bar pattern matches your image exactly.
-  const dataPoints = [
-    { type: 'FAKE', height: 85 },
-    { type: 'FAKE', height: 82 },
-    { type: 'FAKE', height: 80 },
-    { type: 'REAL', height: 70 }, // Green bar
-    { type: 'FAKE', height: 83 },
-    { type: 'FAKE', height: 80 },
-    { type: 'FAKE', height: 88 },
-    { type: 'REAL', height: 73 }, // Green bar
-    { type: 'FAKE', height: 80 },
-    { type: 'FAKE', height: 78 },
-    { type: 'FAKE', height: 83 },
-    { type: 'FAKE', height: 85 },
-    { type: 'FAKE', height: 81 },
-    { type: 'REAL', height: 65 }, // Green bar
-    { type: 'FAKE', height: 83 },
-    { type: 'FAKE', height: 85 },
-    { type: 'FAKE', height: 80 },
-    { type: 'FAKE', height: 86 },
-    { type: 'REAL', height: 72 }, // Green bar
-    { type: 'FAKE', height: 83 },
-  ];
+import React, { useMemo, useRef } from 'react';
+import { useChartAnimation } from '@/hooks/useChartAnimation ';
+import { Activity, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+
+interface ConfidenceOverTimeChartProps {
+  frameWiseConfidences: number[];
+}
+
+const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
+  frameWiseConfidences = []
+}) => {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  const stats = useMemo(() => {
+    if (!frameWiseConfidences || frameWiseConfidences.length === 0) {
+      return {
+        fakeFrames: 0,
+        realFrames: 0,
+        totalFrames: 0,
+        averageConfidence: 0,
+        maxConfidence: 0,
+        minConfidence: 0,
+        stdDeviation: 0,
+      };
+    }
+
+    const fakeCount = frameWiseConfidences.filter((c) => c > 0.5).length;
+    const realCount = frameWiseConfidences.length - fakeCount;
+    const avg =
+      frameWiseConfidences.reduce((sum, c) => sum + c, 0) /
+      frameWiseConfidences.length;
+    const max = Math.max(...frameWiseConfidences);
+    const min = Math.min(...frameWiseConfidences);
+    const stdDev = Math.sqrt(
+      frameWiseConfidences.reduce((sum, c) => sum + Math.pow(c - avg, 2), 0) /
+        frameWiseConfidences.length
+    );
+
+    return {
+      fakeFrames: fakeCount,
+      realFrames: realCount,
+      totalFrames: frameWiseConfidences.length,
+      averageConfidence: avg,
+      maxConfidence: max,
+      minConfidence: min,
+      stdDeviation: stdDev,
+    };
+  }, [frameWiseConfidences]);
+
+  const chartBars = useMemo(() => {
+    if (!frameWiseConfidences || frameWiseConfidences.length === 0) return [];
+
+    const MAX_BARS = 200;
+    if (frameWiseConfidences.length <= MAX_BARS) {
+      return frameWiseConfidences.map((conf, idx) => ({
+        value: conf,
+        index: idx,
+      }));
+    }
+
+    const step = Math.ceil(frameWiseConfidences.length / MAX_BARS);
+    return frameWiseConfidences
+      .map((conf, idx) => ({ value: conf, index: idx }))
+      .filter((_, idx) => idx % step === 0)
+      .slice(0, MAX_BARS);
+  }, [frameWiseConfidences]);
+
+  useChartAnimation(chartContainerRef, [chartBars.length]);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 h-full">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Confidence Over Time</h3>
-      
-      {/* 2. Added 'space-x-1' for the small gap between bars */}
-      <div className="flex items-end h-48 space-x-1" style={{height: '14rem'}}>
-        {dataPoints.map((point, index) => (
-          <div key={index} className="flex flex-col justify-end w-full h-full">
-            {/* 3. This is the fix: It renders ONE bar, either red or green */}
-            {point.type === 'FAKE' ? (
-              <div
-                className="bg-[#D93F3F] rounded-t-sm" // Red bar, rounded top
-                style={{ height: `${point.height}%` }}
-              ></div>
-            ) : (
-              <div
-                className="bg-[#22C55E]" // Green bar, NO rounding
-                style={{ height: `${point.height}%` }}
-              ></div>
-            )}
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+        Confidence Over Time (Frame by Frame)
+      </h3>
+
+      {!frameWiseConfidences || frameWiseConfidences.length === 0 ? (
+        <div className="text-center text-gray-500 dark:text-gray-400 py-16">
+          <p>No confidence data available</p>
+        </div>
+      ) : (
+        <>
+          {/* Chart Section */}
+          <div className="bg-gray-50 dark:bg-slate-900/50 p-4 rounded-xl mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
+            <div className="flex gap-2">
+
+              {/* Y-axis */}
+              <div className="flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 dark:text-gray-400 font-semibold">
+                {[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map((v) => (
+                  <span key={v}>{v}</span>
+                ))}
+              </div>
+
+              {/* Bars + X-axis */}
+              <div className="flex-1 relative">
+                <div
+                  ref={chartContainerRef}
+                  className="flex items-end gap-[1px] h-80 bg-white dark:bg-slate-800 rounded-t-md border border-gray-300 dark:border-gray-600 overflow-hidden relative transition-colors"
+                >
+
+                  {/* GRID LINES */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {[10, 20, 30, 40, 50, 60, 70, 80, 90].map((v) => (
+                      <div
+                        key={v}
+                        className="absolute w-full border-t border-gray-300 dark:border-gray-600 border-dashed"
+                        style={{ bottom: `${v}%` }}
+                      ></div>
+                    ))}
+                  </div>
+
+                  {chartBars.map((bar, idx) => {
+                    const fakePercent = bar.value * 100;
+                    const realPercent = (1 - bar.value) * 100;
+
+                    // real bars show real %, fake bars show fake %
+                    const barHeight = Math.max(
+                      bar.value >= 0.5 ? fakePercent : realPercent,
+                      3
+                    );
+
+                    const displayPercent = bar.value >= 0.5 ? fakePercent : realPercent;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex-1 rounded-t-sm z-10 ${
+                          bar.value >= 0.5
+                            ? 'bg-gradient-to-t from-rose-500 to-rose-300 hover:from-rose-600 hover:to-rose-400'
+                            : 'bg-gradient-to-t from-emerald-500 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400'
+                        } transition-transform duration-200 cursor-pointer`}
+                        style={{
+                          height: `${barHeight}%`,
+                          minHeight: '3px',
+                        }}
+                        title={`Frame ${bar.index + 1}: ${Math.round(
+                          displayPercent
+                        )}% ${bar.value >= 0.5 ? 'FAKE' : 'REAL'}`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* X-axis line */}
+                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-400 dark:bg-gray-600" />
+
+                {/* X-axis labels */}
+                <div className="absolute -bottom-5 left-0 right-0 flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  <span>0</span>
+                  <span>{Math.floor(stats.totalFrames / 2)}</span>
+                  <span>{stats.totalFrames}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex justify-between items-center mt-10 text-sm text-gray-700 dark:text-gray-300 font-semibold">
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gradient-to-t from-emerald-500 to-emerald-300 rounded"></div>
+                (Real)
+              </span>
+              <span>{stats.totalFrames} frames analyzed</span>
+              <span className="flex items-center gap-2">
+                (Fake)
+                <div className="w-4 h-4 bg-gradient-to-t from-rose-500 to-rose-300 rounded"></div>
+              </span>
+            </div>
           </div>
-        ))}
-      </div>
-      
-      {/* 4. Legend is correct (squares and light text) */}
-      <div className="flex justify-center text-xs mt-4 space-x-4">
-        <div className="flex items-center">
-          <span className="w-3 h-3 bg-[#D93F3F] rounded-sm mr-1.5"></span> 
-          <span className="text-gray-500">FAKE Detection</span>
-        </div>
-        <div className="flex items-center">
-          <span className="w-3 h-3 bg-[#22C55E] rounded-sm mr-1.5"></span>
-          <span className="text-gray-500">REAL Detection</span>
-        </div>
-      </div>
+
+          {/* Real vs Fake Summary */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-lg border border-rose-200 dark:border-rose-800 shadow-sm transition-colors">
+              <p className="text-xs text-gray-600 dark:text-rose-200 uppercase tracking-wide font-semibold">
+                Fake Frames
+              </p>
+              <p className="text-4xl font-bold text-rose-600 dark:text-rose-400">
+                {stats.fakeFrames}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {stats.totalFrames > 0
+                  ? Math.round((stats.fakeFrames / stats.totalFrames) * 100)
+                  : 0}
+                % of total
+              </p>
+            </div>
+
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 shadow-sm transition-colors">
+              <p className="text-xs text-gray-600 dark:text-emerald-200 uppercase tracking-wide font-semibold">
+                Real Frames
+              </p>
+              <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                {stats.realFrames}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {stats.totalFrames > 0
+                  ? Math.round((stats.realFrames / stats.totalFrames) * 100)
+                  : 0}
+                % of total
+              </p>
+            </div>
+          </div>
+
+          {/* Metric Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-sm p-4 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Volatility
+                </span>
+                <Activity className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+              </div>
+              <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                {(stats.stdDeviation * 100).toFixed(1)}%
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Confidence variance</p>
+            </div>
+
+            <div className="bg-violet-50 dark:bg-violet-900/20 rounded-lg shadow-sm p-4 border border-violet-200 dark:border-violet-800 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Fake/Real Ratio
+                </span>
+                <BarChart3 className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+              </div>
+              <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">
+                {stats.fakeFrames}/{stats.realFrames}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Frame classification split
+              </p>
+            </div>
+
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg shadow-sm p-4 border border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Lowest Confidence
+                </span>
+                <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                {(stats.minConfidence * 100).toFixed(1)}%
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Most authentic frame</p>
+            </div>
+
+            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-lg shadow-sm p-4 border border-rose-200 dark:border-rose-800 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Peak Confidence
+                </span>
+                <TrendingUp className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+              </div>
+              <p className="text-2xl font-bold text-rose-700 dark:text-rose-400">
+                {(stats.maxConfidence * 100).toFixed(1)}%
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Highest fake probability
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

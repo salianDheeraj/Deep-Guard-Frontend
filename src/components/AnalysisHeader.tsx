@@ -1,16 +1,31 @@
 // src/components/AnalysisHeader.tsx
-import React from 'react';
-import { Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, Trash2, Download } from 'lucide-react';
 
 interface AnalysisHeaderProps {
+  analysisId: string;
   fileName: string;
   analyzedDate: string;
   modelVersion: string;
+  onDelete?: () => void;
 }
 
-const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({ fileName, analyzedDate, modelVersion }) => {
+const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({ 
+  analysisId, fileName, analyzedDate, modelVersion, onDelete 
+}) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete?.();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center mb-6">
       <div className="flex flex-col">
         <h1 className="text-2xl font-semibold text-gray-800">Analysis Results</h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -18,12 +33,26 @@ const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({ fileName, analyzedDate,
         </p>
       </div>
       <div className="flex space-x-3 items-center">
-        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-          <Download size={16} />
-          <span>Download Report</span>
-        </button>
-        <button className="px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium hover:bg-red-50 transition-colors">
-          Delete
+        <button
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className={`flex items-center space-x-2 px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium transition-colors ${
+            isDeleting 
+              ? 'bg-red-50 opacity-50 cursor-not-allowed' 
+              : 'hover:bg-red-50'
+          }`}
+        >
+          {isDeleting ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Deleting...</span>
+            </>
+          ) : (
+            <>
+              <Trash2 size={16} />
+              <span>Delete</span>
+            </>
+          )}
         </button>
       </div>
     </div>

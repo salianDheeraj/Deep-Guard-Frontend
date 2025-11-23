@@ -1,19 +1,19 @@
-import type { Metadata } from "next";
-import "./globals.css"; // optional if you have global styles
+import "./globals.css";
+import { ThemeProvider } from "@/lib/theme";
 
-export const metadata: Metadata = {
-  title: "Minimalist Insight",
-  description: "Clarity in a Complex World.",
+export const metadata = {
+  title: "Deepfake Detector",
+  description: "AI Deepfake detection web app",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
