@@ -8,7 +8,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
 import ThemeToggleButton from './ThemeToggleButton';
- // 👈 Added Import
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface NavItem {
@@ -77,25 +77,23 @@ const Sidebar = () => {
     // 2. Active indicator movement
     // ================================
     useEffect(() => {
-        if (navRef.current) {
-            const activeIndex = navItems.findIndex(item => isActive(item.href));
-            const activeElement = itemRefs.current[activeIndex];
+        const activeIndex = navItems.findIndex(item => isActive(item.href));
+        const activeElement = itemRefs.current[activeIndex];
 
-            if (activeElement && indicatorRef.current) {
-                const navTop = navRef.current.getBoundingClientRect().top;
-                const elementTop = activeElement.getBoundingClientRect().top;
-                const topPosition = elementTop - navTop;
+        if (activeElement && indicatorRef.current && navRef.current) {
+            const navTop = navRef.current.getBoundingClientRect().top;
+            const elementTop = activeElement.getBoundingClientRect().top;
+            const topPosition = elementTop - navTop;
 
-                gsap.to(indicatorRef.current, {
-                    y: topPosition,
-                    height: activeElement.offsetHeight,
-                    opacity: 1,
-                    duration: 0.4,
-                    ease: "power2.inOut",
-                });
-            } else if (indicatorRef.current) {
-                gsap.to(indicatorRef.current, { opacity: 0, duration: 0.2 });
-            }
+            gsap.to(indicatorRef.current, {
+                y: topPosition,
+                height: activeElement.offsetHeight,
+                opacity: 1,
+                duration: 0.4,
+                ease: "power2.inOut",
+            });
+        } else if (indicatorRef.current) {
+            gsap.to(indicatorRef.current, { opacity: 0, duration: 0.2 });
         }
     }, [pathname, navItems]);
 
@@ -114,24 +112,24 @@ const Sidebar = () => {
     itemRefs.current = [];
 
     // ================================
-    // 4. Proper logout: server + client
-    // ----------------------------
- const handleLogout = async () => {
-  try {
-   await fetch(`${API_URL}/auth/logout`, {
-       method: "POST",
-      credentials: "include",
-    });
+    // 4. FIXED LOGOUT (only update needed)
+    // ================================
+    const handleLogout = async () => {
+        try {
+            await fetch(`${API_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
 
-    router.push("/login");
-  } catch (err) {
-    console.error("Logout failed:", err);
-  }
-};
+            router.push("/login");
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
 
     return (
-        <div 
-            ref={sidebarRef} 
+        <div
+            ref={sidebarRef}
             className="w-64 h-screen bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100 dark:border-gray-800 transition-colors duration-300"
         >
             <div>
@@ -145,7 +143,7 @@ const Sidebar = () => {
                 <nav ref={navRef} className="mt-6 relative">
                     <div
                         ref={indicatorRef}
-                        className="absolute left-0 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-r-lg opacity-0"
+                        className="absolute left-0 w-1 bg-blue-600 dark:bg-blue-400 rounded-r-lg opacity-0"
                         style={{ transform: 'translateY(0px)' }}
                     />
 
@@ -171,17 +169,14 @@ const Sidebar = () => {
             {/* Bottom Section */}
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
 
-                {/* 👇 Added Theme Toggle Button Here */}
                 <div className="flex justify-center pb-2">
-                     <ThemeToggleButton />
+                    <ThemeToggleButton />
                 </div>
 
-                {/* User Profile */}
                 <div className="p-2 bg-gray-50 dark:bg-slate-800 rounded-lg transition-colors">
                     <UserProfileCard />
                 </div>
 
-                {/* Logout */}
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 rounded-lg transition-colors"

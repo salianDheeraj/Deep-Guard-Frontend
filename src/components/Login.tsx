@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useLoginAnimation } from "@/hooks/useLoginAnimation";
 import { debug } from '@/lib/logger';
 import ForgotPasswordModal from "./ForgetPasswordModal";
-import ThemeToggleButton from "@/components/ThemeToggleButton"; // 1. Added Import
+import ThemeToggleButton from "@/components/ThemeToggleButton";
+import { apiFetch } from "@/lib/api";
 
 interface FormData {
   name?: string;
@@ -95,6 +96,16 @@ const Login: FC = () => {
     rememberMe: false,
   });
 
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+
+    const interval = setInterval(() => {
+      setOtpTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpTimer]);
+
   /* Auto refresh access token every 14 minutes */
   useEffect(() => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -113,16 +124,6 @@ const Login: FC = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    if (otpTimer <= 0) return;
-
-    const interval = setInterval(() => {
-      setOtpTimer((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [otpTimer]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -177,8 +178,8 @@ const Login: FC = () => {
 
     try {
       setIsSendingOtp(true);
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const response = await fetch(`${API_URL}/auth/signup/send-otp`, {
+
+      const res = await apiFetch("/auth/signup/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,11 +188,11 @@ const Login: FC = () => {
         }),
       });
 
-      const contentType = response.headers.get("content-type") || "";
+      const contentType = res.headers.get("content-type") || "";
       const data = contentType.includes("application/json")
-        ? await response.json()
-        : { message: await response.text() };
-      if (!response.ok) {
+        ? await res.json()
+        : { message: await res.text() };
+      if (!res.ok) {
         throw new Error(data?.message || "Failed to send OTP");
       }
 
@@ -229,29 +230,31 @@ const Login: FC = () => {
       const endpoint = isSigningIn ? "/auth/login" : "/auth/signup";
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const trimmedEmail = (formData.email || "").trim();
-      const payload = {
+      const payload: any = {
         email: trimmedEmail,
         password: formData.password,
-        name: formData.name || (formData.email ? formData.email.split("@")[0] : ""),
-        ...(isSigningIn ? {} : { otp: (formData.otp || "").trim() }),
       };
 
-      debug(`📤 Auth request -> ${API_URL}${endpoint}`);
+      if (!isSigningIn) {
+        payload.otp = formData.otp?.trim();
+        payload.name = formData.name || formData.email.split("@")[0];
+      }
 
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      if (isSigningIn) {
+        payload.rememberMe = formData.rememberMe;
+      }
+
+      const res = await apiFetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const ct = response.headers.get("content-type") || "";
-      const data = ct.includes("application/json") ? await response.json() : { message: await response.text() };
+      const ct = res.headers.get("content-type") || "";
+      const data = ct.includes("application/json") ? await res.json() : { message: await res.text() };
 
-      if (!response.ok) {
-        throw new Error(data?.message || `Auth failed (${response.status})`);
+      if (!res.ok) {
+        throw new Error(data?.message || `Auth failed (${res.status})`);
       }
 
       debug("✅ Auth successful (cookie set)");

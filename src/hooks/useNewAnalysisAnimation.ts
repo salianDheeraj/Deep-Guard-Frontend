@@ -13,7 +13,7 @@ export function useNewAnalysisAnimation(
     if (isAnalyzing) {
       // 1. Animate the frame counter text
       gsap.to(".frame-counter", {
-        innerText: 120,
+        innerText: 30,
         duration: 2.8, // <-- REDUCED from 4.8s
         ease: "none",
         round: true, 
