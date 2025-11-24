@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
 import { User, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -18,12 +19,9 @@ export default function UserProfileCard() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-        // 🔥 Fully cookie-based auth (no token)
-        const res = await fetch(`${API_URL}/auth/me`, {
+        // Use shared apiFetch which prefixes the API URL, forwards credentials
+        const res = await apiFetch(`/api/account/me`, {
           method: "GET",
-          credentials: "include", // ← IMPORTANT
           cache: "no-store",
         });
 
@@ -38,7 +36,6 @@ export default function UserProfileCard() {
 
         const data = await res.json();
         setProfile(data);
-
       } catch (err: any) {
         console.error("❌ Profile Fetch Error:", err);
         setError(err.message);
@@ -50,9 +47,6 @@ export default function UserProfileCard() {
     fetchProfile();
   }, []);
 
-  // ===========================
-  // 1️⃣ Loading State
-  // ===========================
   if (loading) {
     return (
       <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center min-h-[100px] transition-colors">
@@ -61,9 +55,6 @@ export default function UserProfileCard() {
     );
   }
 
-  // ===========================
-  // 2️⃣ Error State
-  // ===========================
   if (error || !profile) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 transition-colors">
@@ -79,9 +70,6 @@ export default function UserProfileCard() {
     );
   }
 
-  // ===========================
-  // 3️⃣ Success State
-  // ===========================
   return (
     <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 transition-colors">
       <div className="flex items-center">
@@ -101,11 +89,12 @@ export default function UserProfileCard() {
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
             {profile.name || "User"}
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{profile.email}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            {profile.email}
+          </p>
         </div>
       </div>
 
-      {/* Account Link */}
       <Link
         href="/dashboard/account"
         className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline mt-2 block"

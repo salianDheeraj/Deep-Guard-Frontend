@@ -382,12 +382,22 @@ const AnalysisHistory: React.FC = () => {
                         />
                       </td>
                       <td className="p-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{formatDate(item.created_at)}</td>
+                      
+                      {/* --- MODIFIED FILENAME CELL --- */}
                       <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
                         <div className="flex items-center">
                           <FileText size={16} className="mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                          <span className="truncate max-w-[200px] sm:max-w-xs" title={item.filename}>{item.filename}</span>
+                          <Link 
+                            href={`/dashboard/analysis/${item.id}`}
+                            className="truncate max-w-[200px] sm:max-w-xs hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer transition-colors" 
+                            title={item.filename}
+                          >
+                            {item.filename}
+                          </Link>
                         </div>
                       </td>
+                      {/* --------------------------- */}
+
                       <td className="p-4">
                         <span
                           className={`px-2 py-0.5 text-xs font-semibold rounded ${

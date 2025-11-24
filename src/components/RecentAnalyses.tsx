@@ -4,6 +4,7 @@ import { ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
 import { useRecentAnalysesAnimation } from "@/hooks/useRecentAnalysesAnimation";
+import { apiFetch } from "@/lib/api";
 
 interface Analysis {
   id: string;
@@ -15,7 +16,13 @@ interface Analysis {
 }
 
 const getAvatarPlaceholder = (name: string) => {
-  const colors = ["bg-pink-400", "bg-blue-400", "bg-green-400", "bg-purple-400", "bg-yellow-400"];
+  const colors = [
+    "bg-pink-400",
+    "bg-blue-400",
+    "bg-green-400",
+    "bg-purple-400",
+    "bg-yellow-400",
+  ];
   const index = name.length % colors.length;
   return colors[index];
 };
@@ -40,6 +47,7 @@ const getDisplayedConfidence = (analysis: Analysis) => {
 
 export default function RecentAnalyses() {
   const containerRef = useRef<HTMLDivElement>(null);
+
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,30 +58,14 @@ export default function RecentAnalyses() {
     fetchAnalyses();
   }, []);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
   const fetchAnalyses = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // First call — may trigger middleware to auto-refresh
-      let res = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
-        credentials: "include",
+      const res = await apiFetch("/api/analysis?limit=5&offset=0", {
+        method: "GET",
       });
-
-      if (res.status === 401) {
-        // Retry ONCE — middleware might refresh tokens
-        res = await fetch(`${API_URL}/api/analysis?limit=5&offset=0`, {
-          credentials: "include",
-        });
-
-        if (res.status === 401) {
-          setError("Not authenticated. Please login.");
-          setLoading(false);
-          return;
-        }
-      }
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -90,16 +82,17 @@ export default function RecentAnalyses() {
     }
   };
 
+  // ERROR STATE
   if (error) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 border border-gray-100 dark:border-gray-700 transition-colors">
+      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 border border-gray-100 dark:border-gray-700">
         <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
           <AlertCircle size={20} />
           <div>
             <p className="font-medium">{error}</p>
             <button
               onClick={fetchAnalyses}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-300 mt-1 underline"
+              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-300 underline mt-1"
             >
               Try again
             </button>
@@ -109,24 +102,32 @@ export default function RecentAnalyses() {
     );
   }
 
+  // LOADING STATE
   if (loading) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 flex items-center justify-center h-40 border border-gray-100 dark:border-gray-700 transition-colors">
+      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 flex items-center justify-center h-40 border border-gray-100 dark:border-gray-700">
         <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     );
   }
 
+  // EMPTY STATE
   if (analyses.length === 0) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 text-center border border-gray-100 dark:border-gray-700 transition-colors">
-        <p className="text-gray-500 dark:text-gray-400">No analyses yet. Start by uploading a video!</p>
+      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 text-center border border-gray-100 dark:border-gray-700">
+        <p className="text-gray-500 dark:text-gray-400">
+          No analyses yet. Start by uploading a video!
+        </p>
       </div>
     );
   }
 
+  // NORMAL RENDER
   return (
-    <div ref={containerRef} className="rounded-xl bg-white dark:bg-slate-800 shadow-md border border-gray-100 dark:border-gray-700 transition-colors">
+    <div
+      ref={containerRef}
+      className="rounded-xl bg-white dark:bg-slate-800 shadow-md border border-gray-100 dark:border-gray-700"
+    >
       <h2 className="text-xl font-bold p-4 border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white">
         Recent Analyses
       </h2>
@@ -137,7 +138,7 @@ export default function RecentAnalyses() {
           key={analysis.id}
           className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
         >
-          <div className="flex items-center space-x-4 flex-1">
+          <div className="flex items-center space-x-4 flex-1 min-w-0">
             <div
               className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarPlaceholder(
                 analysis.filename
@@ -147,13 +148,17 @@ export default function RecentAnalyses() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 dark:text-white truncate">{analysis.filename}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{formatTimeAgo(analysis.created_at)}</p>
+              <p className="font-medium text-gray-900 dark:text-white truncate">
+                {analysis.filename}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {formatTimeAgo(analysis.created_at)}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4 ml-4">
-            <span className="hidden text-sm text-gray-500 dark:text-gray-400 md:block whitespace-nowrap">
+            <span className="hidden md:block text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
               {getDisplayedConfidence(analysis)}% confidence
             </span>
 

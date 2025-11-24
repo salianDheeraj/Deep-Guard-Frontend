@@ -231,56 +231,66 @@ export default function AccountSettings(): JSX.Element {
   // ============================================
   if (loading) {
     return (
-      <main className="flex-1 p-6 flex items-center justify-center h-full">
-        <p>Loading account settings...</p>
+      <main className="flex-1 p-6 flex items-center justify-center h-full dark:bg-slate-950">
+        <p className="dark:text-gray-300">Loading account settings...</p>
       </main>
     );
   }
 
   return (
-    <main ref={pageRef} className="flex-1 p-6 flex flex-col h-full space-y-6">
-      <h1 className="text-3xl font-bold account-header">Account Settings</h1>
+    // Added dark:bg-slate-950 to main wrapper
+    <main ref={pageRef} className="flex-1 p-6 flex flex-col h-full space-y-6 dark:bg-slate-950 transition-colors">
+      
+      {/* Added dark:text-white */}
+      <h1 className="text-3xl font-bold account-header text-gray-900 dark:text-white">Account Settings</h1>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-3 text-red-700">
+        // Added dark mode colors for error box
+        <div className="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {/* PROFILE */}
-      <section className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
+      {/* Added dark:bg-slate-800 and dark:border-gray-700 */}
+      <section className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 account-card">
         <form onSubmit={saveProfile} className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold">
+            {/* Added dark:bg-slate-700 dark:text-gray-200 */}
+            <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-3xl font-bold text-gray-600 dark:text-gray-200">
               {local.name?.charAt(0).toUpperCase()}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium">Full name</label>
+              {/* Added dark:text-gray-300 */}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full name</label>
+              {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
               <input
                 value={local.name}
                 onChange={(e) =>
                   setLocal((s) => ({ ...s, name: e.target.value }))
                 }
-                className="mt-1 block w-full px-3 py-2 border rounded"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Email</label>
+              {/* Added dark:text-gray-300 */}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+              {/* Added dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600 */}
               <input
                 value={local.email}
                 disabled
-                className="mt-1 block w-full px-3 py-2 border bg-gray-50 cursor-not-allowed rounded"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-400 cursor-not-allowed rounded"
               />
             </div>
           </div>
 
           <div className="flex gap-3">
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded action-button"
+              className="px-4 py-2 bg-blue-600 text-white rounded action-button hover:bg-blue-700 transition-colors"
               disabled={profileSaveState === "SAVING"}
             >
               {profileSaveState === "SAVING" ? "Saving..." : "Save changes"}
@@ -290,42 +300,50 @@ export default function AccountSettings(): JSX.Element {
       </section>
 
       {/* PASSWORD */}
-      <section className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
-        <h2 className="text-lg font-semibold mb-4">Change password</h2>
+      {/* Added dark:bg-slate-800 dark:border-gray-700 */}
+      <section className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 account-card">
+        {/* Added dark:text-white */}
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Change password</h2>
 
         <form onSubmit={changePassword} className="space-y-3">
           <div>
-            <label className="block text-sm">Current password</label>
+            {/* Added dark:text-gray-300 */}
+            <label className="block text-sm text-gray-700 dark:text-gray-300">Current password</label>
+            {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
             <input
               type="password"
               value={currentPass}
               onChange={(e) => setCurrentPass(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border rounded"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm">New password</label>
+             {/* Added dark:text-gray-300 */}
+            <label className="block text-sm text-gray-700 dark:text-gray-300">New password</label>
+             {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
             <input
               type="password"
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border rounded"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm">Confirm new password</label>
+             {/* Added dark:text-gray-300 */}
+            <label className="block text-sm text-gray-700 dark:text-gray-300">Confirm new password</label>
+             {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
             <input
               type="password"
               value={confirmPass}
               onChange={(e) => setConfirmPass(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border rounded"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
             />
           </div>
 
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded action-button"
+            className="px-4 py-2 bg-blue-600 text-white rounded action-button hover:bg-blue-700 transition-colors"
             disabled={passwordSaveState === "SAVING"}
           >
             {passwordSaveState === "SAVING"
@@ -337,39 +355,49 @@ export default function AccountSettings(): JSX.Element {
 
       {/* DANGER ZONE */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
-          <h3 className="font-semibold">Data management</h3>
-          <p className="text-sm text-gray-500 my-2">
+        {/* Added dark:bg-slate-800 dark:border-gray-700 */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 account-card">
+          {/* Added dark:text-white */}
+          <h3 className="font-semibold text-gray-900 dark:text-white">Data management</h3>
+          {/* Added dark:text-gray-400 */}
+          <p className="text-sm text-gray-500 dark:text-gray-400 my-2">
             Remove all analyses stored in your account.
           </p>
           <button
             onClick={deleteAllAnalyses}
-            className="px-4 py-2 border text-red-600 rounded danger-button"
+            // Added dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-900/20
+            className="px-4 py-2 border border-red-200 text-red-600 rounded danger-button hover:bg-red-50 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
           >
             Delete all analyses
           </button>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border account-card">
-          <h3 className="font-semibold text-red-600">Danger zone</h3>
-          <p className="text-sm text-gray-500 my-2">
+        {/* Added dark:bg-slate-800 dark:border-gray-700 */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 account-card">
+          {/* Added dark:text-red-500 */}
+          <h3 className="font-semibold text-red-600 dark:text-red-500">Danger zone</h3>
+          {/* Added dark:text-gray-400 */}
+          <p className="text-sm text-gray-500 dark:text-gray-400 my-2">
             Deleting your account removes all data permanently.
           </p>
 
-          {/* NEW BUTTON */}
-          <button
-            onClick={logoutOtherDevices}
-            className="px-4 py-2 border text-yellow-700 rounded mb-3 action-button"
-          >
-            Logout other devices
-          </button>
+          {/* Added flex-col to stack buttons vertically */}
+          <div className="flex flex-col gap-3">
+             <button
+              onClick={logoutOtherDevices}
+              // Added dark:border-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-900/20
+              className="px-4 py-2 border border-yellow-200 text-yellow-700 rounded mb-3 action-button hover:bg-yellow-50 dark:border-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-900/20 transition-colors block w-full text-left sm:w-auto"
+            >
+              Logout other devices
+            </button>
 
-          <button
-            onClick={deleteAccount}
-            className="px-4 py-2 bg-red-600 text-white rounded danger-button"
-          >
-            Delete account
-          </button>
+            <button
+              onClick={deleteAccount}
+              className="px-4 py-2 bg-red-600 text-white rounded danger-button hover:bg-red-700 transition-colors block w-full text-left sm:w-auto"
+            >
+              Delete account
+            </button>
+          </div>
         </div>
       </section>
     </main>
