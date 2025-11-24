@@ -195,8 +195,9 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
         </button>
 
         <div className="text-center mb-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 shadow mx-auto mb-3">
-            <KeyRound className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+          {/* CHANGED: Blue -> Teal */}
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-teal-900/30 shadow mx-auto mb-3">
+            <KeyRound className="h-7 w-7 text-blue-600 dark:text-teal-400" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Reset Password</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -215,11 +216,13 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Enter your email"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
+              // CHANGED: Blue -> Teal Focus
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 dark:focus:ring-teal-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors outline-none"
             />
 
             {error && (
-              <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
+              // CHANGED: Red -> Orange in Dark
+              <p className="text-red-600 dark:text-orange-400 text-sm bg-red-50 dark:bg-orange-900/20 p-2 rounded border border-transparent dark:border-orange-800/50">
                 {error}
               </p>
             )}
@@ -236,7 +239,8 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                // CHANGED: Blue -> Teal
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-teal-600 dark:hover:bg-teal-700 disabled:opacity-50 transition-colors"
               >
                 {isLoading ? "Sending..." : "Continue"}
               </button>
@@ -254,12 +258,13 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               value={formData.otp}
               onChange={handleInputChange}
               placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg text-center tracking-widest placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg text-center tracking-widest placeholder-gray-400 dark:placeholder-gray-500 transition-colors outline-none focus:border-blue-500 dark:focus:border-teal-500"
             />
 
             <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
               Resend OTP:{" "}
-              <span className="font-semibold text-red-600 dark:text-red-400">
+              {/* CHANGED: Red -> Orange */}
+              <span className="font-semibold text-red-600 dark:text-orange-400">
                 {Math.floor(otpTimer / 60)}:
                 {(otpTimer % 60).toString().padStart(2, "0")}
               </span>
@@ -275,7 +280,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
             </button>
 
-            {/* PASSWORD FIELDS — FIX APPLIED */}
+            {/* PASSWORD FIELDS */}
             <input
               type="password"
               name="newPassword"
@@ -283,7 +288,8 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               onChange={handleInputChange}
               placeholder="New password"
               disabled={formData.otp.length !== 6}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-colors"
+              // CHANGED: Blue -> Teal Focus
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-colors outline-none focus:border-blue-500 dark:focus:border-teal-500"
             />
 
             <input
@@ -293,11 +299,13 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               onChange={handleInputChange}
               placeholder="Confirm password"
               disabled={formData.otp.length !== 6}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-colors"
+              // CHANGED: Blue -> Teal Focus
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-colors outline-none focus:border-blue-500 dark:focus:border-teal-500"
             />
 
             {error && (
-              <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
+              // CHANGED: Red -> Orange
+              <p className="text-red-600 dark:text-orange-400 text-sm bg-red-50 dark:bg-orange-900/20 p-2 rounded border border-transparent dark:border-orange-800/50">
                 {error}
               </p>
             )}
@@ -314,7 +322,8 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                // CHANGED: Blue -> Teal
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-teal-600 dark:hover:bg-teal-700 disabled:opacity-50 transition-colors"
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
               </button>

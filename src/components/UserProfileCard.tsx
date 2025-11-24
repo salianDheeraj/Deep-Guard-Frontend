@@ -56,7 +56,8 @@ export default function UserProfileCard() {
   if (loading) {
     return (
       <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center min-h-[100px] transition-colors">
-        <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
+        {/* TEAL LOADER */}
+        <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-teal-400" />
       </div>
     );
   }
@@ -92,7 +93,8 @@ export default function UserProfileCard() {
             className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-600"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-bold">
+          // CHANGED: TEAL Background in Dark Mode
+          <div className="w-10 h-10 rounded-full bg-blue-600 dark:bg-teal-600 flex items-center justify-center text-white text-lg font-bold transition-colors">
             {profile.name ? profile.name.charAt(0).toUpperCase() : <User size={20} />}
           </div>
         )}
@@ -108,7 +110,8 @@ export default function UserProfileCard() {
       {/* Account Link */}
       <Link
         href="/dashboard/account"
-        className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline mt-2 block"
+        // CHANGED: TEAL Text in Dark Mode
+        className="text-xs font-medium text-blue-600 dark:text-teal-400 hover:underline mt-2 block transition-colors"
       >
         View Account
       </Link>

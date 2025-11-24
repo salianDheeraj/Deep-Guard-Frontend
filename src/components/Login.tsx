@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLoginAnimation } from "@/hooks/useLoginAnimation";
 import { debug } from '@/lib/logger';
 import ForgotPasswordModal from "./ForgetPasswordModal";
-import ThemeToggleButton from "@/components/ThemeToggleButton"; // 1. Added Import
+import ThemeToggleButton from "@/components/ThemeToggleButton";
 
 interface FormData {
   name?: string;
@@ -54,7 +54,8 @@ const AuthInput: FC<AuthInputProps> = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-20 transition duration-150 ease-in-out placeholder-gray-400 dark:placeholder-gray-500 text-gray-800 dark:text-white bg-white dark:bg-gray-700 font-semibold"
+          // Blue focus in Light, Teal focus in Dark
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-blue-500 dark:focus:ring-teal-500 focus:border-blue-500 dark:focus:border-teal-500 pr-20 transition duration-150 ease-in-out placeholder-gray-400 dark:placeholder-gray-500 text-gray-800 dark:text-white bg-white dark:bg-gray-700 font-semibold"
           required
         />
         {isPassword && (
@@ -293,17 +294,15 @@ const Login: FC = () => {
   };
 
   return (
-    // 2. Added relative positioning for button and dark mode background
     <div ref={scope} className="relative min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-4 font-sans transition-colors duration-300">
 
-      {/* 3. Added Theme Toggle Button */}
       <div className="absolute top-5 right-5 z-50">
         <ThemeToggleButton />
       </div>
 
       <header className="flex flex-col items-center justify-center text-center mb-10 login-title-group">
-        <div className="login-logo flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-950 shadow-md mb-5">
-          <Shield className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+        <div className="login-logo flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 dark:from-teal-900 dark:to-teal-950 shadow-md mb-5 transition-colors">
+          <Shield className="h-10 w-10 text-blue-600 dark:text-teal-400" />
         </div>
 
         <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">Deepfake Detector</h1>
@@ -364,7 +363,9 @@ const Login: FC = () => {
                   type="button"
                   onClick={handleSendOtp}
                   disabled={isSendingOtp || otpTimer > 0}
-                  className="px-4 py-2 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="px-4 py-2 rounded-xl border font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition
+                             border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100
+                             dark:border-teal-800 dark:bg-teal-900/30 dark:text-teal-300 dark:hover:bg-teal-900/50"
                 >
                   {isSendingOtp
                     ? "Sending..."
@@ -378,7 +379,9 @@ const Login: FC = () => {
               </div>
 
               {otpStatus && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 text-sm">
+                <div className="mb-4 p-3 rounded-lg text-sm
+                                bg-blue-50 border border-blue-200 text-blue-700
+                                dark:bg-teal-900/30 dark:border-teal-800 dark:text-teal-300">
                   {otpStatus}
                 </div>
               )}
@@ -406,21 +409,27 @@ const Login: FC = () => {
                   type="checkbox"
                   checked={formData.rememberMe || false}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer dark:bg-gray-700 dark:border-gray-600"
+                  // CHANGED: Added accent-color for guaranteed Teal in Dark Mode
+                  className="h-4 w-4 border-gray-300 rounded cursor-pointer
+                             text-blue-600 focus:ring-blue-500
+                             dark:bg-gray-700 dark:border-gray-600 dark:text-teal-600 dark:focus:ring-teal-500
+                             accent-blue-600 dark:accent-teal-600"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                   Remember me
                 </label>
               </div>
-              {/* Added Forgot Password button */}
+              
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition duration-150"
+                className="text-sm font-medium transition duration-150
+                           text-blue-600 hover:text-blue-700
+                           dark:text-teal-400 dark:hover:text-teal-300"
               >
                 Forgot Password?
               </button>
-              {/* Forgot Password Modal */}
+              
               <ForgotPasswordModal
                 isOpen={showForgotPassword}
                 onClose={() => setShowForgotPassword(false)}
@@ -435,14 +444,14 @@ const Login: FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+                       bg-blue-600 hover:bg-blue-700 focus:ring-blue-500
+                       dark:bg-teal-600 dark:hover:bg-teal-700 dark:focus:ring-teal-500"
           >
             <Shield className="h-5 w-5 text-white opacity-90" />
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
-
-        {/* Google authentication removed */}
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
           {isSigningIn ? "Don't have an account?" : "Already have an account?"}
@@ -452,7 +461,9 @@ const Login: FC = () => {
               e.preventDefault();
               toggleAuthMode();
             }}
-            className="ml-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition duration-150"
+            className="ml-1 font-medium transition duration-150
+                       text-blue-600 hover:text-blue-700
+                       dark:text-teal-400 dark:hover:text-teal-300"
           >
             {isSigningIn ? "Sign up" : "Sign In"}
           </a>

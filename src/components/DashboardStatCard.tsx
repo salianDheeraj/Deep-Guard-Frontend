@@ -79,7 +79,7 @@ export default function DashboardStatCard() {
   // LOADING STATE
   if (loading) {
     return (
-      <div className="text-gray-600 dark:text-gray-400 text-center py-10">
+      <div className="text-gray-600 dark:text-gray-200 text-center py-10">
         Loading stats...
       </div>
     );
@@ -88,7 +88,7 @@ export default function DashboardStatCard() {
   // ERROR STATE
   if (error) {
     return (
-      <div className="text-red-600 dark:text-red-400 text-center py-10">
+      <div className="text-red-600 dark:text-red-200 text-center py-10">
         {error}
       </div>
     );
@@ -102,12 +102,13 @@ export default function DashboardStatCard() {
         className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
       >
         {/* Total Videos */}
-        <div className="stat-card p-6 bg-white dark:bg-slate-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors">
+        <div className="stat-card p-6 bg-white dark:bg-gray-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors">
           <div className="flex items-center mb-2">
-            <span className="rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 p-2 mr-3">
+            {/* Dark Mode: High Opacity Blue Background + White-Blue Icon */}
+            <span className="rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/40 dark:text-blue-100 p-2 mr-3">
               <Video className="w-6 h-6" />
             </span>
-            <span className="font-semibold text-gray-700 dark:text-gray-400 text-base">
+            <span className="font-semibold text-gray-700 dark:text-white text-base">
               Total Videos
             </span>
           </div>
@@ -115,19 +116,20 @@ export default function DashboardStatCard() {
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
               {stats.totalVideos}
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+            <span className="text-xs text-gray-400 dark:text-gray-300 ml-4">
               Analyzed this month
             </span>
           </div>
         </div>
 
         {/* Real Videos */}
-        <div className="stat-card p-6 bg-white dark:bg-slate-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors">
+        <div className="stat-card p-6 bg-white dark:bg-gray-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors">
           <div className="flex items-center mb-2">
-            <span className="rounded-full bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 p-2 mr-3">
+            {/* Dark Mode: High Opacity Green Background + White-Green Icon */}
+            <span className="rounded-full bg-green-100 text-green-600 dark:bg-green-500/40 dark:text-green-100 p-2 mr-3">
               <Video className="w-6 h-6" />
             </span>
-            <span className="font-semibold text-gray-700 dark:text-gray-400 text-base">
+            <span className="font-semibold text-gray-700 dark:text-white text-base">
               Real Videos
             </span>
           </div>
@@ -135,19 +137,20 @@ export default function DashboardStatCard() {
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
               {stats.realVideos}
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+            <span className="text-xs text-gray-400 dark:text-gray-300 ml-4">
               Authentic content
             </span>
           </div>
         </div>
 
         {/* Fake Videos */}
-        <div className="stat-card p-6 bg-white dark:bg-slate-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors">
+        <div className="stat-card p-6 bg-white dark:bg-gray-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors">
           <div className="flex items-center mb-2">
-            <span className="rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-2 mr-3">
+            {/* Dark Mode: High Opacity Red Background + White-Red Icon */}
+            <span className="rounded-full bg-red-100 text-red-600 dark:bg-red-500/40 dark:text-red-100 p-2 mr-3">
               <AlertTriangle className="w-6 h-6" />
             </span>
-            <span className="font-semibold text-gray-700 dark:text-gray-400 text-base">
+            <span className="font-semibold text-gray-700 dark:text-white text-base">
               Fake Videos
             </span>
           </div>
@@ -155,7 +158,7 @@ export default function DashboardStatCard() {
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
               {stats.fakeVideos}
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+            <span className="text-xs text-gray-400 dark:text-gray-300 ml-4">
               Detected deepfakes
             </span>
           </div>

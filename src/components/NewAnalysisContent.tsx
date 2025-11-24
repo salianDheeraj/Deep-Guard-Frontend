@@ -230,7 +230,7 @@ const NewAnalysisContent: React.FC = () => {
 
     const presets = [
       { label: 'Quick', frames: 20, color: 'green' },
-      { label: 'Standard', frames: 80, color: 'blue' },
+      { label: 'Standard', frames: 80, color: 'primary' },
       { label: 'Advanced', frames: 140, color: 'purple' },
       { label: 'Deep', frames: maxFramesToAnalyze, color: 'red' }
     ];
@@ -251,7 +251,8 @@ const NewAnalysisContent: React.FC = () => {
               How Many Frames to Analyze?
             </label>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              📊 Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600 dark:text-indigo-400">{maxFramesToAnalyze}</span>
+              {/* LIGHT: Blue | DARK: Teal */}
+              📊 Total: <span className="font-bold text-blue-600 dark:text-teal-400">{totalFrames}</span> | Max: <span className="font-bold text-blue-600 dark:text-teal-400">{maxFramesToAnalyze}</span>
             </p>
 
             <div className="mb-6">
@@ -264,7 +265,8 @@ const NewAnalysisContent: React.FC = () => {
                 step="4"
                 value={framesToAnalyze}
                 onChange={(e) => setFramesToAnalyze(Number(e.target.value))}
-                className="w-full h-3 bg-gradient-to-r from-green-200 via-blue-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                // LIGHT: Accent Blue | DARK: Accent Teal
+                className="w-full h-3 bg-gradient-to-r from-green-200 via-blue-300 dark:via-teal-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-teal-600"
               />
 
               <div className="relative mt-2 h-4">
@@ -290,9 +292,10 @@ const NewAnalysisContent: React.FC = () => {
                   green: isSelected
                     ? 'bg-green-600 text-white shadow-lg scale-105'
                     : 'bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 border-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:shadow-md',
-                  blue: isSelected
-                    ? 'bg-blue-600 text-white shadow-lg scale-105'
-                    : 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:shadow-md',
+                  // LIGHT: Blue | DARK: Teal
+                  primary: isSelected 
+                    ? 'bg-blue-600 dark:bg-teal-600 text-white shadow-lg scale-105'
+                    : 'bg-white dark:bg-slate-700 text-blue-600 dark:text-teal-400 border-blue-400 dark:border-teal-400 hover:bg-blue-50 dark:hover:bg-teal-900/30 hover:shadow-md',
                   purple: isSelected
                     ? 'bg-purple-600 text-white shadow-lg scale-105'
                     : 'bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-400 border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-md',
@@ -321,13 +324,15 @@ const NewAnalysisContent: React.FC = () => {
               })}
             </div>
 
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-2 border-indigo-200 dark:border-indigo-800 rounded-lg p-3 mb-4">
+            {/* LIGHT: Blue Gradient | DARK: Teal Gradient */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-teal-900/20 dark:to-cyan-900/20 border-2 border-blue-200 dark:border-teal-800 rounded-lg p-3 mb-4">
               <p className="text-gray-600 dark:text-gray-300 text-xs mb-2 font-semibold">📊 Summary:</p>
 
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <div className="bg-white dark:bg-slate-700 rounded p-2 text-center">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Analyze</p>
-                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{framesToAnalyze}</p>
+                  {/* LIGHT: Blue | DARK: Teal */}
+                  <p className="text-2xl font-bold text-blue-600 dark:text-teal-400">{framesToAnalyze}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-700 rounded p-2 text-center">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
@@ -346,7 +351,8 @@ const NewAnalysisContent: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2 text-xs text-blue-800 dark:text-blue-300">
+            {/* LIGHT: Blue Box | DARK: Teal Box */}
+            <div className="bg-blue-50 dark:bg-teal-900/20 border border-blue-200 dark:border-teal-800 rounded p-2 text-xs text-blue-800 dark:text-teal-300">
               <p className="font-bold mb-1">✅ Example:</p>
               <p>Video: 279 frames → Pick: 100 → AI analyzes exactly 100</p>
             </div>
@@ -369,9 +375,10 @@ const NewAnalysisContent: React.FC = () => {
                 startAnalysisPlaceholder();
               }}
               disabled={isInvalid}
+              // LIGHT: Blue | DARK: Teal
               className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${isInvalid
                   ? 'bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  : 'bg-blue-600 hover:bg-blue-700 dark:bg-teal-600 dark:hover:bg-teal-700 text-white'
                 }`}
             >
               ✅ Start Analysis
@@ -558,21 +565,24 @@ const NewAnalysisContent: React.FC = () => {
             <span>{fileSizeMB} MB</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5 mb-6">
+            {/* LIGHT: Blue | DARK: Teal */}
             <div
-              className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500"
+              className="bg-blue-600 dark:bg-teal-600 h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${analysisState === 'UPLOADING' ? uploadProgress : 100}%` }}
             ></div>
           </div>
 
           {analysisState === 'UPLOADING' && (
             <div className="flex flex-col items-center justify-center py-6">
-              <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
+              {/* LIGHT: Blue | DARK: Teal */}
+              <Loader2 className="w-10 h-10 text-blue-500 dark:text-teal-500 animate-spin mb-4" />
               <p className="text-xl font-semibold text-gray-800 dark:text-white mb-1">Uploading file...</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Please wait while we upload your file</p>
 
               <button
                 onClick={handleCancelUpload}
-                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium text-sm flex items-center gap-2"
+                // LIGHT: Red | DARK: Orange (Consistent "Delete" Logic)
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg transition font-medium text-sm flex items-center gap-2"
               >
                 <X size={16} />
                 Cancel Upload
@@ -582,7 +592,8 @@ const NewAnalysisContent: React.FC = () => {
 
           {analysisState === 'ANALYZING' && (
             <div ref={analysisContainerRef} className="flex flex-col items-center justify-center py-6">
-              <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
+              {/* LIGHT: Blue | DARK: Teal */}
+              <Loader2 className="w-10 h-10 text-blue-500 dark:text-teal-500 animate-spin mb-4" />
               <p className="text-xl font-semibold text-gray-800 dark:text-white mb-1">Analyzing frames...</p>
               <p className="text-gray-500 dark:text-gray-400">Processing frame <span className="frame-counter">{currentFrame}</span> of {framesToAnalyze}.</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Total frames: {totalFrames}</p>
@@ -590,7 +601,8 @@ const NewAnalysisContent: React.FC = () => {
             </div>
           )}
 
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-400 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 p-4 mt-4" role="alert">
+          {/* LIGHT: Blue | DARK: Teal */}
+          <div className="bg-blue-50 dark:bg-teal-900/20 border-l-4 border-blue-400 dark:border-teal-600 text-blue-700 dark:text-teal-300 p-4 mt-4" role="alert">
             <p className="font-semibold">Note:</p>
             <p className="text-sm">
               {analysisState === 'UPLOADING'
@@ -605,15 +617,18 @@ const NewAnalysisContent: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center w-full">
         {errorMessage ? (
-          <FileWarning className="w-12 h-12 text-red-500 mb-4" />
+          // LIGHT: Red | DARK: Orange (Consistent Error Logic)
+          <FileWarning className="w-12 h-12 text-red-500 dark:text-orange-500 mb-4" />
         ) : selectedFile ? (
           <CheckCircle className="w-12 h-12 text-green-500 mb-4" />
         ) : (
-          <UploadCloud className="w-12 h-12 text-indigo-500 mb-4" />
+          // LIGHT: Blue | DARK: Teal
+          <UploadCloud className="w-12 h-12 text-blue-500 dark:text-teal-500 mb-4" />
         )}
 
         {errorMessage ? (
-          <p className="text-red-600 font-medium mb-4 text-center">{errorMessage}</p>
+          // LIGHT: Red | DARK: Orange
+          <p className="text-red-600 dark:text-orange-400 font-medium mb-4 text-center">{errorMessage}</p>
         ) : (
           <>
             <p className="text-xl text-gray-700 dark:text-gray-200 mb-2">
@@ -654,7 +669,8 @@ const NewAnalysisContent: React.FC = () => {
               type="button"
               onClick={handleButtonClick}
               disabled={analysisState === 'UPLOADING' || analysisState === 'ANALYZING'}
-              className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md disabled:bg-indigo-300"
+              // LIGHT: Blue | DARK: Teal
+              className="px-8 py-3 bg-blue-600 dark:bg-teal-600 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-teal-700 transition duration-150 shadow-md disabled:bg-blue-300 dark:disabled:bg-teal-300"
             >
               Start Analysis
             </button>
@@ -669,7 +685,8 @@ const NewAnalysisContent: React.FC = () => {
             />
             <button
               type="button"
-              className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md"
+              // LIGHT: Blue | DARK: Teal
+              className="px-8 py-3 bg-blue-600 dark:bg-teal-600 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-teal-700 transition duration-150 shadow-md"
               onClick={handleButtonClick}
             >
               Select File
@@ -692,8 +709,9 @@ const NewAnalysisContent: React.FC = () => {
           className={`
             border-2 rounded-xl p-16 text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
             ${isDragging && analysisState === 'IDLE'
-              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid'
-              : 'border-indigo-200 dark:border-indigo-800/50 border-dashed'}
+              // LIGHT: Blue | DARK: Teal
+              ? 'border-blue-500 bg-blue-50 dark:border-teal-500 dark:bg-teal-900/30 border-solid'
+              : 'border-blue-200 dark:border-teal-800/50 border-dashed'}
             ${analysisState !== 'IDLE' ? 'p-10' : ''}
           `}
           onDragOver={analysisState === 'IDLE' ? handleDragOver : undefined}
@@ -708,7 +726,8 @@ const NewAnalysisContent: React.FC = () => {
             const Icon = feature.icon;
             return (
               <div key={feature.title} className={`flex flex-col items-center w-[30%] p-4 ${index === 1 ? 'border-l border-r border-gray-100 dark:border-gray-700' : ''}`}>
-                <Icon className="w-6 h-6 text-indigo-500 mb-3" />
+                {/* LIGHT: Blue | DARK: Teal */}
+                <Icon className="w-6 h-6 text-blue-500 dark:text-teal-500 mb-3" />
                 <h3 className="font-semibold text-gray-800 dark:text-white text-center mb-1">{feature.title}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center">{feature.desc}</p>
               </div>

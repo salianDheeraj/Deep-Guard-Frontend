@@ -93,13 +93,13 @@ export default function RecentAnalyses() {
   if (error) {
     return (
       <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 border border-gray-100 dark:border-gray-700 transition-colors">
-        <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
+        <div className="flex items-center space-x-3 text-red-600 dark:text-orange-400">
           <AlertCircle size={20} />
           <div>
             <p className="font-medium">{error}</p>
             <button
               onClick={fetchAnalyses}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-300 mt-1 underline"
+              className="text-sm text-red-500 hover:text-red-700 dark:text-orange-400 dark:hover:text-orange-300 mt-1 underline"
             >
               Try again
             </button>
@@ -112,7 +112,7 @@ export default function RecentAnalyses() {
   if (loading) {
     return (
       <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 flex items-center justify-center h-40 border border-gray-100 dark:border-gray-700 transition-colors">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-teal-400" />
       </div>
     );
   }
@@ -160,7 +160,8 @@ export default function RecentAnalyses() {
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold uppercase whitespace-nowrap ${
                 analysis.is_deepfake
-                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  // CHANGED: Red -> Orange for FAKE
+                  ? "bg-red-100 text-red-700 dark:bg-orange-900/30 dark:text-orange-400"
                   : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
               }`}
             >
@@ -175,7 +176,8 @@ export default function RecentAnalyses() {
       <div className="p-4 text-center border-t border-gray-100 dark:border-gray-700">
         <Link
           href="/dashboard/history"
-          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+          // CHANGED: Blue -> Teal in Dark Mode
+          className="text-sm font-medium text-blue-600 dark:text-teal-400 hover:text-blue-800 dark:hover:text-teal-300 transition-colors"
         >
           View All Analyses →
         </Link>

@@ -27,12 +27,10 @@ const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
   return (
     <div className="flex justify-between items-center mb-6">
       <div className="flex flex-col">
-        {/* FIXED: Added dark:text-white */}
         <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
           Analysis Results
         </h1>
         
-        {/* FIXED: Added dark:text-gray-400 */}
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {fileName} &bull; Analyzed on {analyzedDate} &bull; Model {modelVersion}
         </p>
@@ -42,11 +40,14 @@ const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className={`flex items-center space-x-2 px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium transition-colors ${
-            isDeleting 
-              ? 'bg-red-50 dark:bg-red-900/30 opacity-50 cursor-not-allowed' 
-              : 'hover:bg-red-50 dark:hover:bg-red-900/20'
-          }`}
+          // CHANGED: Red in Light Mode, Orange in Dark Mode
+          className={`flex items-center space-x-2 px-4 py-2 border rounded-md text-sm font-medium transition-colors
+            border-red-500 text-red-500 
+            dark:border-orange-500 dark:text-orange-500
+            ${isDeleting 
+              ? 'bg-red-50 dark:bg-orange-900/30 opacity-50 cursor-not-allowed' 
+              : 'hover:bg-red-50 dark:hover:bg-orange-900/20'
+            }`}
         >
           {isDeleting ? (
             <>

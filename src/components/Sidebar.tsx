@@ -8,7 +8,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
 import ThemeToggleButton from './ThemeToggleButton';
- // 👈 Added Import
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface NavItem {
@@ -116,29 +116,29 @@ const Sidebar = () => {
     // ================================
     // 4. Proper logout: server + client
     // ----------------------------
- const handleLogout = async () => {
-  try {
-   await fetch(`${API_URL}/auth/logout`, {
-       method: "POST",
-      credentials: "include",
-    });
+    const handleLogout = async () => {
+        try {
+            await fetch(`${API_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
 
-    router.push("/login");
-  } catch (err) {
-    console.error("Logout failed:", err);
-  }
-};
+            router.push("/login");
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
 
     return (
-        <div 
-            ref={sidebarRef} 
+        <div
+            ref={sidebarRef}
             className="w-64 h-screen bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100 dark:border-gray-800 transition-colors duration-300"
         >
             <div>
                 {/* Logo */}
                 <div className="flex items-center justify-start p-6 border-b border-gray-100 dark:border-gray-800">
-                    <ShieldCheck size={28} className="text-blue-600 dark:text-blue-400 logo-shield-icon" />
-                    <h1 className="text-xl font-bold ml-2 text-blue-600 dark:text-blue-400">Deep-Guard</h1>
+                    <ShieldCheck size={28} className="text-blue-600 dark:text-cyan-400 logo-shield-icon" />
+                    <h1 className="text-xl font-bold ml-2 text-blue-600 dark:text-white">Deep-Guard</h1>
                 </div>
 
                 {/* Nav */}
@@ -171,9 +171,8 @@ const Sidebar = () => {
             {/* Bottom Section */}
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
 
-                {/* 👇 Added Theme Toggle Button Here */}
                 <div className="flex justify-center pb-2">
-                     <ThemeToggleButton />
+                    <ThemeToggleButton />
                 </div>
 
                 {/* User Profile */}
@@ -184,7 +183,10 @@ const Sidebar = () => {
                 {/* Logout */}
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 rounded-lg transition-colors"
+                    // CHANGED: Red in Light Mode | Orange in Dark Mode
+                    className="w-full flex items-center py-2 px-3 rounded-lg transition-colors
+                               text-red-500 hover:bg-red-50 hover:text-red-700
+                               dark:text-orange-500 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
                 >
                     <LogOut size={20} className="mr-4" />
                     <span>Logout</span>
