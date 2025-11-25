@@ -77,25 +77,23 @@ const Sidebar = () => {
     // 2. Active indicator movement
     // ================================
     useEffect(() => {
-        if (navRef.current) {
-            const activeIndex = navItems.findIndex(item => isActive(item.href));
-            const activeElement = itemRefs.current[activeIndex];
+        const activeIndex = navItems.findIndex(item => isActive(item.href));
+        const activeElement = itemRefs.current[activeIndex];
 
-            if (activeElement && indicatorRef.current) {
-                const navTop = navRef.current.getBoundingClientRect().top;
-                const elementTop = activeElement.getBoundingClientRect().top;
-                const topPosition = elementTop - navTop;
+        if (activeElement && indicatorRef.current && navRef.current) {
+            const navTop = navRef.current.getBoundingClientRect().top;
+            const elementTop = activeElement.getBoundingClientRect().top;
+            const topPosition = elementTop - navTop;
 
-                gsap.to(indicatorRef.current, {
-                    y: topPosition,
-                    height: activeElement.offsetHeight,
-                    opacity: 1,
-                    duration: 0.4,
-                    ease: "power2.inOut",
-                });
-            } else if (indicatorRef.current) {
-                gsap.to(indicatorRef.current, { opacity: 0, duration: 0.2 });
-            }
+            gsap.to(indicatorRef.current, {
+                y: topPosition,
+                height: activeElement.offsetHeight,
+                opacity: 1,
+                duration: 0.4,
+                ease: "power2.inOut",
+            });
+        } else if (indicatorRef.current) {
+            gsap.to(indicatorRef.current, { opacity: 0, duration: 0.2 });
         }
     }, [pathname, navItems]);
 
@@ -116,6 +114,8 @@ const Sidebar = () => {
     // ================================
     // 4. Proper logout: server + client
     // ----------------------------
+    // 4. FIXED LOGOUT (only update needed)
+    // ================================
     const handleLogout = async () => {
         try {
             await fetch(`${API_URL}/auth/logout`, {
@@ -145,7 +145,7 @@ const Sidebar = () => {
                 <nav ref={navRef} className="mt-6 relative">
                     <div
                         ref={indicatorRef}
-                        className="absolute left-0 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-r-lg opacity-0"
+                        className="absolute left-0 w-1 bg-blue-600 dark:bg-blue-400 rounded-r-lg opacity-0"
                         style={{ transform: 'translateY(0px)' }}
                     />
 
@@ -175,12 +175,10 @@ const Sidebar = () => {
                     <ThemeToggleButton />
                 </div>
 
-                {/* User Profile */}
                 <div className="p-2 bg-gray-50 dark:bg-slate-800 rounded-lg transition-colors">
                     <UserProfileCard />
                 </div>
 
-                {/* Logout */}
                 <button
                     onClick={handleLogout}
                     // CHANGED: Red in Light Mode | Orange in Dark Mode
