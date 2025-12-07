@@ -6,33 +6,28 @@ import gsap from 'gsap';
 import { RefObject } from 'react';
 
 export function useRecentAnalysesAnimation(scope: RefObject<HTMLDivElement>) {
-  
+
   useEffect(() => {
     // Keep checking until items are found
     let attempts = 0;
     const maxAttempts = 30; // Increase attempts
-    
+
     const checkAndAnimate = () => {
       attempts++;
-      
+
       if (!scope.current) {
         if (attempts < maxAttempts) {
           setTimeout(checkAndAnimate, 100);
         }
         return;
       }
-      
+
       // Find the Link items
       const items = scope.current.querySelectorAll('a');
-      
+
       if (items && items.length > 0) {
         debug('✅ Animating', items.length, 'recent analyses');
-        
-        // Make sure items are visible first (safety fallback)
-        items.forEach(item => {
-          (item as HTMLElement).style.opacity = '1';
-        });
-        
+
         // Then animate them
         gsap.fromTo(items,
           {
@@ -51,16 +46,16 @@ export function useRecentAnalysesAnimation(scope: RefObject<HTMLDivElement>) {
           }
         );
       } else if (attempts < maxAttempts) {
-       
+
         setTimeout(checkAndAnimate, 100);
       } else {
         console.warn('❌ Timeout: No analyses found after', maxAttempts, 'attempts');
       }
     };
-    
+
     // Start checking after small delay
     const timer = setTimeout(checkAndAnimate, 100);
-    
+
     return () => clearTimeout(timer);
   }, [scope]);
 }

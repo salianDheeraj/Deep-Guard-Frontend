@@ -92,7 +92,7 @@ export default function AnalysisPage() {
 
           confidenceReport = parsed;
           frameWiseConfidences = parsed.frame_wise_confidences || [];
-        } catch {}
+        } catch { }
       }
 
       if (!frameWiseConfidences.length && data.confidence_report) {

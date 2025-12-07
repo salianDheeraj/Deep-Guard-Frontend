@@ -240,7 +240,7 @@ export default function AccountSettings(): JSX.Element {
   return (
     // Added dark:bg-slate-950 to main wrapper
     <main ref={pageRef} className="flex-1 p-6 flex flex-col h-full space-y-6 dark:bg-slate-950 transition-colors">
-      
+
       {/* Added dark:text-white */}
       <h1 className="text-3xl font-bold account-header text-gray-900 dark:text-white">Account Settings</h1>
 
@@ -319,9 +319,9 @@ export default function AccountSettings(): JSX.Element {
           </div>
 
           <div>
-             {/* Added dark:text-gray-300 */}
+            {/* Added dark:text-gray-300 */}
             <label className="block text-sm text-gray-700 dark:text-gray-300">New password</label>
-             {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
+            {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
             <input
               type="password"
               value={newPass}
@@ -331,9 +331,9 @@ export default function AccountSettings(): JSX.Element {
           </div>
 
           <div>
-             {/* Added dark:text-gray-300 */}
+            {/* Added dark:text-gray-300 */}
             <label className="block text-sm text-gray-700 dark:text-gray-300">Confirm new password</label>
-             {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
+            {/* Added dark:bg-slate-900 dark:border-gray-600 dark:text-white */}
             <input
               type="password"
               value={confirmPass}
@@ -383,7 +383,7 @@ export default function AccountSettings(): JSX.Element {
 
           {/* Added flex-col to stack buttons vertically */}
           <div className="flex flex-col gap-3">
-             <button
+            <button
               onClick={logoutOtherDevices}
               // Added dark:border-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-900/20
               className="px-4 py-2 border border-yellow-200 text-yellow-700 rounded mb-3 action-button hover:bg-yellow-50 dark:border-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-900/20 transition-colors block w-full text-left sm:w-auto"

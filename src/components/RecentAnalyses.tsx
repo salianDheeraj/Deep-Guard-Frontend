@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
 import { useRecentAnalysesAnimation } from "@/hooks/useRecentAnalysesAnimation";
 import { apiFetch } from "@/lib/api";
+import styles from "@/styles/Dashboard.module.css";
 
 interface Analysis {
   id: string;
@@ -85,7 +86,7 @@ export default function RecentAnalyses() {
   // ERROR STATE
   if (error) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 border border-gray-100 dark:border-gray-700">
+      <div className={styles.statusCard}>
         <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
           <AlertCircle size={20} />
           <div>
@@ -105,7 +106,7 @@ export default function RecentAnalyses() {
   // LOADING STATE
   if (loading) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 flex items-center justify-center h-40 border border-gray-100 dark:border-gray-700">
+      <div className={styles.statusCard}>
         <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     );
@@ -114,7 +115,7 @@ export default function RecentAnalyses() {
   // EMPTY STATE
   if (analyses.length === 0) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 shadow-md p-6 text-center border border-gray-100 dark:border-gray-700">
+      <div className={styles.statusCard}>
         <p className="text-gray-500 dark:text-gray-400">
           No analyses yet. Start by uploading a video!
         </p>
@@ -126,9 +127,9 @@ export default function RecentAnalyses() {
   return (
     <div
       ref={containerRef}
-      className="rounded-xl bg-white dark:bg-slate-800 shadow-md border border-gray-100 dark:border-gray-700"
+      className={styles.analysesCard}
     >
-      <h2 className="text-xl font-bold p-4 border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white">
+      <h2 className={styles.cardHeader}>
         Recent Analyses
       </h2>
 
@@ -136,51 +137,50 @@ export default function RecentAnalyses() {
         <Link
           href={`/dashboard/analysis/${analysis.id}`}
           key={analysis.id}
-          className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+          className={`${styles.analysisRow} opacity-0`}
         >
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
+          <div className={styles.leftContent}>
             <div
-              className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarPlaceholder(
+              className={`${styles.avatar} ${getAvatarPlaceholder(
                 analysis.filename
               )}`}
             >
               {analysis.filename.substring(0, 1).toUpperCase()}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 dark:text-white truncate">
+            <div className={styles.textContent}>
+              <p className={styles.filename}>
                 {analysis.filename}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className={styles.timestamp}>
                 {formatTimeAgo(analysis.created_at)}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 ml-4">
-            <span className="hidden md:block text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          <div className={styles.rightContent}>
+            <span className={styles.confidence}>
               {getDisplayedConfidence(analysis)}% confidence
             </span>
 
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase whitespace-nowrap ${
-                analysis.is_deepfake
-                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              }`}
+              className={`${styles.statusBadge} ${analysis.is_deepfake
+                ? styles.badgeFake
+                : styles.badgeReal
+                }`}
             >
               {analysis.is_deepfake ? "FAKE" : "REAL"}
             </span>
 
-            <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <ChevronRight className={styles.chevron} />
           </div>
         </Link>
       ))}
 
-      <div className="p-4 text-center border-t border-gray-100 dark:border-gray-700">
+      <div className={styles.viewAllLinkContainer}>
         <Link
           href="/dashboard/history"
-          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+          className={styles.viewAllLink}
         >
           View All Analyses →
         </Link>

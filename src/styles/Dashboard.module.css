@@ -1,0 +1,192 @@
+/* Dashboard Page Layout */
+.dashboardPage {
+    @apply flex-1 p-6 space-y-6;
+}
+
+/* ------------------- DashboardStatCard Styles ------------------- */
+
+.statCard {
+    @apply p-6 bg-white rounded-xl shadow border border-transparent flex flex-col transition-colors;
+}
+
+:global(.dark) .statCard {
+    @apply bg-slate-800 border-gray-700;
+}
+
+.statHeader {
+    @apply flex items-center mb-2;
+}
+
+.statIconWrapper {
+    @apply rounded-full p-2 mr-3;
+}
+
+.iconWrapperBlue {
+    @apply bg-blue-100 text-blue-600;
+}
+
+:global(.dark) .iconWrapperBlue {
+    @apply bg-teal-900/30 text-teal-400;
+    /* Teal override */
+}
+
+.iconWrapperGreen {
+    @apply bg-green-100 text-green-600;
+}
+
+:global(.dark) .iconWrapperGreen {
+    @apply bg-green-900/20 text-green-400;
+}
+
+.iconWrapperRed {
+    @apply bg-red-100 text-red-600;
+}
+
+:global(.dark) .iconWrapperRed {
+    @apply bg-red-900/20 text-red-400;
+}
+
+.statTitle {
+    @apply font-semibold text-gray-700 text-base;
+}
+
+:global(.dark) .statTitle {
+    @apply text-gray-400;
+}
+
+.statValueRow {
+    @apply flex items-end justify-between;
+}
+
+.statValue {
+    @apply text-3xl font-bold text-gray-900;
+}
+
+:global(.dark) .statValue {
+    @apply text-white;
+}
+
+.statLabel {
+    @apply text-xs text-gray-400 ml-4;
+}
+
+:global(.dark) .statLabel {
+    @apply text-gray-500;
+}
+
+
+/* ------------------- RecentAnalyses Styles ------------------- */
+
+.analysesCard {
+    @apply rounded-xl bg-white shadow-md border border-gray-100;
+}
+
+:global(.dark) .analysesCard {
+    @apply bg-slate-800 border-gray-700;
+}
+
+/* Used for loading/error/empty states too */
+.statusCard {
+    @apply analysesCard p-6 flex items-center justify-center;
+}
+
+.cardHeader {
+    @apply text-xl font-bold p-4 border-b border-gray-100 text-gray-800;
+}
+
+:global(.dark) .cardHeader {
+    @apply border-gray-700 text-white;
+}
+
+.analysisRow {
+    @apply flex items-center justify-between p-4 transition-colors hover:bg-gray-50 border-b border-gray-100 last:border-b-0;
+}
+
+:global(.dark) .analysisRow {
+    @apply hover:bg-slate-700/50 border-gray-700;
+}
+
+.filename {
+    @apply font-medium text-gray-900 truncate;
+}
+
+:global(.dark) .filename {
+    @apply text-white;
+}
+
+.timestamp {
+    @apply text-sm text-gray-500;
+}
+
+:global(.dark) .timestamp {
+    @apply text-gray-400;
+}
+
+.confidence {
+    @apply hidden md:block text-sm text-gray-500 whitespace-nowrap;
+}
+
+:global(.dark) .confidence {
+    @apply text-gray-400;
+}
+
+.statusBadge {
+    @apply rounded-full px-3 py-1 text-xs font-semibold uppercase whitespace-nowrap;
+}
+
+.badgeFake {
+    @apply bg-red-100 text-red-700;
+}
+
+:global(.dark) .badgeFake {
+    @apply bg-red-900/30 text-red-400;
+}
+
+.badgeReal {
+    @apply bg-green-100 text-green-700;
+}
+
+:global(.dark) .badgeReal {
+    @apply bg-green-900/30 text-green-400;
+}
+
+.chevron {
+    @apply h-5 w-5 text-gray-400 flex-shrink-0;
+}
+
+:global(.dark) .chevron {
+    @apply text-gray-500;
+}
+
+.viewAllLinkContainer {
+    @apply p-4 text-center border-t border-gray-100;
+}
+
+:global(.dark) .viewAllLinkContainer {
+    @apply border-gray-700;
+}
+
+.viewAllLink {
+    @apply text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors;
+}
+
+:global(.dark) .viewAllLink {
+    @apply text-teal-400 hover:text-teal-300;
+}
+
+/* New structural classes for RecentAnalyses */
+.avatar {
+    @apply h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm;
+}
+
+.leftContent {
+    @apply flex items-center space-x-4 flex-1 min-w-0;
+}
+
+.textContent {
+    @apply flex-1 min-w-0;
+}
+
+.rightContent {
+    @apply flex items-center space-x-4 ml-4;
+}

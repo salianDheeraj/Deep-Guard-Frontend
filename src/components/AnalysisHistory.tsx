@@ -26,15 +26,15 @@ interface DeleteModalProps {
   isDeleting: boolean;
 }
 
-const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({ 
-  isOpen, onClose, onConfirm, count, isBulk, isDeleting 
+const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
+  isOpen, onClose, onConfirm, count, isBulk, isDeleting
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 dark:border-gray-700 transform transition-all scale-100">
-        
+
         <div className="flex items-center gap-4 mb-5">
           <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full flex-shrink-0">
             <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
@@ -45,19 +45,19 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
         </div>
 
         <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-          Are you sure you want to permanently delete {isBulk ? <span className="font-bold text-gray-900 dark:text-white">{count} analyses</span> : 'this analysis'}? 
+          Are you sure you want to permanently delete {isBulk ? <span className="font-bold text-gray-900 dark:text-white">{count} analyses</span> : 'this analysis'}?
           <br /><span className="text-sm text-red-500 mt-2 block">This action cannot be undone.</span>
         </p>
 
         <div className="flex gap-3 justify-end">
-          <button 
+          <button
             onClick={onClose}
             disabled={isDeleting}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={onConfirm}
             disabled={isDeleting}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -86,9 +86,9 @@ const AnalysisHistory: React.FC = () => {
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
   // Modal State
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; type: 'single' | 'bulk'; id?: string }>({ 
-    isOpen: false, 
-    type: 'single' 
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; type: 'single' | 'bulk'; id?: string }>({
+    isOpen: false,
+    type: 'single'
   });
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -199,8 +199,8 @@ const AnalysisHistory: React.FC = () => {
     setIsDeleting(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const idsToDelete = deleteModal.type === 'bulk' 
-        ? Array.from(selectedIds) 
+      const idsToDelete = deleteModal.type === 'bulk'
+        ? Array.from(selectedIds)
         : [deleteModal.id!];
 
       await Promise.all(
@@ -216,7 +216,7 @@ const AnalysisHistory: React.FC = () => {
       setAnalyses(prev => prev.filter(a => !idsToDelete.includes(a.id)));
       if (deleteModal.type === 'bulk') setSelectedIds(new Set());
       setAnimationTrigger(prev => prev + 1);
-      
+
     } catch (err: any) {
       alert('Delete failed: ' + err.message);
     } finally {
@@ -285,9 +285,9 @@ const AnalysisHistory: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative">
-      
+
       {/* --- CUSTOM MODAL RENDER --- */}
-      <DeleteConfirmationModal 
+      <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={executeDelete}
@@ -303,11 +303,10 @@ const AnalysisHistory: React.FC = () => {
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeFilter === filter
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeFilter === filter
                   ? 'bg-blue-600 text-white'
                   : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
-              }`}
+                }`}
             >
               {filter}
             </button>
@@ -382,14 +381,14 @@ const AnalysisHistory: React.FC = () => {
                         />
                       </td>
                       <td className="p-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{formatDate(item.created_at)}</td>
-                      
+
                       {/* --- MODIFIED FILENAME CELL --- */}
                       <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
                         <div className="flex items-center">
                           <FileText size={16} className="mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                          <Link 
+                          <Link
                             href={`/dashboard/analysis/${item.id}`}
-                            className="truncate max-w-[200px] sm:max-w-xs hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer transition-colors" 
+                            className="truncate max-w-[200px] sm:max-w-xs hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer transition-colors"
                             title={item.filename}
                           >
                             {item.filename}
@@ -400,11 +399,10 @@ const AnalysisHistory: React.FC = () => {
 
                       <td className="p-4">
                         <span
-                          className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                            item.is_deepfake
+                          className={`px-2 py-0.5 text-xs font-semibold rounded ${item.is_deepfake
                               ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                               : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          }`}
+                            }`}
                         >
                           {item.is_deepfake ? 'FAKE' : 'REAL'}
                         </span>
@@ -414,20 +412,20 @@ const AnalysisHistory: React.FC = () => {
                       </td>
                       <td className="p-4 text-sm font-medium">
                         <div className="flex items-center justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                                onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                                className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                title="View Details"
-                            >
-                                <Search size={18} />
-                            </button>
-                            <button
-                                onClick={() => openSingleDeleteModal(item.id)}
-                                className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                title="Delete"
-                            >
-                                <Trash2 size={18} />
-                            </button>
+                          <button
+                            onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
+                            className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Search size={18} />
+                          </button>
+                          <button
+                            onClick={() => openSingleDeleteModal(item.id)}
+                            className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -457,11 +455,10 @@ const AnalysisHistory: React.FC = () => {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      currentPage === pageNum
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${currentPage === pageNum
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-transparent'
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>

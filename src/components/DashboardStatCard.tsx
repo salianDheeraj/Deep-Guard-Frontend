@@ -5,6 +5,7 @@ import { Video, AlertTriangle } from "lucide-react";
 import { useDashboardAnimations } from "@/hooks/useDashboardAnimations ";
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import styles from "@/styles/Dashboard.module.css";
 
 interface StatsData {
   totalVideos: number;
@@ -94,25 +95,25 @@ export default function DashboardStatCard() {
       <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* TOTAL VIDEOS */}
         <section
-          className="stat-card p-6 bg-white dark:bg-slate-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors"
+          className={`${styles.statCard} stat-card opacity-0`}
           aria-labelledby="total-videos-title"
         >
-          <div className="flex items-center mb-2">
-            <span className="rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 p-2 mr-3">
+          <div className={styles.statHeader}>
+            <span className={`${styles.statIconWrapper} ${styles.iconWrapperBlue}`}>
               <Video className="w-6 h-6" aria-hidden="true" />
             </span>
             <h3
               id="total-videos-title"
-              className="font-semibold text-gray-700 dark:text-gray-400 text-base"
+              className={styles.statTitle}
             >
               Total Videos
             </h3>
           </div>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+          <div className={styles.statValueRow}>
+            <span className={styles.statValue}>
               {stats.totalVideos}
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+            <span className={styles.statLabel}>
               Analyzed this month
             </span>
           </div>
@@ -120,25 +121,25 @@ export default function DashboardStatCard() {
 
         {/* REAL VIDEOS */}
         <section
-          className="stat-card p-6 bg-white dark:bg-slate-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors"
+          className={`${styles.statCard} stat-card opacity-0`}
           aria-labelledby="real-videos-title"
         >
-          <div className="flex items-center mb-2">
-            <span className="rounded-full bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 p-2 mr-3">
+          <div className={styles.statHeader}>
+            <span className={`${styles.statIconWrapper} ${styles.iconWrapperGreen}`}>
               <Video className="w-6 h-6" aria-hidden="true" />
             </span>
             <h3
               id="real-videos-title"
-              className="font-semibold text-gray-700 dark:text-gray-400 text-base"
+              className={styles.statTitle}
             >
               Real Videos
             </h3>
           </div>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+          <div className={styles.statValueRow}>
+            <span className={styles.statValue}>
               {stats.realVideos}
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+            <span className={styles.statLabel}>
               Authentic content
             </span>
           </div>
@@ -146,25 +147,25 @@ export default function DashboardStatCard() {
 
         {/* FAKE VIDEOS */}
         <section
-          className="stat-card p-6 bg-white dark:bg-slate-800 rounded-xl shadow border border-transparent dark:border-gray-700 flex flex-col transition-colors"
+          className={`${styles.statCard} stat-card opacity-0`}
           aria-labelledby="fake-videos-title"
         >
-          <div className="flex items-center mb-2">
-            <span className="rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-2 mr-3">
+          <div className={styles.statHeader}>
+            <span className={`${styles.statIconWrapper} ${styles.iconWrapperRed}`}>
               <AlertTriangle className="w-6 h-6" aria-hidden="true" />
             </span>
             <h3
               id="fake-videos-title"
-              className="font-semibold text-gray-700 dark:text-gray-400 text-base"
+              className={styles.statTitle}
             >
               Fake Videos
             </h3>
           </div>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+          <div className={styles.statValueRow}>
+            <span className={styles.statValue}>
               {stats.fakeVideos}
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+            <span className={styles.statLabel}>
               Detected deepfakes
             </span>
           </div>

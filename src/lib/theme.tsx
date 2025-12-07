@@ -1,56 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
-
-interface ThemeContextValue {
-    theme: Theme;
-    toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes";
+import React from "react";
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-    const [theme, setTheme] = useState<Theme>(() => {
-        if (typeof window === "undefined") return "light";
-
-        try {
-            // If user previously selected a theme, prefer that
-            const saved = localStorage.getItem("theme") as Theme | null;
-            if (saved) return saved;
-        } catch (e) {
-            // ignore
-        }
-
-        // Otherwise detect from device preference
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            return "dark";
-        }
-
-        return "light";
-    });
-
-    useEffect(() => {
-        try {
-            document.documentElement.classList.toggle("dark", theme === "dark");
-            localStorage.setItem("theme", theme);
-        } catch (e) {
-            // ignore
-        }
-    }, [theme]);
-
-    const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
-
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
-        </ThemeContext.Provider>
+        </NextThemesProvider>
     );
 };
 
+// Adapted to match the previous API signature { theme, toggleTheme }
 export const useTheme = () => {
-    const ctx = useContext(ThemeContext);
-    if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-    return ctx;
+    const { theme, setTheme, systemTheme } = useNextTheme();
+
+    // For hydration safety, resolvedTheme handles system preference
+    const currentTheme = theme === 'system' ? systemTheme : theme;
+
+    const toggleTheme = () => {
+        setTheme(currentTheme === "dark" ? "light" : "dark");
+    };
+
+    return {
+        theme: currentTheme || "light",
+        toggleTheme
+    };
 };
