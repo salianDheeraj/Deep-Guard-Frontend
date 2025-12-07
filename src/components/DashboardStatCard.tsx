@@ -36,6 +36,10 @@ export default function DashboardStatCard() {
         // -------- AUTHENTICATION CHECK (auto-refresh protected) --------
         const me = await apiFetch(`/api/account/me`);
         if (!me.ok) {
+          if (me.status === 401) {
+            router.push('/login');
+            return;
+          }
           setError("Not authenticated. Please login.");
           return;
         }

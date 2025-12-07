@@ -9,6 +9,8 @@ import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
 import ThemeToggleButton from './ThemeToggleButton';
 
+import styles from '@/styles/Sidebar.module.css';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface NavItem {
@@ -130,20 +132,20 @@ const Sidebar = () => {
     return (
         <div
             ref={sidebarRef}
-            className="w-64 h-screen bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100 dark:border-gray-800 transition-colors duration-300"
+            className={styles.sidebar}
         >
             <div>
                 {/* Logo */}
-                <div className="flex items-center justify-start p-6 border-b border-gray-100 dark:border-gray-800">
-                    <ShieldCheck size={28} className="text-blue-600 dark:text-blue-400 logo-shield-icon" />
-                    <h1 className="text-xl font-bold ml-2 text-blue-600 dark:text-blue-400">Deep-Guard</h1>
+                <div className={styles.logoContainer}>
+                    <ShieldCheck size={28} className={`${styles.logoIcon} logo-shield-icon`} />
+                    <h1 className={styles.logoText}>Deep-Guard</h1>
                 </div>
 
                 {/* Nav */}
-                <nav ref={navRef} className="mt-6 relative">
+                <nav ref={navRef} className={styles.nav}>
                     <div
                         ref={indicatorRef}
-                        className="absolute left-0 w-1 bg-blue-600 dark:bg-blue-400 rounded-r-lg opacity-0"
+                        className={styles.indicator}
                         style={{ transform: 'translateY(0px)' }}
                     />
 
@@ -152,14 +154,14 @@ const Sidebar = () => {
                             key={item.name}
                             href={item.href}
                             ref={(el) => { itemRefs.current[index] = el; }}
-                            className={`flex items-center py-3 px-6 text-gray-600 dark:text-gray-400 transition-colors nav-link-item relative z-10 
+                            className={`${styles.navItem} nav-link-item 
                                 ${isActive(item.href)
-                                    ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white font-medium'
-                                    : 'hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'}`}
+                                    ? styles.navItemActive
+                                    : styles.navItemInactive}`}
                             onMouseEnter={(e) => handleLinkHover(e, true)}
                             onMouseLeave={(e) => handleLinkHover(e, false)}
                         >
-                            <item.icon size={20} className="mr-4" />
+                            <item.icon size={20} className={styles.navIcon} />
                             <span>{item.name}</span>
                         </Link>
                     ))}
@@ -167,19 +169,19 @@ const Sidebar = () => {
             </div>
 
             {/* Bottom Section */}
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
+            <div className={styles.bottomSection}>
 
-                <div className="flex justify-center pb-2">
+                <div className={styles.themeToggleContainer}>
                     <ThemeToggleButton />
                 </div>
 
-                <div className="p-2 bg-gray-50 dark:bg-slate-800 rounded-lg transition-colors">
+                <div className={styles.userProfileContainer}>
                     <UserProfileCard />
                 </div>
 
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 rounded-lg transition-colors"
+                    className={styles.logoutButton}
                 >
                     <LogOut size={20} className="mr-4" />
                     <span>Logout</span>

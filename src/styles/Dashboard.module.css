@@ -1,6 +1,6 @@
 /* Dashboard Page Layout */
 .dashboardPage {
-    @apply flex-1 p-6 space-y-6;
+    composes: dashboardLayout from "./Global.module.css";
 }
 
 /* ------------------- DashboardStatCard Styles ------------------- */

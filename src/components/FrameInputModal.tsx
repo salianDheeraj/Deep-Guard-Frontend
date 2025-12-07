@@ -43,11 +43,11 @@ const FrameInputModal: React.FC<Props> = ({
 
         <div className="flex-1 overflow-y-auto p-6">
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">How Many Frames to Analyze?</label>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">📊 Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600 dark:text-indigo-400">{maxFramesToAnalyze}</span></p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">📊 Total: <span className="font-bold text-indigo-600 dark:text-teal-400">{totalFrames}</span> | Max: <span className="font-bold text-indigo-600 dark:text-teal-400">{maxFramesToAnalyze}</span></p>
 
           <div className="mb-6">
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Slider:</label>
-            <input type="range" min={20} max={maxFramesToAnalyze} step={4} value={framesToAnalyze} onChange={(e) => setFramesToAnalyze(Number(e.target.value))} className="w-full h-3 bg-gradient-to-r from-green-200 via-blue-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
+            <input type="range" min={20} max={maxFramesToAnalyze} step={4} value={framesToAnalyze} onChange={(e) => setFramesToAnalyze(Number(e.target.value))} className="w-full h-3 bg-gradient-to-r from-green-200 via-indigo-300 dark:via-teal-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-teal-500" />
           </div>
 
           <div className="grid grid-cols-4 gap-3 mb-6">
@@ -55,7 +55,7 @@ const FrameInputModal: React.FC<Props> = ({
               const isSelected = framesToAnalyze === preset.frames;
               const colorClasses: Record<string, string> = {
                 green: isSelected ? "bg-green-600 text-white shadow-lg scale-105" : "bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 border-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:shadow-md",
-                blue: isSelected ? "bg-blue-600 text-white shadow-lg scale-105" : "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:shadow-md",
+                blue: isSelected ? "bg-indigo-600 dark:bg-teal-600 text-white shadow-lg scale-105" : "bg-white dark:bg-slate-700 text-indigo-600 dark:text-teal-400 border-indigo-400 dark:border-teal-400 hover:bg-indigo-50 dark:hover:bg-teal-900/30 hover:shadow-md",
                 purple: isSelected ? "bg-purple-600 text-white shadow-lg scale-105" : "bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-400 border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-md",
                 red: isSelected ? "bg-red-600 text-white shadow-lg scale-105" : "bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 border-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:shadow-md",
               };
@@ -69,12 +69,12 @@ const FrameInputModal: React.FC<Props> = ({
             })}
           </div>
 
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-2 border-indigo-200 dark:border-indigo-800 rounded-lg p-3 mb-4">
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-2 border-indigo-200 dark:border-teal-800 rounded-lg p-3 mb-4">
             <p className="text-gray-600 dark:text-gray-300 text-xs mb-2 font-semibold">📊 Summary:</p>
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="bg-white dark:bg-slate-700 rounded p-2 text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Analyze</p>
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{framesToAnalyze}</p>
+                <p className="text-2xl font-bold text-indigo-600 dark:text-teal-400">{framesToAnalyze}</p>
               </div>
               <div className="bg-white dark:bg-slate-700 rounded p-2 text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
@@ -94,7 +94,7 @@ const FrameInputModal: React.FC<Props> = ({
 
         <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t dark:border-gray-700 p-4 flex gap-3">
           <button onClick={() => { setShow(false); setFramesToAnalyze(20); setAnalysisState("IDLE"); }} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition font-medium text-sm">❌ Cancel</button>
-          <button onClick={() => { setShow(false); void startAnalysis(); }} disabled={isInvalid} className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${isInvalid ? "bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
+          <button onClick={() => { setShow(false); void startAnalysis(); }} disabled={isInvalid} className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${isInvalid ? "bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 dark:bg-teal-600 dark:hover:bg-teal-700 text-white"}`}>
             ✅ Start Analysis
           </button>
         </div>

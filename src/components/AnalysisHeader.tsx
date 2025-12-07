@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Loader2, Trash2 } from 'lucide-react';
 
+import styles from '@/styles/Analysis.module.css';
+
 interface AnalysisHeaderProps {
   analysisId: string;
   fileName: string;
@@ -10,8 +12,8 @@ interface AnalysisHeaderProps {
   onDelete?: () => void;
 }
 
-const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({ 
-  analysisId, fileName, analyzedDate, modelVersion, onDelete 
+const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
+  analysisId, fileName, analyzedDate, modelVersion, onDelete
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -25,28 +27,27 @@ const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center mb-6">
+    <div className={styles.headerContainer}>
       <div className="flex flex-col">
         {/* FIXED: Added dark:text-white */}
-        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
+        <h1 className={styles.headerTitle}>
           Analysis Results
         </h1>
-        
+
         {/* FIXED: Added dark:text-gray-400 */}
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className={styles.headerMeta}>
           {fileName} &bull; Analyzed on {analyzedDate} &bull; Model {modelVersion}
         </p>
       </div>
-      
+
       <div className="flex space-x-3 items-center">
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className={`flex items-center space-x-2 px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium transition-colors ${
-            isDeleting 
-              ? 'bg-red-50 dark:bg-red-900/30 opacity-50 cursor-not-allowed' 
-              : 'hover:bg-red-50 dark:hover:bg-red-900/20'
-          }`}
+          className={`${styles.deleteButton} ${isDeleting
+              ? styles.deleteButtonDisabled
+              : ''
+            }`}
         >
           {isDeleting ? (
             <>

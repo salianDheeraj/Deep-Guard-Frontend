@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
 
+import styles from "@/styles/ImageAnalysis.module.css";
+
 interface Props {
   imageUrl: string;
   isDeepfake: boolean;
@@ -33,39 +35,38 @@ const ImageAnalysisSection: React.FC<Props> = ({
   }, [imageUrl]);
 
   return (
-    <div className="flex w-full bg-slate-900/40 rounded-xl p-6 gap-6">
+    <div className={styles.container}>
 
       {/* LEFT SIDE IMAGE */}
-      <div className="flex-1 bg-slate-800 rounded-xl border border-slate-700 flex justify-center items-center p-4">
+      <div className={styles.imageWrapper}>
         {resolvedUrl ? (
           <img
             src={resolvedUrl}
             alt="Analyzed"
-            className="max-h-[350px] max-w-full object-contain rounded-lg"
+            className={styles.image}
           />
         ) : (
-          <p className="text-gray-400 text-sm">Loading image...</p>
+          <p className={styles.loadingText}>Loading image...</p>
         )}
       </div>
 
       {/* RIGHT SIDE RESULT */}
-      <div className="w-80 text-gray-200 flex flex-col justify-center">
-        <h2 className="text-2xl font-bold mb-4">Image Analysis</h2>
+      <div className={styles.resultWrapper}>
+        <h2 className={styles.title}>Image Analysis</h2>
 
         <span
-          className={`px-4 py-1 rounded-lg text-sm font-semibold mb-3 self-start ${
-            isDeepfake ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"
-          }`}
+          className={`${styles.badge} ${isDeepfake ? styles.badgeFake : styles.badgeReal
+            }`}
         >
           {isDeepfake ? "FAKE" : "REAL"}
         </span>
 
-        <p className="text-lg mb-1">Confidence</p>
-        <p className="text-4xl font-bold mb-6">
+        <p className={styles.confidenceLabel}>Confidence</p>
+        <p className={styles.confidenceValue}>
           {Math.round(confidenceScore * 100)}%
         </p>
 
-        <p className="text-sm text-gray-400">
+        <p className={styles.dateLabel}>
           Analyzed on: {createdAt}
         </p>
       </div>

@@ -39,7 +39,11 @@
 }
 
 .subtitle {
-    @apply text-lg text-gray-500 dark:text-gray-400 max-w-md;
+    @apply text-lg text-gray-500 max-w-md;
+}
+
+:global(.dark) .subtitle {
+    @apply text-gray-400;
 }
 
 .card {
@@ -55,7 +59,7 @@
 }
 
 .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    composes: label from "./Global.module.css";
 }
 
 .inputWrapper {
@@ -71,7 +75,11 @@
 }
 
 .passwordToggle {
-    @apply absolute inset-y-0 right-3 flex items-center p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 z-10;
+    @apply absolute inset-y-0 right-3 flex items-center p-2 text-gray-500 hover:text-gray-700 z-10;
+}
+
+:global(.dark) .passwordToggle {
+    @apply text-gray-400 hover:text-gray-200;
 }
 
 .otpContainer {
@@ -87,11 +95,19 @@
 }
 
 .otpTimer {
-    @apply text-sm text-gray-500 dark:text-gray-400;
+    @apply text-sm text-gray-500;
+}
+
+:global(.dark) .otpTimer {
+    @apply text-gray-400;
 }
 
 .otpStatus {
-    @apply mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 text-sm;
+    @apply mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm;
+}
+
+:global(.dark) .otpStatus {
+    @apply bg-teal-900/30 border-teal-800 text-teal-300;
 }
 
 .authOptions {
@@ -103,11 +119,19 @@
 }
 
 .checkbox {
-    @apply h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer dark:bg-gray-700 dark:border-gray-600;
+    @apply h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer;
+}
+
+:global(.dark) .checkbox {
+    @apply bg-gray-700 border-gray-600;
 }
 
 .checkboxLabel {
-    @apply ml-2 block text-sm text-gray-900 dark:text-gray-300;
+    @apply ml-2 block text-sm text-gray-900;
+}
+
+:global(.dark) .checkboxLabel {
+    @apply text-gray-300;
 }
 
 .forgotPassword {
@@ -119,7 +143,7 @@
 }
 
 .error {
-    @apply mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm;
+    composes: errorAlert from "./Global.module.css";
 }
 
 .submitButton {
@@ -131,7 +155,11 @@
 }
 
 .footerText {
-    @apply mt-6 text-center text-sm text-gray-600 dark:text-gray-400;
+    @apply mt-6 text-center text-sm text-gray-600;
+}
+
+:global(.dark) .footerText {
+    @apply text-gray-400;
 }
 
 .footerLink {

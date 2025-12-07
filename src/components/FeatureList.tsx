@@ -1,6 +1,8 @@
 import React from "react";
 import type { LucideIcon } from "lucide-react";
 
+import styles from "@/styles/FeatureList.module.css";
+
 export interface FeatureItem {
   title: string;
   desc: string;
@@ -9,23 +11,22 @@ export interface FeatureItem {
 
 const FeatureList = ({ features }: { features: FeatureItem[] }) => {
   return (
-    <div className="flex justify-between mt-12">
+    <div className={styles.container}>
       {features.map((feature, index) => {
         const Icon = feature.icon;
         return (
           <div
             key={feature.title}
-            className={`flex flex-col items-center w-[30%] p-4 ${
-              index === 1
-                ? "border-l border-r border-gray-100 dark:border-gray-700"
+            className={`${styles.featureItem} ${index === 1
+                ? styles.featureItemMiddle
                 : ""
-            }`}
+              }`}
           >
-            <Icon className="w-6 h-6 text-indigo-500 mb-3" />
-            <h3 className="font-semibold text-gray-800 dark:text-white text-center mb-1">
+            <Icon className={styles.icon} />
+            <h3 className={styles.title}>
               {feature.title}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            <p className={styles.desc}>
               {feature.desc}
             </p>
           </div>
