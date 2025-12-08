@@ -16,7 +16,8 @@ export async function middleware(req: NextRequest) {
   // 2. Check for Token Existence
   const access = req.cookies.get("accessToken");
   const refresh = req.cookies.get("refreshToken");
-  const hasTokens = access || refresh;
+  const trial = req.cookies.get("trialAccess");
+  const hasTokens = access || refresh || trial;
 
   if (!hasTokens) {
     // No tokens -> Immediate Redirect

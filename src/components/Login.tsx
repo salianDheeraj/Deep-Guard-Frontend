@@ -461,6 +461,41 @@ const Login: FC = () => {
             {isSigningIn ? "Sign up" : "Sign In"}
           </a>
         </p>
+
+        {/* TRIAL BUTTON */}
+        <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1rem" }}>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                setIsLoading(true);
+                const res = await apiFetch("/api/trial/join", {
+                  method: "POST",
+                });
+
+                if (res.ok) {
+                  debug("✅ Trial started");
+                  router.push("/dashboard");
+                } else {
+                  const err = await res.json();
+                  setError(err.message || "Trial join failed");
+                }
+              } catch (e: any) {
+                setError("Failed to join trial");
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            className={styles.submitButton}
+            style={{
+              backgroundColor: "transparent",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              marginTop: "0.5rem"
+            }}
+          >
+            Try without an account
+          </button>
+        </div>
       </div>
     </div>
   );

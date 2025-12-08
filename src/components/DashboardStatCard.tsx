@@ -51,6 +51,15 @@ export default function DashboardStatCard() {
         }
 
         const result = await response.json();
+
+        // Check for trial restriction
+        if (result.trial_restricted) {
+          // You can handle this by setting a special state, or just setting stats to -1 to indicate N/A
+          // Or we can add a new state boolean 'restricted'
+          setStats({ totalVideos: -1, realVideos: -1, fakeVideos: -1 });
+          return;
+        }
+
         const analyses = result.data || [];
 
         const totalVideos = analyses.length;
@@ -115,7 +124,7 @@ export default function DashboardStatCard() {
           </div>
           <div className={styles.statValueRow}>
             <span className={styles.statValue}>
-              {stats.totalVideos}
+              {stats.totalVideos === -1 ? 'N/A' : stats.totalVideos}
             </span>
             <span className={styles.statLabel}>
               Analyzed this month
@@ -141,7 +150,7 @@ export default function DashboardStatCard() {
           </div>
           <div className={styles.statValueRow}>
             <span className={styles.statValue}>
-              {stats.realVideos}
+              {stats.realVideos === -1 ? 'N/A' : stats.realVideos}
             </span>
             <span className={styles.statLabel}>
               Authentic content
@@ -167,7 +176,7 @@ export default function DashboardStatCard() {
           </div>
           <div className={styles.statValueRow}>
             <span className={styles.statValue}>
-              {stats.fakeVideos}
+              {stats.fakeVideos === -1 ? 'N/A' : stats.fakeVideos}
             </span>
             <span className={styles.statLabel}>
               Detected deepfakes

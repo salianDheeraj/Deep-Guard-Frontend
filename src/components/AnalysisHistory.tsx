@@ -106,10 +106,13 @@ const AnalysisHistory: React.FC = () => {
     }
   }, [currentPage]);
 
+  const [isTrialRestricted, setIsTrialRestricted] = useState(false);
+
   const fetchAllAnalyses = async () => {
     try {
       setLoading(true);
       setError(null);
+      setIsTrialRestricted(false);
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -127,6 +130,12 @@ const AnalysisHistory: React.FC = () => {
       }
 
       const result = await response.json();
+
+      if (result.trial_restricted) {
+        setIsTrialRestricted(true);
+        return;
+      }
+
       setAnalyses(result.data || []);
     } catch (err: any) {
       setError(err.message);
@@ -294,6 +303,35 @@ const AnalysisHistory: React.FC = () => {
           >
             Try again
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isTrialRestricted) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 bg-gray-50 dark:bg-slate-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 text-center transition-colors">
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
+          <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">History Not Available</h3>
+        <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+          Trial users cannot save or view analysis history. <br />
+          Sign in or create an account to save your results.
+        </p>
+        <div className="flex gap-4">
+          <Link
+            href="/login"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/signup"
+            className="px-6 py-2 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 font-medium rounded-lg transition-colors"
+          >
+            Create Account
+          </Link>
         </div>
       </div>
     );
