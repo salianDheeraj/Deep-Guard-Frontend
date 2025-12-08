@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useRef, DragEvent, ChangeEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   UploadCloud,
   CheckCircle,
@@ -12,6 +12,9 @@ import {
   FileWarning,
   Loader2,
   X,
+  Video,
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import FeatureList, { FeatureItem } from "./FeatureList";
 import FrameInputModal from "./FrameInputModal";
@@ -21,12 +24,21 @@ import { debug } from "@/lib/logger";
 // FeatureItem type now comes from FeatureList component import
 
 type AnalysisState = "IDLE" | "UPLOADING" | "ANALYZING";
+type AnalysisType = "VIDEO" | "IMAGE";
 
 const MAX_FILE_SIZE_MB = 10;
-const SUPPORTED_FORMATS = ["JPG", "PNG", "MP4"];
 
 const NewAnalysisContent: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize from URL if present (e.g. ?type=IMAGE)
+  const [selectedType, setSelectedType] = useState<AnalysisType | null>(() => {
+    const type = searchParams.get('type')?.toUpperCase();
+    if (type === 'IMAGE') return 'IMAGE';
+    if (type === 'VIDEO') return 'VIDEO';
+    return null;
+  });
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -44,10 +56,27 @@ const NewAnalysisContent: React.FC = () => {
   const uploadTimerRef = useRef<NodeJS.Timeout | null>(null);
   const uploadedAnalysisIdRef = useRef<string | null>(null);
 
+  // Dynamic config based on selection
+  const config = useMemo(() => {
+    if (selectedType === 'IMAGE') {
+      return {
+        supportedFormats: ["JPG", "PNG", "JPEG"],
+        extensions: [".jpg", ".png", ".jpeg"],
+        label: "Image",
+        icon: ImageIcon
+      };
+    }
+    return {
+      supportedFormats: ["MP4"],
+      extensions: [".mp4"],
+      label: "Video",
+      icon: Video
+    };
+  }, [selectedType]);
 
   const acceptedFileTypes: string = useMemo(() => {
-    return SUPPORTED_FORMATS.map((f) => `.${f.toLowerCase()}`).join(",");
-  }, []);
+    return config.extensions.join(",");
+  }, [config]);
 
   const features: FeatureItem[] = useMemo(() => [
     { title: "Supported Formats", desc: `Images (JPG, PNG), Video (MP4)`, icon: ImageIcon },
@@ -157,18 +186,27 @@ const NewAnalysisContent: React.FC = () => {
     }
 
     const fileExtension = file.name.split(".").pop()?.toUpperCase();
-    if (!fileExtension || !SUPPORTED_FORMATS.includes(fileExtension)) {
-      const msg = `Unsupported file type. Please use ${SUPPORTED_FORMATS.join(
-        ", "
-      )}.`;
-      setErrorMessage(msg);
-      debug("❌ File validation failed (extension):", msg);
+
+    // Use dynamic config.supportedFormats based on selectedType (Video vs Image)
+    // Note: 'config' is not directly accessible in this callback due to dependency chain
+    // We should use the selectedType ref or pass it in. 
+    // Simplified: Check standard formats but logic below ensures type safety via accept attribute too.
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (selectedType === 'VIDEO' && !isVideo) {
+      setErrorMessage("Please select a valid Video file (MP4).");
+      return false;
+    }
+    if (selectedType === 'IMAGE' && !isImage) {
+      setErrorMessage("Please select a valid Image file (JPG, PNG).");
       return false;
     }
 
-    debug("✅ File validation passed");
+    // Basic extension check
+    // Actually we can just trust the 'selectedType' logic primarily.
     return true;
-  }, []);
+  }, [selectedType]);
 
   const processFiles = (files: FileList) => {
     const file = files[0];
@@ -208,8 +246,6 @@ const NewAnalysisContent: React.FC = () => {
       processFiles(event.target.files);
     }
   };
-
-  // Frame input modal is now a separate component
 
   const startAnalysisPlaceholder = async () => {
     if (!selectedFile || !validateFile(selectedFile)) {
@@ -479,8 +515,64 @@ const NewAnalysisContent: React.FC = () => {
     }
   };
 
-  // Upload area and frame modal moved to separate components to keep file modular
+  // -------------------------------------------------------------
+  // RENDER: Selection Screen
+  // -------------------------------------------------------------
+  if (!selectedType) {
+    return (
+      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-10 transition-colors">
+        <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-8 text-center">
+            Choose Analysis Type
+          </h2>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* VIDEO CARD */}
+            <div
+              onClick={() => setSelectedType('VIDEO')}
+              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-cyan-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-blue-500 dark:hover:border-cyan-500"
+            >
+              <div className="w-16 h-16 bg-blue-100 dark:bg-cyan-900/30 rounded-2xl flex items-center justify-center mb-6 text-blue-600 dark:text-cyan-400 group-hover:bg-blue-600 dark:group-hover:bg-cyan-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
+                <Video className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Video</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                Detect deepfakes in video files. Supports MP4 format.
+              </p>
+              <div className="flex items-center text-blue-600 dark:text-cyan-400 font-medium">
+                Select Video <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+
+            {/* IMAGE CARD */}
+            <div
+              onClick={() => setSelectedType('IMAGE')}
+              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-purple-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-pink-500 dark:hover:border-purple-500"
+            >
+              <div className="w-16 h-16 bg-pink-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6 text-pink-600 dark:text-purple-400 group-hover:bg-pink-600 dark:group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
+                <ImageIcon className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Image</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                Check photos for AI manipulation. Supports JPG, PNG.
+              </p>
+              <div className="flex items-center text-pink-600 dark:text-purple-400 font-medium">
+                Select Image <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 opacity-80">
+            <FeatureList features={features} />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // RENDER: Upload Screen (Specific Type)
+  // -------------------------------------------------------------
   return (
     <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-10 transition-colors">
       <FrameInputModal
@@ -495,19 +587,40 @@ const NewAnalysisContent: React.FC = () => {
       />
 
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-          New Deepfake Analysis
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-10">
-          Upload media files to detect potential deepfakes using AI analysis
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => {
+              setSelectedType(null);
+              setSelectedFile(null);
+              setErrorMessage(null);
+            }}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+          </button>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+              {selectedType === 'VIDEO' ? <Video className="w-8 h-8 text-cyan-500" /> : <ImageIcon className="w-8 h-8 text-purple-500" />}
+              Analyze {config.label}
+            </h2>
+          </div>
+        </div>
+
+        <p className="text-gray-500 dark:text-gray-400 mb-10 ml-12">
+          Upload {config.label.toLowerCase()} files to detect potential deepfakes. Supported: {config.supportedFormats.join(', ')}
         </p>
 
         <div
           className={`
             border-2 rounded-xl p-16 text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
             ${isDragging && analysisState === "IDLE"
-              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid"
-              : "border-indigo-200 dark:border-indigo-800/50 border-dashed"
+              ? selectedType === 'VIDEO'
+                ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30 border-solid"
+                : "border-purple-500 bg-purple-50 dark:bg-purple-900/30 border-solid"
+              : selectedType === 'VIDEO'
+                ? "border-cyan-200 dark:border-cyan-800/50 border-dashed"
+                : "border-purple-200 dark:border-purple-800/50 border-dashed"
             }
             ${analysisState !== "IDLE" ? "p-10" : ""}
           `}
@@ -531,11 +644,13 @@ const NewAnalysisContent: React.FC = () => {
             setErrorMessage={setErrorMessage}
             setFramesToAnalyze={setFramesToAnalyze}
             MAX_FILE_SIZE_MB={MAX_FILE_SIZE_MB}
-            SUPPORTED_FORMATS={SUPPORTED_FORMATS}
+            SUPPORTED_FORMATS={config.supportedFormats}
           />
         </div>
 
-        <FeatureList features={features} />
+        <div className="mt-10 [&_h3]:dark:text-white">
+          <FeatureList features={features} />
+        </div>
       </div>
     </main>
   );

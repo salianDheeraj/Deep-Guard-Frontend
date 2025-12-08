@@ -5,6 +5,7 @@ import { Video, AlertTriangle } from "lucide-react";
 import { useDashboardAnimations } from "@/hooks/useDashboardAnimations ";
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import styles from "@/styles/Dashboard.module.css";
 
 interface StatsData {
@@ -107,82 +108,88 @@ export default function DashboardStatCard() {
     <div>
       <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* TOTAL VIDEOS */}
-        <section
-          className={`${styles.statCard} stat-card opacity-0`}
-          aria-labelledby="total-videos-title"
-        >
-          <div className={styles.statHeader}>
-            <span className={`${styles.statIconWrapper} ${styles.iconWrapperBlue}`}>
-              <Video className="w-6 h-6" aria-hidden="true" />
-            </span>
-            <h3
-              id="total-videos-title"
-              className={styles.statTitle}
-            >
-              Total Videos
-            </h3>
-          </div>
-          <div className={styles.statValueRow}>
-            <span className={styles.statValue}>
-              {stats.totalVideos === -1 ? 'N/A' : stats.totalVideos}
-            </span>
-            <span className={styles.statLabel}>
-              Analyzed this month
-            </span>
-          </div>
-        </section>
+        <Link href="/dashboard/history" className="contents">
+          <section
+            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            aria-labelledby="total-videos-title"
+          >
+            <div className={styles.statHeader}>
+              <span className={`${styles.statIconWrapper} ${styles.iconWrapperBlue}`}>
+                <Video className="w-6 h-6" aria-hidden="true" />
+              </span>
+              <h3
+                id="total-videos-title"
+                className={styles.statTitle}
+              >
+                Total Videos
+              </h3>
+            </div>
+            <div className={styles.statValueRow}>
+              <span className={styles.statValue}>
+                {stats.totalVideos === -1 ? 'N/A' : stats.totalVideos}
+              </span>
+              <span className={styles.statLabel}>
+                Analyzed this month
+              </span>
+            </div>
+          </section>
+        </Link>
 
         {/* REAL VIDEOS */}
-        <section
-          className={`${styles.statCard} stat-card opacity-0`}
-          aria-labelledby="real-videos-title"
-        >
-          <div className={styles.statHeader}>
-            <span className={`${styles.statIconWrapper} ${styles.iconWrapperGreen}`}>
-              <Video className="w-6 h-6" aria-hidden="true" />
-            </span>
-            <h3
-              id="real-videos-title"
-              className={styles.statTitle}
-            >
-              Real Videos
-            </h3>
-          </div>
-          <div className={styles.statValueRow}>
-            <span className={styles.statValue}>
-              {stats.realVideos === -1 ? 'N/A' : stats.realVideos}
-            </span>
-            <span className={styles.statLabel}>
-              Authentic content
-            </span>
-          </div>
-        </section>
+        <Link href="/dashboard/history?filter=REAL" className="contents">
+          <section
+            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            aria-labelledby="real-videos-title"
+          >
+            <div className={styles.statHeader}>
+              <span className={`${styles.statIconWrapper} ${styles.iconWrapperGreen}`}>
+                <Video className="w-6 h-6" aria-hidden="true" />
+              </span>
+              <h3
+                id="real-videos-title"
+                className={styles.statTitle}
+              >
+                Real Videos
+              </h3>
+            </div>
+            <div className={styles.statValueRow}>
+              <span className={styles.statValue}>
+                {stats.realVideos === -1 ? 'N/A' : stats.realVideos}
+              </span>
+              <span className={styles.statLabel}>
+                Authentic content
+              </span>
+            </div>
+          </section>
+        </Link>
 
         {/* FAKE VIDEOS */}
-        <section
-          className={`${styles.statCard} stat-card opacity-0`}
-          aria-labelledby="fake-videos-title"
-        >
-          <div className={styles.statHeader}>
-            <span className={`${styles.statIconWrapper} ${styles.iconWrapperRed}`}>
-              <AlertTriangle className="w-6 h-6" aria-hidden="true" />
-            </span>
-            <h3
-              id="fake-videos-title"
-              className={styles.statTitle}
-            >
-              Fake Videos
-            </h3>
-          </div>
-          <div className={styles.statValueRow}>
-            <span className={styles.statValue}>
-              {stats.fakeVideos === -1 ? 'N/A' : stats.fakeVideos}
-            </span>
-            <span className={styles.statLabel}>
-              Detected deepfakes
-            </span>
-          </div>
-        </section>
+        <Link href="/dashboard/history?filter=FAKE" className="contents">
+          <section
+            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            aria-labelledby="fake-videos-title"
+          >
+            <div className={styles.statHeader}>
+              <span className={`${styles.statIconWrapper} ${styles.iconWrapperRed}`}>
+                <AlertTriangle className="w-6 h-6" aria-hidden="true" />
+              </span>
+              <h3
+                id="fake-videos-title"
+                className={styles.statTitle}
+              >
+                Fake Videos
+              </h3>
+            </div>
+            <div className={styles.statValueRow}>
+              <span className={styles.statValue}>
+                {stats.fakeVideos === -1 ? 'N/A' : stats.fakeVideos}
+              </span>
+              <span className={styles.statLabel}>
+                Detected deepfakes
+              </span>
+            </div>
+          </section>
+        </Link>
       </div>
     </div>
   );

@@ -7,8 +7,6 @@ import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export default function ThemeToggleButton({ className }: { className?: string }) {
-  // Call hooks in the same order every render: useTheme must be called
-  // unconditionally to avoid Rules of Hooks violations.
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
 
@@ -17,20 +15,15 @@ export default function ThemeToggleButton({ className }: { className?: string })
     setMounted(true);
   }, []);
 
-  // Avoid rendering visual bits until mounted to prevent SSR hydration mismatch
   if (!mounted) return null;
 
   return (
-    <div
-      className={twMerge(
-        "flex items-center justify-center",
-        className
-      )}
-    >
+    <div className={twMerge("flex items-center justify-center", className)}>
       <button
         onClick={toggleTheme}
         className={clsx(
-          "relative flex h-12 w-24 cursor-pointer items-center rounded-full p-1 shadow-inner transition-colors duration-500 overflow-hidden focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:focus:ring-teal-400/20",
+          // RESIZED: Changed from h-12 w-24 to h-8 w-16
+          "relative flex h-8 w-16 cursor-pointer items-center rounded-full p-1 shadow-inner transition-colors duration-500 overflow-hidden focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:focus:ring-teal-400/20",
           isDark ? "bg-slate-800" : "bg-cyan-400"
         )}
         aria-label="Toggle Theme"
@@ -41,61 +34,63 @@ export default function ThemeToggleButton({ className }: { className?: string })
         <div className="absolute inset-0 z-0 pointer-events-none">
           {/* Star 1 */}
           <motion.div
-            className="absolute top-2 right-8 text-white"
+            className="absolute top-1.5 right-6 text-white"
             initial={false}
             animate={{
               opacity: isDark ? 1 : 0,
-              y: isDark ? 0 : 10,
-              scale: isDark ? 1 : 0
+              y: isDark ? 0 : 5,
+              scale: isDark ? 1 : 0,
             }}
             transition={{ duration: 0.4 }}
           >
-            <StarIcon className="h-2 w-2" />
+            <StarIcon className="h-1.5 w-1.5" />
           </motion.div>
           {/* Star 2 */}
           <motion.div
-            className="absolute top-5 right-4 text-white"
+            className="absolute top-4 right-3 text-white"
             initial={false}
             animate={{
               opacity: isDark ? 1 : 0,
-              y: isDark ? 0 : 10,
-              scale: isDark ? 0.8 : 0
-            }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <StarIcon className="h-3 w-3" />
-          </motion.div>
-          {/* Star 3 */}
-          <motion.div
-            className="absolute bottom-3 right-10 text-white"
-            initial={false}
-            animate={{
-              opacity: isDark ? 1 : 0,
-              y: isDark ? 0 : 10,
-              scale: isDark ? 0.6 : 0
+              y: isDark ? 0 : 5,
+              scale: isDark ? 0.8 : 0,
             }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <StarIcon className="h-2 w-2" />
+          </motion.div>
+          {/* Star 3 */}
+          <motion.div
+            className="absolute bottom-1.5 right-8 text-white"
+            initial={false}
+            animate={{
+              opacity: isDark ? 1 : 0,
+              y: isDark ? 0 : 5,
+              scale: isDark ? 0.6 : 0,
+            }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <StarIcon className="h-1.5 w-1.5" />
           </motion.div>
         </div>
 
         {/* Clouds (Visible only in Light Mode) */}
         <motion.div
-          className="absolute bottom-[-5px] left-2 z-0 text-white opacity-80"
+          className="absolute bottom-[-2px] left-1 z-0 text-white opacity-80"
           initial={false}
           animate={{
-            y: isDark ? 20 : 0,
-            opacity: isDark ? 0 : 0.9
+            y: isDark ? 10 : 0,
+            opacity: isDark ? 0 : 0.9,
           }}
           transition={{ duration: 0.4 }}
         >
-          <CloudIcon className="h-8 w-14" />
+          {/* RESIZED: Made cloud smaller to fit h-8 container */}
+          <CloudIcon className="h-5 w-9" />
         </motion.div>
 
         {/* --- THE TOGGLE HANDLE (SUN / MOON) --- */}
         <motion.div
-          className="relative z-10 h-10 w-10 rounded-full shadow-md"
+          // RESIZED: Changed from h-10 w-10 to h-6 w-6
+          className="relative z-10 h-6 w-6 rounded-full shadow-md"
           layout
           transition={{
             type: "spring",
@@ -103,22 +98,23 @@ export default function ThemeToggleButton({ className }: { className?: string })
             damping: 30,
           }}
           animate={{
-            x: isDark ? 48 : 0, // Slide distance
-            backgroundColor: isDark ? "#cbd5e1" : "#facc15" // Slate-300 (Moon) vs Yellow-400 (Sun)
+            // RECALCULATED: Width (64px) - Padding (4px*2) - Handle (24px) = 32px travel
+            x: isDark ? 32 : 0, 
+            backgroundColor: isDark ? "#cbd5e1" : "#facc15",
           }}
         >
-          {/* Moon Craters (Only visible in Dark Mode) */}
+          {/* Moon Craters (Scaled down) */}
           <motion.div
-            className="absolute top-2 right-3 h-2 w-2 rounded-full bg-slate-400"
+            className="absolute top-1 right-1.5 h-1.5 w-1.5 rounded-full bg-slate-400"
             animate={{ opacity: isDark ? 1 : 0, scale: isDark ? 1 : 0 }}
           />
           <motion.div
-            className="absolute bottom-3 right-4 h-1.5 w-1.5 rounded-full bg-slate-400"
+            className="absolute bottom-1.5 right-2 h-1 w-1 rounded-full bg-slate-400"
             animate={{ opacity: isDark ? 1 : 0, scale: isDark ? 1 : 0 }}
             transition={{ delay: 0.1 }}
           />
           <motion.div
-            className="absolute bottom-2 left-3 h-1 w-1 rounded-full bg-slate-400"
+            className="absolute bottom-1 left-1.5 h-0.5 w-0.5 rounded-full bg-slate-400"
             animate={{ opacity: isDark ? 1 : 0, scale: isDark ? 1 : 0 }}
             transition={{ delay: 0.2 }}
           />
