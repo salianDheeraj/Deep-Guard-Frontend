@@ -30,7 +30,7 @@ export default function ThemeToggleButton({ className }: { className?: string })
       <button
         onClick={toggleTheme}
         className={clsx(
-          "relative flex h-12 w-24 cursor-pointer items-center rounded-full p-1 shadow-inner transition-colors duration-500 overflow-hidden focus:outline-none focus:ring-4 focus:ring-blue-400/20",
+          "relative flex h-12 w-24 cursor-pointer items-center rounded-full p-1 shadow-inner transition-colors duration-500 overflow-hidden focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:focus:ring-teal-400/20",
           isDark ? "bg-slate-800" : "bg-cyan-400"
         )}
         aria-label="Toggle Theme"

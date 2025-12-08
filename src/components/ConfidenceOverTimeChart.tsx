@@ -4,6 +4,8 @@ import React, { useMemo, useRef } from 'react';
 import { useChartAnimation } from '@/hooks/useChartAnimation ';
 import { Activity, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
+import styles from '@/styles/Analysis.module.css';
+
 interface ConfidenceOverTimeChartProps {
   frameWiseConfidences: number[];
 }
@@ -35,7 +37,7 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
     const min = Math.min(...frameWiseConfidences);
     const stdDev = Math.sqrt(
       frameWiseConfidences.reduce((sum, c) => sum + Math.pow(c - avg, 2), 0) /
-        frameWiseConfidences.length
+      frameWiseConfidences.length
     );
 
     return {
@@ -70,23 +72,23 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
   useChartAnimation(chartContainerRef, [chartBars.length]);
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-      <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+    <div className={styles.chartCard}>
+      <h3 className={styles.chartTitle}>
         Confidence Over Time (Frame by Frame)
       </h3>
 
       {!frameWiseConfidences || frameWiseConfidences.length === 0 ? (
-        <div className="text-center text-gray-500 dark:text-gray-400 py-16">
+        <div className={styles.noData}>
           <p>No confidence data available</p>
         </div>
       ) : (
         <>
           {/* Chart Section */}
-          <div className="bg-gray-50 dark:bg-slate-900/50 p-4 rounded-xl mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
+          <div className={styles.chartArea}>
             <div className="flex gap-2">
 
               {/* Y-axis */}
-              <div className="flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 dark:text-gray-400 font-semibold">
+              <div className={styles.chartYAxis}>
                 {[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map((v) => (
                   <span key={v}>{v}</span>
                 ))}
@@ -96,15 +98,15 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
               <div className="flex-1 relative">
                 <div
                   ref={chartContainerRef}
-                  className="flex items-end gap-[1px] h-80 bg-white dark:bg-slate-800 rounded-t-md border border-gray-300 dark:border-gray-600 overflow-hidden relative transition-colors"
+                  className={styles.barsContainer}
                 >
 
                   {/* GRID LINES */}
-                  <div className="absolute inset-0 pointer-events-none">
+                  <div className={styles.gridLines}>
                     {[10, 20, 30, 40, 50, 60, 70, 80, 90].map((v) => (
                       <div
                         key={v}
-                        className="absolute w-full border-t border-gray-300 dark:border-gray-600 border-dashed"
+                        className={styles.gridLine}
                         style={{ bottom: `${v}%` }}
                       ></div>
                     ))}
@@ -125,11 +127,10 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
                     return (
                       <div
                         key={idx}
-                        className={`flex-1 rounded-t-sm z-10 ${
-                          bar.value >= 0.5
-                            ? 'bg-gradient-to-t from-rose-500 to-rose-300 hover:from-rose-600 hover:to-rose-400'
-                            : 'bg-gradient-to-t from-emerald-500 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400'
-                        } transition-transform duration-200 cursor-pointer`}
+                        className={`${styles.chartBar} ${bar.value >= 0.5
+                            ? styles.barFake
+                            : styles.barReal
+                          }`}
                         style={{
                           height: `${barHeight}%`,
                           minHeight: '3px',
@@ -143,10 +144,10 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
                 </div>
 
                 {/* X-axis line */}
-                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-400 dark:bg-gray-600" />
+                <div className={styles.xAxisLine} />
 
                 {/* X-axis labels */}
-                <div className="absolute -bottom-5 left-0 right-0 flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <div className={styles.xAxisLabels}>
                   <span>0</span>
                   <span>{Math.floor(stats.totalFrames / 2)}</span>
                   <span>{stats.totalFrames}</span>
@@ -155,29 +156,29 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
             </div>
 
             {/* Legend */}
-            <div className="flex justify-between items-center mt-10 text-sm text-gray-700 dark:text-gray-300 font-semibold">
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gradient-to-t from-emerald-500 to-emerald-300 rounded"></div>
+            <div className={styles.legend}>
+              <span className={styles.legendItem}>
+                <div className={styles.legendColorReal}></div>
                 (Real)
               </span>
               <span>{stats.totalFrames} frames analyzed</span>
-              <span className="flex items-center gap-2">
+              <span className={styles.legendItem}>
                 (Fake)
-                <div className="w-4 h-4 bg-gradient-to-t from-rose-500 to-rose-300 rounded"></div>
+                <div className={styles.legendColorFake}></div>
               </span>
             </div>
           </div>
 
           {/* Real vs Fake Summary */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-lg border border-rose-200 dark:border-rose-800 shadow-sm transition-colors">
-              <p className="text-xs text-gray-600 dark:text-rose-200 uppercase tracking-wide font-semibold">
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryCardFake}>
+              <p className={styles.summaryLabelFake}>
                 Fake Frames
               </p>
-              <p className="text-4xl font-bold text-rose-600 dark:text-rose-400">
+              <p className={styles.summaryValueFake}>
                 {stats.fakeFrames}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <p className={styles.summarySubtext}>
                 {stats.totalFrames > 0
                   ? Math.round((stats.fakeFrames / stats.totalFrames) * 100)
                   : 0}
@@ -185,14 +186,14 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
               </p>
             </div>
 
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 shadow-sm transition-colors">
-              <p className="text-xs text-gray-600 dark:text-emerald-200 uppercase tracking-wide font-semibold">
+            <div className={styles.summaryCardReal}>
+              <p className={styles.summaryLabelReal}>
                 Real Frames
               </p>
-              <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+              <p className={styles.summaryValueReal}>
                 {stats.realFrames}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <p className={styles.summarySubtext}>
                 {stats.totalFrames > 0
                   ? Math.round((stats.realFrames / stats.totalFrames) * 100)
                   : 0}
@@ -202,59 +203,59 @@ const ConfidenceOverTimeChart: React.FC<ConfidenceOverTimeChartProps> = ({
           </div>
 
           {/* Metric Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-sm p-4 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+          <div className={styles.metricsGrid}>
+            <div className={`${styles.metricCard} ${styles.metricCardBlue}`}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricTitle}>
                   Volatility
                 </span>
-                <Activity className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                <Activity className={styles.metricIconBlue} />
               </div>
-              <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+              <p className={styles.metricValueBlue}>
                 {(stats.stdDeviation * 100).toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Confidence variance</p>
+              <p className={styles.metricSubtext}>Confidence variance</p>
             </div>
 
-            <div className="bg-violet-50 dark:bg-violet-900/20 rounded-lg shadow-sm p-4 border border-violet-200 dark:border-violet-800 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            <div className={`${styles.metricCard} ${styles.metricCardViolet}`}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricTitle}>
                   Fake/Real Ratio
                 </span>
-                <BarChart3 className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+                <BarChart3 className={styles.metricIconViolet} />
               </div>
-              <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">
+              <p className={styles.metricValueViolet}>
                 {stats.fakeFrames}/{stats.realFrames}
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              <p className={styles.metricSubtext}>
                 Frame classification split
               </p>
             </div>
 
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg shadow-sm p-4 border border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            <div className={`${styles.metricCard} ${styles.metricCardEmerald}`}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricTitle}>
                   Lowest Confidence
                 </span>
-                <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <TrendingDown className={styles.metricIconEmerald} />
               </div>
-              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+              <p className={styles.metricValueEmerald}>
                 {(stats.minConfidence * 100).toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Most authentic frame</p>
+              <p className={styles.metricSubtext}>Most authentic frame</p>
             </div>
 
-            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-lg shadow-sm p-4 border border-rose-200 dark:border-rose-800 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            <div className={`${styles.metricCard} ${styles.metricCardRose}`}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricTitle}>
                   Peak Confidence
                 </span>
-                <TrendingUp className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+                <TrendingUp className={styles.metricIconRose} />
               </div>
-              <p className="text-2xl font-bold text-rose-700 dark:text-rose-400">
+              <p className={styles.metricValueRose}>
                 {(stats.maxConfidence * 100).toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              <p className={styles.metricSubtext}>
                 Highest fake probability
               </p>
             </div>

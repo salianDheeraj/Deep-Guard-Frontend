@@ -8,6 +8,7 @@ import { debug } from '@/lib/logger';
 import ForgotPasswordModal from "./ForgetPasswordModal";
 import ThemeToggleButton from "@/components/ThemeToggleButton";
 import { apiFetch } from "@/lib/api";
+import styles from "@/styles/Login.module.css";
 
 interface FormData {
   name?: string;
@@ -46,23 +47,23 @@ const AuthInput: FC<AuthInputProps> = ({
   };
 
   return (
-    <div className="mb-4 login-form-element">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>
-      <div className="relative">
+    <div className={`${styles.inputGroup} login-form-element`}>
+      <label className={styles.label}>{label}</label>
+      <div className={styles.inputWrapper}>
         <input
           type={actualType}
           name={name}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-blue-500 focus:border-blue-500 pr-20 transition duration-150 ease-in-out placeholder-gray-400 dark:placeholder-gray-500 text-gray-800 dark:text-white bg-white dark:bg-gray-700 font-semibold"
+          className={styles.inputField}
           required
         />
         {isPassword && (
           <button
             type="button"
             onClick={toggleVisibility}
-            className="absolute inset-y-0 right-3 flex items-center p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 z-10"
+            className={styles.passwordToggle}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -297,26 +298,26 @@ const Login: FC = () => {
 
   return (
     // 2. Added relative positioning for button and dark mode background
-    <div ref={scope} className="relative min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-4 font-sans transition-colors duration-300">
+    <div ref={scope} className={styles.container}>
 
       {/* 3. Added Theme Toggle Button */}
-      <div className="absolute top-5 right-5 z-50">
+      <div className={styles.themeToggle}>
         <ThemeToggleButton />
       </div>
 
-      <header className="flex flex-col items-center justify-center text-center mb-10 login-title-group">
-        <div className="login-logo flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-950 shadow-md mb-5">
-          <Shield className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+      <header className={`${styles.header} login-title-group`}>
+        <div className={`${styles.logo} login-logo`}>
+          <Shield className={styles.logoIcon} />
         </div>
 
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">Deepfake Detector</h1>
+        <h1 className={styles.title}>Deepfake Detector</h1>
 
-        <p className="text-lg text-gray-500 dark:text-gray-400 max-w-md">
+        <p className={styles.subtitle}>
           {isSigningIn ? "Sign in to detect deepfakes and review past analyses" : "Create your account to start detecting deepfakes"}
         </p>
       </header>
 
-      <div className="w-full max-w-sm bg-white dark:bg-gray-800 p-8 shadow-2xl rounded-3xl border border-gray-100 dark:border-gray-700 login-card transition-colors duration-300">
+      <div className={`${styles.card} login-card`}>
         <form onSubmit={handleSubmit}>
           {!isSigningIn && (
             <AuthInput
@@ -362,12 +363,12 @@ const Login: FC = () => {
                 InputIcon={Lock}
               />
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+              <div className={styles.otpContainer}>
                 <button
                   type="button"
                   onClick={handleSendOtp}
                   disabled={isSendingOtp || otpTimer > 0}
-                  className="px-4 py-2 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className={styles.otpButton}
                 >
                   {isSendingOtp
                     ? "Sending..."
@@ -376,12 +377,12 @@ const Login: FC = () => {
                       : "Send OTP"}
                 </button>
                 {otpTimer > 0 && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Resend available in {otpTimer}s</span>
+                  <span className={styles.otpTimer}>Resend available in {otpTimer}s</span>
                 )}
               </div>
 
               {otpStatus && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 text-sm">
+                <div className={styles.otpStatus}>
                   {otpStatus}
                 </div>
               )}
@@ -401,17 +402,17 @@ const Login: FC = () => {
           )}
 
           {isSigningIn && (
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center">
+            <div className={styles.authOptions}>
+              <div className={styles.rememberMeWrapper}>
                 <input
                   id="remember-me"
                   name="rememberMe"
                   type="checkbox"
                   checked={formData.rememberMe || false}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer dark:bg-gray-700 dark:border-gray-600"
+                  className={styles.checkbox}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                <label htmlFor="remember-me" className={styles.checkboxLabel}>
                   Remember me
                 </label>
               </div>
@@ -419,7 +420,7 @@ const Login: FC = () => {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition duration-150"
+                className={styles.forgotPassword}
               >
                 Forgot Password?
               </button>
@@ -432,22 +433,22 @@ const Login: FC = () => {
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">{error}</div>
+            <div className={styles.error}>{error}</div>
           )}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="login-button w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-out transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`${styles.submitButton} login-button`}
           >
-            <Shield className="h-5 w-5 text-white opacity-90" />
+            <Shield className={styles.submitIcon} />
             {isLoading ? "Processing..." : isSigningIn ? "Sign In" : "Sign Up"}
           </button>
         </form>
 
         {/* Google authentication removed */}
 
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className={styles.footerText}>
           {isSigningIn ? "Don't have an account?" : "Already have an account?"}
           <a
             href="#"
@@ -455,7 +456,7 @@ const Login: FC = () => {
               e.preventDefault();
               toggleAuthMode();
             }}
-            className="ml-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition duration-150"
+            className={styles.footerLink}
           >
             {isSigningIn ? "Sign up" : "Sign In"}
           </a>

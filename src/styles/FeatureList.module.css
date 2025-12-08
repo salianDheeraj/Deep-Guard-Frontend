@@ -1,0 +1,27 @@
+.container {
+    @apply flex justify-between mt-12;
+}
+
+.featureItem {
+    @apply flex flex-col items-center w-[30%] p-4;
+}
+
+.featureItemMiddle {
+    @apply border-l border-r border-gray-100 dark:border-gray-700;
+}
+
+.icon {
+    @apply w-6 h-6 text-indigo-500 mb-3;
+}
+
+:global(.dark) .icon {
+    @apply text-teal-400;
+}
+
+.title {
+    @apply font-semibold text-gray-800 dark:text-white text-center mb-1;
+}
+
+.desc {
+    @apply text-sm text-gray-500 dark:text-gray-400 text-center;
+}

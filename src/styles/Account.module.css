@@ -1,0 +1,144 @@
+/* Layout */
+.container {
+    composes: dashboardLayout from "./Global.module.css";
+}
+
+.header {
+    @apply text-3xl font-bold text-gray-900;
+}
+
+:global(.dark) .header {
+    @apply text-white;
+}
+
+/* Cards */
+.card {
+    @apply bg-white rounded-lg shadow p-6 border border-gray-200;
+}
+
+:global(.dark) .card {
+    @apply bg-slate-800 border-gray-700;
+}
+
+/* Sections */
+.sectionHeader {
+    @apply text-lg font-semibold mb-4 text-gray-900;
+}
+
+:global(.dark) .sectionHeader {
+    @apply text-white;
+}
+
+.sectionSubHeader {
+    @apply font-semibold text-gray-900;
+}
+
+:global(.dark) .sectionSubHeader {
+    @apply text-white;
+}
+
+.sectionText {
+    @apply text-sm text-gray-500 my-2;
+}
+
+:global(.dark) .sectionText {
+    @apply text-gray-400;
+}
+
+.dangerHeader {
+    @apply font-semibold text-red-600;
+}
+
+:global(.dark) .dangerHeader {
+    @apply text-red-500;
+}
+
+/* Form Elements */
+.formGroup {
+    @apply space-y-4;
+}
+
+.inputGroup {
+    @apply mb-4;
+}
+
+.label {
+    composes: label from "./Global.module.css";
+}
+
+.input {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900 outline-none transition-colors focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-500 focus:border-transparent;
+}
+
+:global(.dark) .input {
+    @apply border-gray-600 bg-slate-900 text-white focus:ring-teal-500;
+}
+
+.disabledInput {
+    @apply block w-full px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 rounded cursor-not-allowed;
+}
+
+:global(.dark) .disabledInput {
+    @apply border-gray-600 bg-slate-700 text-gray-400;
+}
+
+/* Profile Picture */
+.profilePicWrapper {
+    @apply w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600 overflow-hidden;
+}
+
+:global(.dark) .profilePicWrapper {
+    @apply bg-slate-700 text-gray-200;
+    /* Use gray text for placeholder initials in dark mode */
+}
+
+/* Buttons */
+.buttonGroup {
+    @apply flex gap-3;
+}
+
+.buttonPrimary {
+    @apply px-4 py-2 bg-blue-600 dark:bg-teal-600 text-white rounded hover:bg-blue-700 dark:hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+:global(.dark) .buttonPrimary {
+    @apply bg-teal-600 hover:bg-teal-700;
+}
+
+.buttonDanger {
+    @apply px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors w-full text-left sm:w-auto block;
+}
+
+:global(.dark) .buttonDanger {
+    @apply bg-red-600 hover:bg-red-700;
+}
+
+.buttonOutlineDanger {
+    @apply px-4 py-2 border border-red-200 text-red-600 rounded hover:bg-red-50 transition-colors;
+}
+
+:global(.dark) .buttonOutlineDanger {
+    @apply border-red-900/30 text-red-400 hover:bg-red-900/20;
+}
+
+.buttonOutlineWarning {
+    @apply px-4 py-2 border border-yellow-200 text-yellow-700 rounded hover:bg-yellow-50 transition-colors w-full text-left sm:w-auto block mb-3;
+}
+
+:global(.dark) .buttonOutlineWarning {
+    @apply border-yellow-900/30 text-yellow-500 hover:bg-yellow-900/20;
+}
+
+/* Error Box */
+.errorBox {
+    composes: errorAlert from "./Global.module.css";
+}
+
+/* Loading */
+.loadingContainer {
+    @apply flex-1 p-6 flex items-center justify-center h-full;
+}
+
+:global(.dark) .loadingContainer {
+    @apply bg-slate-950 text-gray-300;
+}

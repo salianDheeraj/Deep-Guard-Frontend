@@ -1,0 +1,442 @@
+/* AnalysisPage Layout */
+.pageContainer {
+    @apply min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300;
+}
+
+:global(.dark) .pageContainer {
+    @apply bg-slate-950;
+}
+
+.contentWrapper {
+    @apply max-w-7xl mx-auto space-y-6;
+}
+
+.loaderContainer {
+    @apply flex items-center justify-center min-h-screen bg-gray-50 transition-colors;
+}
+
+:global(.dark) .loaderContainer {
+    @apply bg-slate-950;
+}
+
+.spinner {
+    @apply w-12 h-12 animate-spin text-blue-600 dark:text-blue-400;
+}
+
+.errorContainer {
+    @apply fixed inset-0 flex items-center justify-center bg-gray-100 dark:bg-slate-900 p-4 transition-colors;
+}
+
+.errorCard {
+    @apply bg-white p-8 rounded-lg shadow max-w-md w-full text-center;
+}
+
+:global(.dark) .errorCard {
+    @apply bg-slate-800;
+}
+
+.errorIcon {
+    @apply w-12 h-12 text-red-600 dark:text-red-500 mx-auto mb-4;
+}
+
+.errorTitle {
+    @apply text-2xl font-bold text-red-600 dark:text-red-500 mb-2;
+}
+
+.errorMessage {
+    @apply text-gray-600 dark:text-gray-300 mb-6;
+}
+
+.retryButton {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors;
+}
+
+/* AnalysisHeader */
+.headerContainer {
+    @apply flex justify-between items-center mb-6;
+}
+
+.headerTitle {
+    @apply text-2xl font-semibold text-gray-800;
+}
+
+:global(.dark) .headerTitle {
+    @apply text-white;
+}
+
+.headerMeta {
+    @apply text-sm text-gray-500 mt-1;
+}
+
+:global(.dark) .headerMeta {
+    @apply text-gray-400;
+}
+
+.deleteButton {
+    @apply flex items-center space-x-2 px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium transition-colors hover:bg-red-50;
+}
+
+:global(.dark) .deleteButton {
+    @apply hover:bg-red-900/20;
+}
+
+.deleteButtonDisabled {
+    @apply bg-red-50 opacity-50 cursor-not-allowed;
+}
+
+:global(.dark) .deleteButtonDisabled {
+    @apply bg-red-900/30;
+}
+
+/* DeepfakeAlertCard */
+.alertCard {
+    @apply rounded-lg shadow-lg p-8 text-white bg-slate-800 border border-slate-700;
+}
+
+.fakeGradient {
+    @apply bg-gradient-to-r from-red-500 to-red-600;
+}
+
+.realGradient {
+    @apply bg-gradient-to-r from-green-500 to-green-600;
+}
+
+.alertHeader {
+    @apply flex items-start justify-between;
+}
+
+.alertStatus {
+    @apply flex items-center gap-3 mb-2;
+}
+
+.statusIcon {
+    @apply w-8 h-8;
+}
+
+.statusText {
+    @apply text-4xl font-bold;
+}
+
+.alertMessage {
+    @apply text-lg font-semibold mb-1;
+}
+
+.alertSubMessage {
+    @apply text-sm opacity-90;
+}
+
+.confidenceSection {
+    @apply text-right;
+}
+
+.confidenceLabel {
+    @apply text-sm font-semibold opacity-80 mb-1;
+}
+
+.confidenceValue {
+    @apply text-6xl font-bold;
+}
+
+.statsRow {
+    @apply mt-6 pt-6 border-t border-white/20 flex gap-6;
+}
+
+.statItemLabel {
+    @apply text-sm opacity-80;
+}
+
+.statItemValue {
+    @apply text-2xl font-bold;
+}
+
+/* ConfidenceOverTimeChart */
+.chartCard {
+    @apply bg-white rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200 transition-colors duration-300;
+}
+
+:global(.dark) .chartCard {
+    background-color: #1e293b !important;
+    border-color: #374151 !important;
+}
+
+.chartTitle {
+    @apply text-2xl font-bold text-gray-800 mb-6;
+}
+
+:global(.dark) .chartTitle {
+    color: #ffffff !important;
+}
+
+.noData {
+    @apply text-center text-gray-500 dark:text-gray-400 py-16;
+}
+
+.chartArea {
+    @apply bg-gray-50 p-4 rounded-xl mb-6 border border-gray-200 transition-colors;
+}
+
+:global(.dark) .chartArea {
+    @apply bg-slate-900/50 border-gray-700;
+}
+
+.chartYAxis {
+    @apply flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 font-semibold;
+}
+
+:global(.dark) .chartYAxis {
+    @apply text-gray-400;
+}
+
+.barsContainer {
+    @apply flex items-end gap-[1px] h-80 bg-white rounded-t-md border border-gray-300 overflow-hidden relative transition-colors;
+}
+
+:global(.dark) .barsContainer {
+    @apply bg-slate-800 border-gray-600;
+}
+
+.gridLines {
+    @apply absolute inset-0 pointer-events-none;
+}
+
+.gridLine {
+    @apply absolute w-full border-t border-gray-300 border-dashed;
+}
+
+:global(.dark) .gridLine {
+    @apply border-gray-600;
+}
+
+.chartBar {
+    @apply flex-1 rounded-t-sm z-10 transition-transform duration-200 cursor-pointer;
+}
+
+.barFake {
+    @apply bg-gradient-to-t from-rose-500 to-rose-300 hover:from-rose-600 hover:to-rose-400;
+}
+
+.barReal {
+    @apply bg-gradient-to-t from-emerald-500 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400;
+}
+
+.xAxisLine {
+    @apply absolute bottom-0 left-0 right-0 h-[1px] bg-gray-400;
+}
+
+:global(.dark) .xAxisLine {
+    @apply bg-gray-600;
+}
+
+.xAxisLabels {
+    @apply absolute -bottom-5 left-0 right-0 flex justify-between text-xs text-gray-500 font-medium;
+}
+
+:global(.dark) .xAxisLabels {
+    @apply text-gray-400;
+}
+
+.legend {
+    @apply flex justify-between items-center mt-10 text-sm text-gray-700 font-semibold;
+}
+
+:global(.dark) .legend {
+    @apply text-gray-300;
+}
+
+.legendItem {
+    @apply flex items-center gap-2;
+}
+
+.legendColorReal {
+    @apply w-4 h-4 bg-gradient-to-t from-emerald-500 to-emerald-300 rounded;
+}
+
+.legendColorFake {
+    @apply w-4 h-4 bg-gradient-to-t from-rose-500 to-rose-300 rounded;
+}
+
+/* Summary Grid */
+.summaryGrid {
+    @apply grid grid-cols-2 gap-4 mb-6;
+}
+
+.summaryCardFake {
+    @apply bg-rose-50 p-4 rounded-lg border border-rose-200 shadow-sm transition-colors;
+}
+
+:global(.dark) .summaryCardFake {
+    @apply bg-rose-900/20 border-rose-800;
+}
+
+.summaryCardReal {
+    @apply bg-emerald-50 p-4 rounded-lg border border-emerald-200 shadow-sm transition-colors;
+}
+
+:global(.dark) .summaryCardReal {
+    @apply bg-emerald-900/20 border-emerald-800;
+}
+
+.summaryLabelFake {
+    @apply text-xs text-gray-600 uppercase tracking-wide font-semibold;
+}
+
+:global(.dark) .summaryLabelFake {
+    @apply text-rose-200;
+}
+
+.summaryLabelReal {
+    @apply text-xs text-gray-600 uppercase tracking-wide font-semibold;
+}
+
+:global(.dark) .summaryLabelReal {
+    @apply text-emerald-200;
+}
+
+.summaryValueFake {
+    @apply text-4xl font-bold text-rose-600;
+}
+
+:global(.dark) .summaryValueFake {
+    @apply text-rose-400;
+}
+
+.summaryValueReal {
+    @apply text-4xl font-bold text-emerald-600;
+}
+
+:global(.dark) .summaryValueReal {
+    @apply text-emerald-400;
+}
+
+.summarySubtext {
+    @apply text-sm text-gray-600 mt-2;
+}
+
+:global(.dark) .summarySubtext {
+    @apply text-gray-400;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+    @apply grid grid-cols-2 gap-4;
+}
+
+.metricCard {
+    @apply rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300;
+}
+
+.metricCardBlue {
+    @apply bg-blue-50 border border-blue-200;
+}
+
+:global(.dark) .metricCardBlue {
+    @apply bg-blue-900/20 border-blue-800;
+}
+
+.metricCardViolet {
+    @apply bg-violet-50 border border-violet-200;
+}
+
+:global(.dark) .metricCardViolet {
+    @apply bg-violet-900/20 border-violet-800;
+}
+
+.metricCardEmerald {
+    @apply bg-emerald-50 border border-emerald-200;
+}
+
+:global(.dark) .metricCardEmerald {
+    @apply bg-emerald-900/20 border-emerald-800;
+}
+
+.metricCardRose {
+    @apply bg-rose-50 border border-rose-200;
+}
+
+:global(.dark) .metricCardRose {
+    @apply bg-rose-900/20 border-rose-800;
+}
+
+.metricHeader {
+    @apply flex items-center justify-between mb-2;
+}
+
+.metricTitle {
+    @apply text-sm font-medium text-gray-800;
+}
+
+:global(.dark) .metricTitle {
+    @apply text-gray-200;
+}
+
+.metricIconBlue {
+    @apply w-4 h-4 text-blue-500;
+}
+
+:global(.dark) .metricIconBlue {
+    @apply text-blue-400;
+}
+
+.metricIconViolet {
+    @apply w-4 h-4 text-violet-500;
+}
+
+:global(.dark) .metricIconViolet {
+    @apply text-violet-400;
+}
+
+.metricIconEmerald {
+    @apply w-4 h-4 text-emerald-600;
+}
+
+:global(.dark) .metricIconEmerald {
+    @apply text-emerald-400;
+}
+
+.metricIconRose {
+    @apply w-4 h-4 text-rose-500;
+}
+
+:global(.dark) .metricIconRose {
+    @apply text-rose-400;
+}
+
+.metricValueBlue {
+    @apply text-2xl font-bold text-blue-700;
+}
+
+:global(.dark) .metricValueBlue {
+    @apply text-blue-400;
+}
+
+.metricValueViolet {
+    @apply text-2xl font-bold text-violet-700;
+}
+
+:global(.dark) .metricValueViolet {
+    @apply text-violet-400;
+}
+
+.metricValueEmerald {
+    @apply text-2xl font-bold text-emerald-700;
+}
+
+:global(.dark) .metricValueEmerald {
+    @apply text-emerald-400;
+}
+
+.metricValueRose {
+    @apply text-2xl font-bold text-rose-700;
+}
+
+:global(.dark) .metricValueRose {
+    @apply text-rose-400;
+}
+
+.metricSubtext {
+    @apply text-xs text-gray-600 mt-1;
+}
+
+:global(.dark) .metricSubtext {
+    @apply text-gray-400;
+}

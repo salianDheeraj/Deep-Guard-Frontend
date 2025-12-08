@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FileText, Search, Loader2, AlertCircle, Trash2, X, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useHistoryAnimation } from '@/hooks/useHistoryAnimation';
+import styles from '@/styles/AnalysisHistory.module.css';
 
 interface Analysis {
   id: string;
@@ -26,41 +27,41 @@ interface DeleteModalProps {
   isDeleting: boolean;
 }
 
-const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({ 
-  isOpen, onClose, onConfirm, count, isBulk, isDeleting 
+const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
+  isOpen, onClose, onConfirm, count, isBulk, isDeleting
 }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 dark:border-gray-700 transform transition-all scale-100">
-        
-        <div className="flex items-center gap-4 mb-5">
-          <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full flex-shrink-0">
-            <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+
+        <div className={styles.modalHeader}>
+          <div className={styles.modalIconWrapper}>
+            <AlertTriangle className={styles.modalIcon} />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h3 className={styles.modalTitle}>
             Confirm Deletion
           </h3>
         </div>
 
-        <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-          Are you sure you want to permanently delete {isBulk ? <span className="font-bold text-gray-900 dark:text-white">{count} analyses</span> : 'this analysis'}? 
-          <br /><span className="text-sm text-red-500 mt-2 block">This action cannot be undone.</span>
+        <p className={styles.modalBody}>
+          Are you sure you want to permanently delete {isBulk ? <span className="font-bold text-gray-900 dark:text-white">{count} analyses</span> : 'this analysis'}?
+          <br /><span className={styles.modalWarning}>This action cannot be undone.</span>
         </p>
 
-        <div className="flex gap-3 justify-end">
-          <button 
+        <div className={styles.modalFooter}>
+          <button
             onClick={onClose}
             disabled={isDeleting}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+            className={styles.cancelButton}
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            className={styles.confirmButton}
           >
             {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             {isDeleting ? 'Deleting...' : 'Delete'}
@@ -86,9 +87,9 @@ const AnalysisHistory: React.FC = () => {
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
   // Modal State
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; type: 'single' | 'bulk'; id?: string }>({ 
-    isOpen: false, 
-    type: 'single' 
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; type: 'single' | 'bulk'; id?: string }>({
+    isOpen: false,
+    type: 'single'
   });
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -117,7 +118,13 @@ const AnalysisHistory: React.FC = () => {
         credentials: "include",
       });
 
-      if (!response.ok) throw new Error('Failed to fetch analyses');
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+        throw new Error('Failed to fetch analyses');
+      }
 
       const result = await response.json();
       setAnalyses(result.data || []);
@@ -199,24 +206,33 @@ const AnalysisHistory: React.FC = () => {
     setIsDeleting(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const idsToDelete = deleteModal.type === 'bulk' 
-        ? Array.from(selectedIds) 
+      const idsToDelete = deleteModal.type === 'bulk'
+        ? Array.from(selectedIds)
         : [deleteModal.id!];
 
       await Promise.all(
-        idsToDelete.map(id =>
-          fetch(`${API_URL}/api/analysis/${id}`, {
+        idsToDelete.map(async (id) => {
+          const res = await fetch(`${API_URL}/api/analysis/${id}`, {
             method: 'DELETE',
             credentials: "include",
-          })
-        )
+          });
+          if (!res.ok) {
+            if (res.status === 401) {
+              router.push('/login');
+              // optimization: stop others? hard with Promise.all but acceptable for now
+              throw new Error('Unauthorized');
+            }
+            throw new Error('Failed to delete');
+          }
+          return res;
+        })
       );
 
       // UI Updates after successful delete
       setAnalyses(prev => prev.filter(a => !idsToDelete.includes(a.id)));
       if (deleteModal.type === 'bulk') setSelectedIds(new Set());
       setAnimationTrigger(prev => prev + 1);
-      
+
     } catch (err: any) {
       alert('Delete failed: ' + err.message);
     } finally {
@@ -285,9 +301,9 @@ const AnalysisHistory: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative">
-      
+
       {/* --- CUSTOM MODAL RENDER --- */}
-      <DeleteConfirmationModal 
+      <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={executeDelete}
@@ -297,43 +313,42 @@ const AnalysisHistory: React.FC = () => {
       />
 
       {/* Filter + Search */}
-      <div className="flex justify-between items-center mb-0">
-        <div className="flex space-x-2 items-center">
+      <div className={styles.controlsContainer}>
+        <div className={styles.filterGroup}>
           {(['All', 'FAKE', 'REAL'] as FilterType[]).map((filter) => (
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeFilter === filter
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
-              }`}
+              className={`${styles.filterButton} ${activeFilter === filter
+                ? styles.filterButtonActive
+                : styles.filterButtonInactive
+                }`}
             >
               {filter}
             </button>
           ))}
         </div>
 
-        <div className="flex space-x-3 items-center">
-          <div className="relative">
+        <div className={styles.searchGroup}>
+          <div className={styles.searchInputWrapper}>
             <input
               type="text"
               placeholder="Search filename..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="px-4 py-2 w-48 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className={styles.searchInput}
             />
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            <Search size={16} className={styles.searchIcon} />
           </div>
 
-          <div className="relative">
+          <div className={styles.sortSelectWrapper}>
             <select
               value={sortBy}
               onChange={(e) => {
                 setSortBy(e.target.value as 'date' | 'confidence');
                 setAnimationTrigger(prev => prev + 1);
               }}
-              className="appearance-none px-4 py-2 w-40 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors"
+              className={styles.sortSelect}
             >
               <option value="date">Sort by Date</option>
               <option value="confidence">Sort by Confidence</option>
@@ -343,15 +358,15 @@ const AnalysisHistory: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-4 flex-1 overflow-hidden flex flex-col transition-colors">
+      <div className={styles.tableContainer}>
         {paginatedAnalyses.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">No analyses match your filters.</p>
+          <div className={styles.noDataContainer}>
+            <p className={styles.noDataText}>No analyses match your filters.</p>
           </div>
         ) : (
           <>
-            <div className='overflow-x-auto'>
-              <table className="min-w-full text-left">
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-700/50 transition-colors">
                     <th className="p-4 w-12">
@@ -359,37 +374,37 @@ const AnalysisHistory: React.FC = () => {
                         type="checkbox"
                         checked={isAllSelected}
                         onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 rounded cursor-pointer accent-blue-600"
+                        className={styles.checkbox}
                       />
                     </th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-20">DATE</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-auto">FILE NAME</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">VERDICT</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-32">CONFIDENCE</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-24 text-center">ACTIONS</th>
+                    <th className={styles.th}>DATE</th>
+                    <th className={styles.th}>FILE NAME</th>
+                    <th className={styles.th}>VERDICT</th>
+                    <th className={styles.th}>CONFIDENCE</th>
+                    <th className={`${styles.th} text-center`}>ACTIONS</th>
                   </tr>
                 </thead>
 
                 <tbody ref={tableBodyRef}>
                   {paginatedAnalyses.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group">
+                    <tr key={item.id} className={`${styles.tr} group`}>
                       <td className="p-4">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(item.id)}
                           onChange={(e) => handleSelectOne(item.id, e.target.checked)}
-                          className="w-4 h-4 text-blue-600 rounded cursor-pointer accent-blue-600"
+                          className={styles.checkbox}
                         />
                       </td>
-                      <td className="p-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{formatDate(item.created_at)}</td>
-                      
+                      <td className={styles.td}>{formatDate(item.created_at)}</td>
+
                       {/* --- MODIFIED FILENAME CELL --- */}
-                      <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
-                        <div className="flex items-center">
-                          <FileText size={16} className="mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                          <Link 
+                      <td className={`${styles.td} font-medium`}>
+                        <div className={styles.filenameCell}>
+                          <FileText size={16} className={styles.fileIcon} />
+                          <Link
                             href={`/dashboard/analysis/${item.id}`}
-                            className="truncate max-w-[200px] sm:max-w-xs hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer transition-colors" 
+                            className={styles.filenameLink}
                             title={item.filename}
                           >
                             {item.filename}
@@ -400,34 +415,33 @@ const AnalysisHistory: React.FC = () => {
 
                       <td className="p-4">
                         <span
-                          className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                            item.is_deepfake
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          }`}
+                          className={`${styles.badge} ${item.is_deepfake
+                            ? styles.badgeFake
+                            : styles.badgeReal
+                            }`}
                         >
                           {item.is_deepfake ? 'FAKE' : 'REAL'}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
+                      <td className={`${styles.td} font-medium`}>
                         {getDisplayedConfidence(item)}%
                       </td>
-                      <td className="p-4 text-sm font-medium">
-                        <div className="flex items-center justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                                onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                                className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                title="View Details"
-                            >
-                                <Search size={18} />
-                            </button>
-                            <button
-                                onClick={() => openSingleDeleteModal(item.id)}
-                                className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                title="Delete"
-                            >
-                                <Trash2 size={18} />
-                            </button>
+                      <td className={`${styles.td} font-medium`}>
+                        <div className={styles.actionButtons}>
+                          <button
+                            onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
+                            className={`${styles.actionBtn} ${styles.viewBtn}`}
+                            title="View Details"
+                          >
+                            <Search size={18} />
+                          </button>
+                          <button
+                            onClick={() => openSingleDeleteModal(item.id)}
+                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                            title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -438,8 +452,8 @@ const AnalysisHistory: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+            <div className={styles.paginationContainer}>
+              <span className={styles.paginationInfo}>
                 Showing {startIndex}-{endIndex} of {filteredAnalyses.length}
                 {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
               </span>
@@ -448,7 +462,7 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={styles.navButton}
                 >
                   Previous
                 </button>
@@ -457,11 +471,10 @@ const AnalysisHistory: React.FC = () => {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-transparent'
-                    }`}
+                    className={`${styles.pageButton} ${currentPage === pageNum
+                      ? styles.pageButtonActive
+                      : styles.pageButtonInactive
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -470,7 +483,7 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={styles.navButton}
                 >
                   Next
                 </button>
@@ -481,18 +494,18 @@ const AnalysisHistory: React.FC = () => {
       </div>
 
       {/* Bulk Delete + Start New */}
-      <div className="flex justify-between items-center mt-6">
+      <div className={styles.bottomActions}>
         <button
           onClick={openBulkDeleteModal}
           disabled={selectedIds.size === 0}
-          className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-red-500/20"
+          className={styles.bulkDeleteButton}
         >
           Bulk Delete {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
 
         <Link
           href="/dashboard/new-analysis"
-          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md shadow-blue-500/20"
+          className={styles.newAnalysisButton}
         >
           Start New Analysis
         </Link>

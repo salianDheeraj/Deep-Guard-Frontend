@@ -1,0 +1,95 @@
+.sidebar {
+    @apply w-64 h-screen shadow-md flex flex-col justify-between flex-shrink-0 border-r border-gray-100 transition-colors duration-300;
+    background-color: #f9fafb;
+    /* gray-50 to match typical dashboard background */
+}
+
+:global(.dark) .sidebar {
+    @apply bg-slate-950 border-gray-800;
+}
+
+.logoContainer {
+    @apply flex items-center justify-start p-6 border-b border-gray-100;
+}
+
+:global(.dark) .logoContainer {
+    @apply border-gray-800;
+}
+
+.logoIcon {
+    @apply text-blue-600;
+}
+
+:global(.dark) .logoIcon {
+    @apply text-teal-400;
+}
+
+.logoText {
+    @apply text-xl font-bold ml-2 text-blue-600;
+}
+
+:global(.dark) .logoText {
+    @apply text-teal-400;
+}
+
+.nav {
+    @apply mt-6 relative;
+}
+
+.indicator {
+    @apply absolute left-0 w-1 bg-blue-600 rounded-r-lg opacity-0;
+}
+
+:global(.dark) .indicator {
+    @apply bg-teal-400;
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.5);
+    /* teal-400 */
+}
+
+.navItem {
+    @apply flex items-center py-3 px-6 transition-colors relative z-10;
+}
+
+.navItemActive {
+    @apply bg-blue-50 text-blue-700 font-medium;
+}
+
+:global(.dark) .navItemActive {
+    @apply bg-teal-950/30 text-teal-400 border-r-2 border-teal-400;
+}
+
+.navItemInactive {
+    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+}
+
+:global(.dark) .navItemInactive {
+    @apply text-gray-400 hover:bg-slate-800 hover:text-gray-200;
+}
+
+.navIcon {
+    @apply mr-4;
+}
+
+.bottomSection {
+    @apply p-4 border-t border-gray-100 space-y-4;
+}
+
+:global(.dark) .bottomSection {
+    @apply border-gray-800;
+}
+
+.themeToggleContainer {
+    @apply flex justify-center pb-2;
+}
+
+.userProfileContainer {
+    @apply w-full;
+}
+
+.logoutButton {
+    @apply w-full flex items-center py-2 px-3 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors;
+}
+
+:global(.dark) .logoutButton {
+    @apply hover:bg-red-900/20 hover:text-red-400;
+}

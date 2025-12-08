@@ -1,0 +1,27 @@
+.card {
+    @apply rounded-xl bg-white dark:bg-slate-800 p-6 shadow-md transition-all hover:shadow-lg border border-gray-100 dark:border-gray-700;
+}
+
+.header {
+    @apply flex items-start justify-between;
+}
+
+.title {
+    @apply text-sm font-semibold text-gray-500 dark:text-gray-400;
+}
+
+.iconWrapper {
+    @apply rounded-lg p-2;
+}
+
+.icon {
+    @apply h-5 w-5 text-white;
+}
+
+.value {
+    @apply mt-4 text-3xl font-bold text-gray-900 dark:text-white;
+}
+
+.description {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+}
