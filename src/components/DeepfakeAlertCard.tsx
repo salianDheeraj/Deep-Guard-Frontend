@@ -4,6 +4,8 @@
 import React from 'react';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 
+import styles from '@/styles/Analysis.module.css';
+
 interface DeepfakeAlertCardProps {
   isDeepfake: boolean;
   confidence: number;
@@ -18,68 +20,67 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
   totalFrames
 }) => {
   // ✅ Apply inverted logic for REAL videos
-  const displayConfidence = isDeepfake 
-    ? confidence 
+  const displayConfidence = isDeepfake
+    ? confidence
     : (1 - confidence);
 
   const displayPercentage = Math.round(displayConfidence * 100);
 
   return (
     <div
-      className={`rounded-lg shadow-lg p-8 text-white ${
-        isDeepfake
-          ? 'bg-gradient-to-r from-red-500 to-red-600'
-          : 'bg-gradient-to-r from-green-500 to-green-600'
-      }`}
+      className={`${styles.alertCard} ${isDeepfake
+          ? styles.fakeGradient
+          : styles.realGradient
+        }`}
     >
-      <div className="flex items-start justify-between">
+      <div className={styles.alertHeader}>
         {/* Left: Status & Message */}
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
+          <div className={styles.alertStatus}>
             {isDeepfake ? (
               <>
-                <AlertTriangle className="w-8 h-8" />
-                <h2 className="text-4xl font-bold">FAKE</h2>
+                <AlertTriangle className={styles.statusIcon} />
+                <h2 className={styles.statusText}>FAKE</h2>
               </>
             ) : (
               <>
-                <CheckCircle className="w-8 h-8" />
-                <h2 className="text-4xl font-bold">REAL</h2>
+                <CheckCircle className={styles.statusIcon} />
+                <h2 className={styles.statusText}>REAL</h2>
               </>
             )}
           </div>
-          
-          <p className="text-lg font-semibold mb-1">
+
+          <p className={styles.alertMessage}>
             {isDeepfake
               ? 'Deepfake manipulation detected'
               : 'No deepfake detected'}
           </p>
-          
-          <p className="text-sm opacity-90">
+
+          <p className={styles.alertSubMessage}>
             Confidence represents model certainty, not absolute proof
           </p>
         </div>
 
         {/* Right: Confidence Score */}
-        <div className="text-right">
-          <p className="text-sm font-semibold opacity-80 mb-1">Overall Confidence</p>
-          <p className="text-6xl font-bold">{displayPercentage}%</p>
+        <div className={styles.confidenceSection}>
+          <p className={styles.confidenceLabel}>Overall Confidence</p>
+          <p className={styles.confidenceValue}>{displayPercentage}%</p>
         </div>
       </div>
 
       {/* Frame Analysis Info */}
-      <div className="mt-6 pt-6 border-t border-white border-opacity-30 flex gap-6">
+      <div className={styles.statsRow}>
         <div>
-          <p className="text-sm opacity-80">Frames Analyzed</p>
-          <p className="text-2xl font-bold">{framesAnalyzed}</p>
+          <p className={styles.statItemLabel}>Frames Analyzed</p>
+          <p className={styles.statItemValue}>{framesAnalyzed}</p>
         </div>
         <div>
-          <p className="text-sm opacity-80">Total Frames</p>
-          <p className="text-2xl font-bold">{totalFrames}</p>
+          <p className={styles.statItemLabel}>Total Frames</p>
+          <p className={styles.statItemValue}>{totalFrames}</p>
         </div>
         <div>
-          <p className="text-sm opacity-80">Coverage</p>
-          <p className="text-2xl font-bold">
+          <p className={styles.statItemLabel}>Coverage</p>
+          <p className={styles.statItemValue}>
             {totalFrames > 0 ? Math.round((framesAnalyzed / totalFrames) * 100) : 0}%
           </p>
         </div>

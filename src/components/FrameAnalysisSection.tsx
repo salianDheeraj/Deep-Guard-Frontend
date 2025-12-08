@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader, Download, X } from 'lucide-react';
 import JSZip from 'jszip';
 
+import styles from "@/styles/FrameAnalysis.module.css";
+
 interface FrameAnalysisSectionProps {
   analysisId: string;
   frameWiseConfidences: number[];
@@ -170,11 +172,11 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 h-full flex flex-col transition-colors duration-300">
-        <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Frame Analysis</h3>
-        <div className="flex items-center justify-center py-8">
-          <Loader className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400 mr-2" />
-          <p className="text-gray-600 dark:text-gray-400">Loading frames...</p>
+      <div className={`${styles.container} ${styles.loadingContainer}`}>
+        <h3 className={styles.title}>Frame Analysis</h3>
+        <div className={styles.loadingContent}>
+          <Loader className={styles.loadingIcon} />
+          <p className={styles.loadingText}>Loading frames...</p>
         </div>
       </div>
     );
@@ -182,9 +184,9 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
 
   if (!frameWiseConfidences?.length) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 transition-colors duration-300">
-        <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Frame Analysis</h3>
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+      <div className={styles.container}>
+        <h3 className={styles.title}>Frame Analysis</h3>
+        <div className={styles.emptyContent}>
           <p>No frame data available</p>
         </div>
       </div>
@@ -192,12 +194,12 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 transition-colors duration-300">
+    <div className={styles.container}>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className={styles.header}>
         <div>
-          <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Frame Analysis</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h3 className={styles.title}>Frame Analysis</h3>
+          <p className={styles.subTitle}>
             Average Confidence: {getDisplayAverageConfidence()}%
           </p>
         </div>
@@ -205,7 +207,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
         <button
           onClick={handleDownloadReport}
           disabled={downloading || !reportBlob}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 disabled:bg-gray-400 dark:disabled:bg-gray-600 font-medium transition-colors"
+          className={styles.downloadButton}
         >
           {downloading ? (
             <>
@@ -220,35 +222,35 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       </div>
 
       {/* Grid */}
-      <div className="max-h-[749px] overflow-y-auto pr-2 custom-scrollbar">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className={styles.gridContainer}>
+        <div className={styles.gridLayout}>
           {frames.map((frame) => (
-            <div key={frame.id} className="flex flex-col rounded-lg shadow-md overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
+            <div key={frame.id} className={styles.card}>
               <div
-                className={`relative aspect-video border-2 border-b-0 ${frame.isFake ? 'border-red-400 dark:border-red-500' : 'border-green-400 dark:border-green-500'
+                className={`${styles.imageWrapper} ${frame.isFake ? styles.fakeBorder : styles.realBorder
                   }`}
               >
                 {frame.url ? (
                   <img
                     src={frame.url}
                     alt={`Frame ${frame.id + 1}`}
-                    className="w-full h-full object-contain cursor-pointer hover:scale-[1.02] transition"
+                    className={styles.image}
                     onClick={() => openModal(frame.url!)}
                   />
                 ) : (
                   <div
-                    className={`w-full h-full flex items-center justify-center ${frame.isFake ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'
+                    className={`${styles.noImage} ${frame.isFake ? styles.fakeBg : styles.realBg
                       }`}
                   >
-                    <span className="text-gray-400 dark:text-gray-500 text-xs">No image</span>
+                    <span className={styles.noImageText}>No image</span>
                   </div>
                 )}
               </div>
 
               <div
-                className={`rounded-b-lg border-2 border-t-0 text-white p-2 text-xs font-bold flex justify-between ${frame.isFake
-                    ? 'border-red-400 bg-red-600 hover:bg-red-700 dark:border-red-500 dark:bg-red-600 dark:hover:bg-red-700'
-                    : 'border-green-400 bg-green-600 hover:bg-green-700 dark:border-green-500 dark:bg-green-600 dark:hover:bg-green-700'
+                className={`${styles.cardFooter} ${frame.isFake
+                  ? styles.fakeFooter
+                  : styles.realFooter
                   }`}
               >
                 <span>Frame {frame.id + 1}: {frame.label}</span>
@@ -259,22 +261,22 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
         </div>
       </div>
 
-      <div className="text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700 mt-4 pt-4">Total: {frames.length} frames</div>
+      <div className={styles.footerTotal}>Total: {frames.length} frames</div>
 
       {/* Modal */}
       {selectedImageUrl && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div ref={modalRef} className="relative max-w-full max-h-full bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden">
+        <div className={styles.modalOverlay}>
+          <div ref={modalRef} className={styles.modalContent}>
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-white bg-black/50 hover:bg-black/70 rounded-full p-1 transition"
+              className={styles.closeButton}
             >
               <X className="w-6 h-6" />
             </button>
             <img
               src={selectedImageUrl}
               alt="Enlarged Frame"
-              className="max-w-[90vw] max-h-[90vh] object-contain"
+              className={styles.modalImage}
             />
           </div>
         </div>

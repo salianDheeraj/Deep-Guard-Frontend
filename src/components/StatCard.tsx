@@ -3,6 +3,8 @@
 import React, { FC } from 'react';
 import type { ComponentType } from 'react';
 
+import styles from '@/styles/StatCard.module.css';
+
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -19,15 +21,15 @@ const StatCard: FC<StatCardProps> = ({
   colorClass,
 }) => {
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-md transition-all hover:shadow-lg border border-gray-100 dark:border-gray-700">
-      <div className="flex items-start justify-between">
-        <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400">{title}</h3>
-        <div className={`rounded-lg p-2 ${colorClass}`}>
-          <Icon className="h-5 w-5 text-white" />
+    <div className={styles.card}>
+      <div className={styles.header}>
+        <h3 className={styles.title}>{title}</h3>
+        <div className={`${styles.iconWrapper} ${colorClass}`}>
+          <Icon className={styles.icon} />
         </div>
       </div>
-      <p className="mt-4 text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+      <p className={styles.value}>{value}</p>
+      <p className={styles.description}>{description}</p>
     </div>
   );
 };

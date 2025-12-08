@@ -1,0 +1,206 @@
+.container {
+    @apply bg-white rounded-lg shadow-lg p-6 transition-colors duration-300;
+}
+
+:global(.dark) .container {
+    @apply bg-slate-800;
+}
+
+.loadingContainer {
+    @apply h-full flex flex-col;
+}
+
+.loadingContent {
+    @apply flex items-center justify-center py-8;
+}
+
+.loadingIcon {
+    @apply w-6 h-6 animate-spin text-teal-600 mr-2;
+}
+
+:global(.dark) .loadingIcon {
+    @apply text-teal-400;
+}
+
+
+
+.loadingText {
+    @apply text-gray-600 dark:text-gray-400;
+}
+
+.emptyContent {
+    @apply text-center py-12 text-gray-500 dark:text-gray-400;
+}
+
+.title {
+    @apply text-2xl font-bold text-gray-800 mb-6;
+}
+
+:global(.dark) .title {
+    @apply text-white;
+}
+
+.header {
+    @apply flex justify-between items-center mb-6;
+}
+
+.subTitle {
+    @apply text-sm text-gray-500 dark:text-gray-400 mt-1;
+}
+
+.downloadButton {
+    @apply flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg hover:from-red-700 hover:to-rose-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 font-medium transition-all shadow-md;
+}
+
+:global(.dark) .downloadButton {
+    @apply shadow-red-500/20;
+}
+
+.gridContainer {
+    @apply max-h-[749px] overflow-y-auto pr-2;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+:global(.dark) .gridContainer {
+    scrollbar-color: #475569 transparent;
+}
+
+.gridContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.gridContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gridContainer::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+}
+
+:global(.dark) .gridContainer::-webkit-scrollbar-thumb {
+    background-color: #475569;
+}
+
+.gridLayout {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+}
+
+.card {
+    @apply flex flex-col rounded-lg shadow-md overflow-hidden bg-gray-50 transition-colors;
+}
+
+:global(.dark) .card {
+    @apply bg-gray-900;
+}
+
+.imageWrapper {
+    @apply relative w-full h-auto border-2 border-b-0 overflow-hidden bg-gray-100 dark:bg-slate-950;
+}
+
+/* Dark Mode SMART INVERT: 
+   1. Invert colors (White -> Black, Red -> Cyan)
+   2. Hue Rotate 180deg (Cyan -> Red)
+   Result: White background becomes Black, Red text stays Red.
+*/
+:global(.dark) .imageWrapper::after {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-[18%] pointer-events-none z-10;
+    backdrop-filter: invert(1) hue-rotate(180deg);
+    background: transparent;
+}
+
+.image {
+    @apply w-full h-auto block cursor-pointer hover:scale-[1.02] transition duration-300;
+}
+
+.noImage {
+    @apply w-full h-32 flex items-center justify-center;
+}
+
+.noImageText {
+    @apply text-gray-400 dark:text-gray-500 text-xs;
+}
+
+.cardFooter {
+    @apply rounded-b-lg border-2 border-t-0 p-2 text-xs font-bold flex justify-between;
+}
+
+.footerTotal {
+    @apply text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700 mt-4 pt-4;
+}
+
+/* Dynamic Border Colors */
+.fakeBorder {
+    @apply border-red-400;
+}
+
+:global(.dark) .fakeBorder {
+    @apply border-red-500;
+}
+
+.realBorder {
+    @apply border-green-400;
+}
+
+:global(.dark) .realBorder {
+    @apply border-green-500;
+}
+
+.fakeBg {
+    @apply bg-red-50;
+}
+
+:global(.dark) .fakeBg {
+    @apply bg-red-900/20;
+}
+
+.realBg {
+    @apply bg-green-50;
+}
+
+:global(.dark) .realBg {
+    @apply bg-green-900/20;
+}
+
+.fakeFooter {
+    @apply border-red-400 bg-red-600 hover:bg-red-700 transition-colors text-black;
+}
+
+:global(.dark) .fakeFooter {
+    @apply border-red-500 bg-red-600 hover:bg-red-700 text-white;
+}
+
+.realFooter {
+    @apply border-green-400 bg-green-600 hover:bg-green-700 transition-colors text-black;
+}
+
+:global(.dark) .realFooter {
+    @apply border-green-500 bg-green-600 hover:bg-green-700 text-white;
+}
+
+/* Modal */
+.modalOverlay {
+    @apply fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 backdrop-blur-sm;
+}
+
+.modalContent {
+    @apply relative w-fit h-fit max-w-[95vw] max-h-[95vh] bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden;
+}
+
+/* Dark Mode SMART INVERT for Modal - Increased to 25% to cover 3 lines of text */
+:global(.dark) .modalContent::after {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-[25%] pointer-events-none z-10;
+    backdrop-filter: invert(1) hue-rotate(180deg);
+    background: transparent;
+}
+
+.closeButton {
+    @apply absolute top-2 right-2 text-white bg-black/50 hover:bg-black/70 rounded-full p-1 transition z-50;
+}
+
+.modalImage {
+    @apply max-w-full max-h-[90vh] object-contain block;
+}

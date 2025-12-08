@@ -505,10 +505,9 @@ const NewAnalysisContent: React.FC = () => {
         <div
           className={`
             border-2 rounded-xl p-16 text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
-            ${
-              isDragging && analysisState === "IDLE"
-                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid"
-                : "border-indigo-200 dark:border-indigo-800/50 border-dashed"
+            ${isDragging && analysisState === "IDLE"
+              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 border-solid"
+              : "border-indigo-200 dark:border-indigo-800/50 border-dashed"
             }
             ${analysisState !== "IDLE" ? "p-10" : ""}
           `}
