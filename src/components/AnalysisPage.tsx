@@ -8,6 +8,7 @@ import AnalysisHeader from './AnalysisHeader';
 import DeepfakeAlertCard from './DeepfakeAlertCard';
 import ConfidenceOverTimeChart from './ConfidenceOverTimeChart';
 import FrameAnalysisSection from './FrameAnalysisSection';
+import ImageAnalysisSection from './ImageAnalysisSection';
 import UnderstandingConfidence from './UnderstandingConfidence';
 
 import { Loader, AlertCircle } from 'lucide-react';
@@ -202,6 +203,43 @@ export default function AnalysisPage() {
   // ----------------------------------------------------
   // RENDER UI (unchanged)
   // ----------------------------------------------------
+  // ----------------------------------------------------
+  // RENDER UI (Updated for Image vs Video)
+  // ----------------------------------------------------
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const isImage = currentAnalysis.filename?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+  if (isImage) {
+    // Import ImageAnalysisSection dynamically or assume it's imported at top
+    // For now, I'll update the imports separately if needed, but assuming import exists or I'll add it.
+    // Wait, I need to add the import first. I will do this in 2 steps or just one block if I can see imports.
+    // Since I can't see imports at top (lines 1-42), I will update imports in next step/separate tool call if needed.
+    // Actually, I can use the existing `ImageAnalysisSection` if I import it.
+    // I'll render ImageAnalysisSection here.
+    return (
+      <main className={styles.pageContainer}>
+        <div className={styles.contentWrapper}>
+          <AnalysisHeader
+            analysisId={analysisId}
+            fileName={currentAnalysis.filename}
+            analyzedDate={new Date(currentAnalysis.created_at).toLocaleDateString()}
+            modelVersion="v3.2"
+            onDelete={handleDelete}
+          />
+          <div style={{ marginTop: '2rem' }}>
+            <ImageAnalysisSection
+              imageUrl={`${API_URL}/api/analysis/${analysisId}/file`}
+              isDeepfake={currentAnalysis.is_deepfake}
+              confidenceScore={currentAnalysis.confidence_score}
+              createdAt={new Date(currentAnalysis.created_at).toLocaleDateString()}
+            />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // VIDEO UI (Existing)
   const totalFrames =
     currentAnalysis.confidence_report?.total_frames ||
     currentAnalysis.frame_wise_confidences.length;
