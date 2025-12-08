@@ -535,7 +535,13 @@ const NewAnalysisContent: React.FC = () => {
           />
         </div>
 
-        <FeatureList features={features} />
+        {/* Using [&_h3]:dark:text-white ensures only the <h3/> titles 
+           (like "Supported Formats", "Secure Processing") become white in dark mode,
+           while descriptions retain their original styling.
+        */}
+        <div className="mt-10 [&_h3]:dark:text-white">
+          <FeatureList features={features} />
+        </div>
       </div>
     </main>
   );

@@ -34,34 +34,34 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
+      <div className={`${styles.modalContent} dark:bg-slate-800 dark:border dark:border-slate-700`}>
 
         <div className={styles.modalHeader}>
-          <div className={styles.modalIconWrapper}>
-            <AlertTriangle className={styles.modalIcon} />
+          <div className={`${styles.modalIconWrapper} dark:bg-red-900/20`}>
+            <AlertTriangle className={`${styles.modalIcon} dark:text-red-500`} />
           </div>
-          <h3 className={styles.modalTitle}>
+          <h3 className={`${styles.modalTitle} dark:text-white`}>
             Confirm Deletion
           </h3>
         </div>
 
-        <p className={styles.modalBody}>
+        <p className={`${styles.modalBody} dark:text-gray-300`}>
           Are you sure you want to permanently delete {isBulk ? <span className="font-bold text-gray-900 dark:text-white">{count} analyses</span> : 'this analysis'}?
-          <br /><span className={styles.modalWarning}>This action cannot be undone.</span>
+          <br /><span className={`${styles.modalWarning} dark:text-red-400`}>This action cannot be undone.</span>
         </p>
 
         <div className={styles.modalFooter}>
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className={styles.cancelButton}
+            className={`${styles.cancelButton} dark:bg-slate-700 dark:text-gray-200 dark:hover:bg-slate-600 dark:border-slate-600`}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className={styles.confirmButton}
+            className={`${styles.confirmButton} dark:bg-red-600 dark:hover:bg-red-700 dark:text-white`}
           >
             {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             {isDeleting ? 'Deleting...' : 'Delete'}
@@ -219,7 +219,6 @@ const AnalysisHistory: React.FC = () => {
           if (!res.ok) {
             if (res.status === 401) {
               router.push('/login');
-              // optimization: stop others? hard with Promise.all but acceptable for now
               throw new Error('Unauthorized');
             }
             throw new Error('Failed to delete');
@@ -320,8 +319,8 @@ const AnalysisHistory: React.FC = () => {
               key={filter}
               onClick={() => handleFilterChange(filter)}
               className={`${styles.filterButton} ${activeFilter === filter
-                ? styles.filterButtonActive
-                : styles.filterButtonInactive
+                ? styles.filterButtonActive + ' dark:!text-white'
+                : styles.filterButtonInactive + ' dark:!text-gray-300 dark:hover:!text-white dark:hover:!bg-slate-800'
                 }`}
             >
               {filter}
@@ -336,9 +335,9 @@ const AnalysisHistory: React.FC = () => {
               placeholder="Search filename..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className={styles.searchInput}
+              className={`${styles.searchInput} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 dark:placeholder-gray-500`}
             />
-            <Search size={16} className={styles.searchIcon} />
+            <Search size={16} className={`${styles.searchIcon} dark:text-gray-400`} />
           </div>
 
           <div className={styles.sortSelectWrapper}>
@@ -348,7 +347,7 @@ const AnalysisHistory: React.FC = () => {
                 setSortBy(e.target.value as 'date' | 'confidence');
                 setAnimationTrigger(prev => prev + 1);
               }}
-              className={styles.sortSelect}
+              className={`${styles.sortSelect} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700`}
             >
               <option value="date">Sort by Date</option>
               <option value="confidence">Sort by Confidence</option>
@@ -361,7 +360,7 @@ const AnalysisHistory: React.FC = () => {
       <div className={styles.tableContainer}>
         {paginatedAnalyses.length === 0 ? (
           <div className={styles.noDataContainer}>
-            <p className={styles.noDataText}>No analyses match your filters.</p>
+            <p className={`${styles.noDataText} dark:text-gray-400`}>No analyses match your filters.</p>
           </div>
         ) : (
           <>
@@ -377,11 +376,11 @@ const AnalysisHistory: React.FC = () => {
                         className={styles.checkbox}
                       />
                     </th>
-                    <th className={styles.th}>DATE</th>
-                    <th className={styles.th}>FILE NAME</th>
-                    <th className={styles.th}>VERDICT</th>
-                    <th className={styles.th}>CONFIDENCE</th>
-                    <th className={`${styles.th} text-center`}>ACTIONS</th>
+                    <th className={`${styles.th} dark:!text-gray-300`}>DATE</th>
+                    <th className={`${styles.th} dark:!text-gray-300`}>FILE NAME</th>
+                    <th className={`${styles.th} dark:!text-gray-300`}>VERDICT</th>
+                    <th className={`${styles.th} dark:!text-gray-300`}>CONFIDENCE</th>
+                    <th className={`${styles.th} dark:!text-gray-300 text-center`}>ACTIONS</th>
                   </tr>
                 </thead>
 
@@ -396,22 +395,20 @@ const AnalysisHistory: React.FC = () => {
                           className={styles.checkbox}
                         />
                       </td>
-                      <td className={styles.td}>{formatDate(item.created_at)}</td>
+                      <td className={`${styles.td} dark:!text-gray-200`}>{formatDate(item.created_at)}</td>
 
-                      {/* --- MODIFIED FILENAME CELL --- */}
                       <td className={`${styles.td} font-medium`}>
                         <div className={styles.filenameCell}>
-                          <FileText size={16} className={styles.fileIcon} />
+                          <FileText size={16} className={`${styles.fileIcon} dark:text-gray-400`} />
                           <Link
                             href={`/dashboard/analysis/${item.id}`}
-                            className={styles.filenameLink}
+                            className={`${styles.filenameLink} dark:!text-gray-200 dark:hover:!text-blue-400`}
                             title={item.filename}
                           >
                             {item.filename}
                           </Link>
                         </div>
                       </td>
-                      {/* --------------------------- */}
 
                       <td className="p-4">
                         <span
@@ -423,21 +420,21 @@ const AnalysisHistory: React.FC = () => {
                           {item.is_deepfake ? 'FAKE' : 'REAL'}
                         </span>
                       </td>
-                      <td className={`${styles.td} font-medium`}>
+                      <td className={`${styles.td} font-medium dark:!text-gray-200`}>
                         {getDisplayedConfidence(item)}%
                       </td>
                       <td className={`${styles.td} font-medium`}>
                         <div className={styles.actionButtons}>
                           <button
                             onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                            className={`${styles.actionBtn} ${styles.viewBtn}`}
+                            className={`${styles.actionBtn} ${styles.viewBtn} dark:!text-gray-400 dark:hover:!text-blue-400`}
                             title="View Details"
                           >
                             <Search size={18} />
                           </button>
                           <button
                             onClick={() => openSingleDeleteModal(item.id)}
-                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                            className={`${styles.actionBtn} ${styles.deleteBtn} dark:!text-gray-400 dark:hover:!text-red-400`}
                             title="Delete"
                           >
                             <Trash2 size={18} />
@@ -453,7 +450,7 @@ const AnalysisHistory: React.FC = () => {
 
             {/* Pagination */}
             <div className={styles.paginationContainer}>
-              <span className={styles.paginationInfo}>
+              <span className={`${styles.paginationInfo} dark:!text-white`}>
                 Showing {startIndex}-{endIndex} of {filteredAnalyses.length}
                 {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
               </span>
@@ -462,7 +459,10 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={styles.navButton}
+                  // --- FIX APPLIED HERE ---
+                  // disabled:dark:!text-white ensures the text stays white even when disabled.
+                  // disabled:opacity-50 reduces the brightness/alpha to imply the disabled state, while keeping the color white.
+                  className={`${styles.navButton} dark:!text-white dark:hover:!text-gray-200 disabled:dark:!text-white disabled:opacity-50`}
                 >
                   Previous
                 </button>
@@ -472,8 +472,8 @@ const AnalysisHistory: React.FC = () => {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`${styles.pageButton} ${currentPage === pageNum
-                      ? styles.pageButtonActive
-                      : styles.pageButtonInactive
+                      ? styles.pageButtonActive + ' dark:!text-white'
+                      : styles.pageButtonInactive + ' dark:!text-gray-300 dark:hover:!text-white'
                       }`}
                   >
                     {pageNum}
@@ -483,7 +483,8 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className={styles.navButton}
+                  // --- FIX APPLIED HERE ---
+                  className={`${styles.navButton} dark:!text-white dark:hover:!text-gray-200 disabled:dark:!text-white disabled:opacity-50`}
                 >
                   Next
                 </button>

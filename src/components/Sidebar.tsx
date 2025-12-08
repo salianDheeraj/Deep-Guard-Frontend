@@ -3,7 +3,16 @@
 import React, { useRef, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, PlusSquare, History, User, LogOut, ShieldCheck, LucideIcon } from 'lucide-react';
+// --- UPDATED ICONS FOR BETTER VISUALS ---
+import { 
+    LayoutGrid,      // Modern Dashboard
+    ScanEye,         // "High Tech" Analysis
+    FileClock,       // Detailed History/Log
+    CircleUser,      // Polished Account Icon
+    LogOut, 
+    ShieldCheck,     // KEPT: Original Deep Guard Logo
+    LucideIcon 
+} from 'lucide-react'; 
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
@@ -28,11 +37,12 @@ const Sidebar = () => {
     const indicatorRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
+    // --- UPDATED NAV ITEMS ---
     const navItems: NavItem[] = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'New Analysis', href: '/dashboard/new-analysis', icon: PlusSquare },
-        { name: 'History', href: '/dashboard/history', icon: History },
-        { name: 'Account', href: '/dashboard/account', icon: User },
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
+        { name: 'New Analysis', href: '/dashboard/new-analysis', icon: ScanEye },
+        { name: 'History', href: '/dashboard/history', icon: FileClock },
+        { name: 'Account', href: '/dashboard/account', icon: CircleUser },
     ];
 
     const isActive = (href: string) => {
@@ -114,7 +124,7 @@ const Sidebar = () => {
     itemRefs.current = [];
 
     // ================================
-    // 4. FIXED LOGOUT (only update needed)
+    // 4. Logout Handler
     // ================================
     const handleLogout = async () => {
         try {
@@ -135,13 +145,14 @@ const Sidebar = () => {
             className={styles.sidebar}
         >
             <div>
-                {/* Logo */}
+                {/* Logo Section */}
                 <div className={styles.logoContainer}>
+                    {/* KEPT: Original ShieldCheck Logo */}
                     <ShieldCheck size={28} className={`${styles.logoIcon} logo-shield-icon`} />
                     <h1 className={styles.logoText}>Deep-Guard</h1>
                 </div>
 
-                {/* Nav */}
+                {/* Nav Section */}
                 <nav ref={navRef} className={styles.nav}>
                     <div
                         ref={indicatorRef}
