@@ -1,6 +1,10 @@
 /* AnalysisPage Layout */
 .pageContainer {
-    @apply min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300;
+    /* FIX: Add top padding (pt-20) on mobile to clear the Hamburger button */
+    @apply min-h-screen bg-gray-50 px-4 pt-20 pb-8 transition-colors duration-300;
+    
+    /* Desktop: Standard padding */
+    @apply sm:px-6 lg:px-8 md:pt-8;
 }
 
 :global(.dark) .pageContainer {
@@ -24,15 +28,15 @@
 }
 
 .errorContainer {
-    @apply fixed inset-0 flex items-center justify-center bg-gray-100 dark:bg-slate-900 p-4 transition-colors;
+    @apply fixed inset-0 flex items-center justify-center bg-gray-100 dark:bg-slate-900 p-4 transition-colors z-50;
 }
 
 .errorCard {
-    @apply bg-white p-8 rounded-lg shadow max-w-md w-full text-center;
+    @apply bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center border border-gray-100;
 }
 
 :global(.dark) .errorCard {
-    @apply bg-slate-800;
+    @apply bg-slate-800 border-gray-700;
 }
 
 .errorIcon {
@@ -48,12 +52,14 @@
 }
 
 .retryButton {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors;
+    @apply bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors font-medium;
 }
 
 /* AnalysisHeader */
 .headerContainer {
-    @apply flex justify-between items-center mb-6;
+    /* FIX: Stack vertically on mobile, Row on desktop */
+    @apply flex flex-col gap-4 mb-6;
+    @apply md:flex-row md:justify-between md:items-center;
 }
 
 .headerTitle {
@@ -73,7 +79,9 @@
 }
 
 .deleteButton {
-    @apply flex items-center space-x-2 px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium transition-colors hover:bg-red-50;
+    /* FIX: Full width on mobile for easier tapping */
+    @apply flex items-center justify-center space-x-2 px-4 py-2 border border-red-500 text-red-500 rounded-lg text-sm font-medium transition-colors hover:bg-red-50;
+    @apply w-full md:w-auto;
 }
 
 :global(.dark) .deleteButton {
@@ -90,19 +98,21 @@
 
 /* DeepfakeAlertCard */
 .alertCard {
-    @apply rounded-lg shadow-lg p-8 text-white bg-slate-800 border border-slate-700;
+    @apply rounded-xl shadow-lg p-6 md:p-8 text-white bg-slate-800 border border-slate-700 relative overflow-hidden;
 }
 
 .fakeGradient {
-    @apply bg-gradient-to-r from-red-500 to-red-600;
+    @apply bg-gradient-to-br from-red-500 to-red-700;
 }
 
 .realGradient {
-    @apply bg-gradient-to-r from-green-500 to-green-600;
+    @apply bg-gradient-to-br from-green-500 to-green-700;
 }
 
 .alertHeader {
-    @apply flex items-start justify-between;
+    /* FIX: Stack elements on small screens */
+    @apply flex flex-col gap-6;
+    @apply sm:flex-row sm:items-start sm:justify-between;
 }
 
 .alertStatus {
@@ -114,7 +124,7 @@
 }
 
 .statusText {
-    @apply text-4xl font-bold;
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
 }
 
 .alertMessage {
@@ -126,32 +136,35 @@
 }
 
 .confidenceSection {
-    @apply text-right;
+    /* FIX: Align left on mobile, right on desktop */
+    @apply text-left sm:text-right mt-2 sm:mt-0;
 }
 
 .confidenceLabel {
-    @apply text-sm font-semibold opacity-80 mb-1;
+    @apply text-sm font-semibold opacity-80 mb-1 uppercase tracking-wider;
 }
 
 .confidenceValue {
-    @apply text-6xl font-bold;
+    @apply text-5xl md:text-6xl font-bold;
 }
 
 .statsRow {
-    @apply mt-6 pt-6 border-t border-white/20 flex gap-6;
+    /* FIX: Flex-col on mobile, Row on desktop */
+    @apply mt-6 pt-6 border-t border-white/20 flex flex-col gap-4;
+    @apply sm:flex-row sm:gap-12;
 }
 
 .statItemLabel {
-    @apply text-sm opacity-80;
+    @apply text-xs uppercase tracking-wide opacity-70;
 }
 
 .statItemValue {
-    @apply text-2xl font-bold;
+    @apply text-2xl font-bold mt-1;
 }
 
 /* ConfidenceOverTimeChart */
 .chartCard {
-    @apply bg-white rounded-xl shadow-md p-6 col-span-1 lg:col-span-1 border border-gray-200 transition-colors duration-300;
+    @apply bg-white rounded-xl shadow-sm p-4 md:p-6 col-span-1 border border-gray-200 transition-colors duration-300;
 }
 
 :global(.dark) .chartCard {
@@ -160,7 +173,7 @@
 }
 
 .chartTitle {
-    @apply text-2xl font-bold text-gray-800 mb-6;
+    @apply text-xl md:text-2xl font-bold text-gray-800 mb-6;
 }
 
 :global(.dark) .chartTitle {
@@ -173,6 +186,8 @@
 
 .chartArea {
     @apply bg-gray-50 p-4 rounded-xl mb-6 border border-gray-200 transition-colors;
+    /* FIX: allow horizontal scroll on very small screens if needed */
+    @apply overflow-x-auto;
 }
 
 :global(.dark) .chartArea {
@@ -180,7 +195,7 @@
 }
 
 .chartYAxis {
-    @apply flex flex-col justify-between h-80 pr-2 text-xs text-gray-600 font-semibold;
+    @apply flex flex-col justify-between h-64 md:h-80 pr-2 text-xs text-gray-600 font-semibold;
 }
 
 :global(.dark) .chartYAxis {
@@ -188,7 +203,7 @@
 }
 
 .barsContainer {
-    @apply flex items-end gap-[1px] h-80 bg-white rounded-t-md border border-gray-300 overflow-hidden relative transition-colors;
+    @apply flex items-end gap-[1px] h-64 md:h-80 bg-white rounded-t-md border border-gray-300 relative transition-colors min-w-[300px];
 }
 
 :global(.dark) .barsContainer {
@@ -208,15 +223,15 @@
 }
 
 .chartBar {
-    @apply flex-1 rounded-t-sm z-10 transition-transform duration-200 cursor-pointer;
+    @apply flex-1 rounded-t-sm z-10 transition-transform duration-200 cursor-pointer hover:opacity-90;
 }
 
 .barFake {
-    @apply bg-gradient-to-t from-rose-500 to-rose-300 hover:from-rose-600 hover:to-rose-400;
+    @apply bg-gradient-to-t from-rose-500 to-rose-300;
 }
 
 .barReal {
-    @apply bg-gradient-to-t from-emerald-500 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400;
+    @apply bg-gradient-to-t from-emerald-500 to-emerald-300;
 }
 
 .xAxisLine {
@@ -228,7 +243,7 @@
 }
 
 .xAxisLabels {
-    @apply absolute -bottom-5 left-0 right-0 flex justify-between text-xs text-gray-500 font-medium;
+    @apply absolute -bottom-6 left-0 right-0 flex justify-between text-[10px] md:text-xs text-gray-500 font-medium px-1;
 }
 
 :global(.dark) .xAxisLabels {
@@ -236,7 +251,8 @@
 }
 
 .legend {
-    @apply flex justify-between items-center mt-10 text-sm text-gray-700 font-semibold;
+    /* FIX: Stack on mobile */
+    @apply flex flex-col sm:flex-row justify-between items-start sm:items-center mt-10 gap-3 text-sm text-gray-700 font-semibold;
 }
 
 :global(.dark) .legend {
@@ -248,20 +264,21 @@
 }
 
 .legendColorReal {
-    @apply w-4 h-4 bg-gradient-to-t from-emerald-500 to-emerald-300 rounded;
+    @apply w-4 h-4 bg-gradient-to-t from-emerald-500 to-emerald-300 rounded shadow-sm;
 }
 
 .legendColorFake {
-    @apply w-4 h-4 bg-gradient-to-t from-rose-500 to-rose-300 rounded;
+    @apply w-4 h-4 bg-gradient-to-t from-rose-500 to-rose-300 rounded shadow-sm;
 }
 
 /* Summary Grid */
 .summaryGrid {
-    @apply grid grid-cols-2 gap-4 mb-6;
+    /* FIX: 1 column on mobile, 2 on tablet+ */
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6;
 }
 
 .summaryCardFake {
-    @apply bg-rose-50 p-4 rounded-lg border border-rose-200 shadow-sm transition-colors;
+    @apply bg-rose-50 p-5 rounded-xl border border-rose-200 shadow-sm transition-colors;
 }
 
 :global(.dark) .summaryCardFake {
@@ -269,7 +286,7 @@
 }
 
 .summaryCardReal {
-    @apply bg-emerald-50 p-4 rounded-lg border border-emerald-200 shadow-sm transition-colors;
+    @apply bg-emerald-50 p-5 rounded-xl border border-emerald-200 shadow-sm transition-colors;
 }
 
 :global(.dark) .summaryCardReal {
@@ -277,7 +294,7 @@
 }
 
 .summaryLabelFake {
-    @apply text-xs text-gray-600 uppercase tracking-wide font-semibold;
+    @apply text-xs text-rose-800 uppercase tracking-wide font-bold;
 }
 
 :global(.dark) .summaryLabelFake {
@@ -285,7 +302,7 @@
 }
 
 .summaryLabelReal {
-    @apply text-xs text-gray-600 uppercase tracking-wide font-semibold;
+    @apply text-xs text-emerald-800 uppercase tracking-wide font-bold;
 }
 
 :global(.dark) .summaryLabelReal {
@@ -293,7 +310,7 @@
 }
 
 .summaryValueFake {
-    @apply text-4xl font-bold text-rose-600;
+    @apply text-3xl md:text-4xl font-bold text-rose-600 mt-2;
 }
 
 :global(.dark) .summaryValueFake {
@@ -301,7 +318,7 @@
 }
 
 .summaryValueReal {
-    @apply text-4xl font-bold text-emerald-600;
+    @apply text-3xl md:text-4xl font-bold text-emerald-600 mt-2;
 }
 
 :global(.dark) .summaryValueReal {
@@ -318,15 +335,16 @@
 
 /* Metrics Grid */
 .metricsGrid {
-    @apply grid grid-cols-2 gap-4;
+    /* FIX: 1 col on mobile, 2 on tablet+ */
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
 }
 
 .metricCard {
-    @apply rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300;
+    @apply rounded-xl shadow-sm p-5 hover:shadow-md transition-all duration-300 border;
 }
 
 .metricCardBlue {
-    @apply bg-blue-50 border border-blue-200;
+    @apply bg-blue-50 border-blue-200;
 }
 
 :global(.dark) .metricCardBlue {
@@ -334,7 +352,7 @@
 }
 
 .metricCardViolet {
-    @apply bg-violet-50 border border-violet-200;
+    @apply bg-violet-50 border-violet-200;
 }
 
 :global(.dark) .metricCardViolet {
@@ -342,7 +360,7 @@
 }
 
 .metricCardEmerald {
-    @apply bg-emerald-50 border border-emerald-200;
+    @apply bg-emerald-50 border-emerald-200;
 }
 
 :global(.dark) .metricCardEmerald {
@@ -350,7 +368,7 @@
 }
 
 .metricCardRose {
-    @apply bg-rose-50 border border-rose-200;
+    @apply bg-rose-50 border-rose-200;
 }
 
 :global(.dark) .metricCardRose {
@@ -358,85 +376,29 @@
 }
 
 .metricHeader {
-    @apply flex items-center justify-between mb-2;
+    @apply flex items-center justify-between mb-3;
 }
 
 .metricTitle {
-    @apply text-sm font-medium text-gray-800;
+    @apply text-sm font-semibold text-gray-700;
 }
 
 :global(.dark) .metricTitle {
     @apply text-gray-200;
 }
 
-.metricIconBlue {
-    @apply w-4 h-4 text-blue-500;
-}
+/* Metric Icons */
+.metricIconBlue { @apply w-5 h-5 text-blue-600 dark:text-blue-400; }
+.metricIconViolet { @apply w-5 h-5 text-violet-600 dark:text-violet-400; }
+.metricIconEmerald { @apply w-5 h-5 text-emerald-600 dark:text-emerald-400; }
+.metricIconRose { @apply w-5 h-5 text-rose-600 dark:text-rose-400; }
 
-:global(.dark) .metricIconBlue {
-    @apply text-blue-400;
-}
-
-.metricIconViolet {
-    @apply w-4 h-4 text-violet-500;
-}
-
-:global(.dark) .metricIconViolet {
-    @apply text-violet-400;
-}
-
-.metricIconEmerald {
-    @apply w-4 h-4 text-emerald-600;
-}
-
-:global(.dark) .metricIconEmerald {
-    @apply text-emerald-400;
-}
-
-.metricIconRose {
-    @apply w-4 h-4 text-rose-500;
-}
-
-:global(.dark) .metricIconRose {
-    @apply text-rose-400;
-}
-
-.metricValueBlue {
-    @apply text-2xl font-bold text-blue-700;
-}
-
-:global(.dark) .metricValueBlue {
-    @apply text-blue-400;
-}
-
-.metricValueViolet {
-    @apply text-2xl font-bold text-violet-700;
-}
-
-:global(.dark) .metricValueViolet {
-    @apply text-violet-400;
-}
-
-.metricValueEmerald {
-    @apply text-2xl font-bold text-emerald-700;
-}
-
-:global(.dark) .metricValueEmerald {
-    @apply text-emerald-400;
-}
-
-.metricValueRose {
-    @apply text-2xl font-bold text-rose-700;
-}
-
-:global(.dark) .metricValueRose {
-    @apply text-rose-400;
-}
+/* Metric Values */
+.metricValueBlue { @apply text-2xl font-bold text-blue-700 dark:text-blue-400; }
+.metricValueViolet { @apply text-2xl font-bold text-violet-700 dark:text-violet-400; }
+.metricValueEmerald { @apply text-2xl font-bold text-emerald-700 dark:text-emerald-400; }
+.metricValueRose { @apply text-2xl font-bold text-rose-700 dark:text-rose-400; }
 
 .metricSubtext {
-    @apply text-xs text-gray-600 mt-1;
-}
-
-:global(.dark) .metricSubtext {
-    @apply text-gray-400;
+    @apply text-xs text-gray-500 mt-1 dark:text-gray-400;
 }

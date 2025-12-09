@@ -1,6 +1,17 @@
 /* Layout */
 .container {
     composes: dashboardLayout from "./Global.module.css";
+    /* FIX: Add top padding on mobile to clear the Hamburger button */
+    @apply min-h-screen p-4 pt-20 transition-colors duration-300;
+    
+    /* Desktop: Less top padding needed since Sidebar is side-by-side */
+    @apply md:p-8 md:pt-8;
+    
+    background-color: #f9fafb; /* Light mode bg */
+}
+
+:global(.dark) .container {
+    @apply bg-slate-950;
 }
 
 .header {
@@ -13,11 +24,11 @@
 
 /* Cards */
 .card {
-    @apply bg-white rounded-lg shadow p-6 border border-gray-200;
+    @apply bg-white rounded-xl shadow-sm p-6 border border-gray-200;
 }
 
 :global(.dark) .card {
-    @apply bg-slate-800 border-gray-700;
+    @apply bg-slate-900 border-gray-800;
 }
 
 /* Sections */
@@ -30,7 +41,7 @@
 }
 
 .sectionSubHeader {
-    @apply font-semibold text-gray-900;
+    @apply font-semibold text-gray-900 mt-4 block;
 }
 
 :global(.dark) .sectionSubHeader {
@@ -38,7 +49,7 @@
 }
 
 .sectionText {
-    @apply text-sm text-gray-500 my-2;
+    @apply text-sm text-gray-500 my-2 leading-relaxed;
 }
 
 :global(.dark) .sectionText {
@@ -55,7 +66,7 @@
 
 /* Form Elements */
 .formGroup {
-    @apply space-y-4;
+    @apply space-y-5;
 }
 
 .inputGroup {
@@ -64,49 +75,59 @@
 
 .label {
     composes: label from "./Global.module.css";
+    @apply block mb-1 text-sm font-medium text-gray-700;
+}
+
+:global(.dark) .label {
+    @apply text-gray-300;
 }
 
 .input {
-    @apply block w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900 outline-none transition-colors focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-500 focus:border-transparent;
+    @apply block w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 outline-none transition-all;
+    @apply focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500;
 }
 
 :global(.dark) .input {
-    @apply border-gray-600 bg-slate-900 text-white focus:ring-teal-500;
+    @apply border-gray-700 bg-slate-950 text-white;
+    @apply focus:ring-teal-500/20 focus:border-teal-500;
 }
 
 .disabledInput {
-    @apply block w-full px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 rounded cursor-not-allowed;
+    @apply block w-full px-4 py-2.5 border border-gray-200 bg-gray-50 text-gray-500 rounded-lg cursor-not-allowed;
 }
 
 :global(.dark) .disabledInput {
-    @apply border-gray-600 bg-slate-700 text-gray-400;
+    @apply border-gray-700 bg-slate-800 text-gray-400;
 }
 
 /* Profile Picture */
 .profilePicWrapper {
-    @apply w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600 overflow-hidden;
+    /* FIX: Added shrink-0 so it doesn't squish on small screens */
+    @apply w-20 h-20 rounded-full flex-shrink-0 bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-500 overflow-hidden border-2 border-white shadow-sm;
 }
 
 :global(.dark) .profilePicWrapper {
-    @apply bg-slate-700 text-gray-200;
-    /* Use gray text for placeholder initials in dark mode */
+    @apply bg-slate-800 text-gray-400 border-slate-700;
 }
 
 /* Buttons */
 .buttonGroup {
-    @apply flex gap-3;
+    /* FIX: Flex-col for mobile (stacking), Row for desktop */
+    @apply flex flex-col gap-3 pt-4;
+    @apply sm:flex-row sm:items-center;
 }
 
 .buttonPrimary {
-    @apply px-4 py-2 bg-blue-600 dark:bg-teal-600 text-white rounded hover:bg-blue-700 dark:hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
 }
 
 :global(.dark) .buttonPrimary {
-    @apply bg-teal-600 hover:bg-teal-700;
+    @apply bg-teal-600 hover:bg-teal-700 text-white;
 }
 
 .buttonDanger {
-    @apply px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors w-full text-left sm:w-auto block;
+    @apply px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm;
+    @apply w-full sm:w-auto text-center;
 }
 
 :global(.dark) .buttonDanger {
@@ -114,31 +135,34 @@
 }
 
 .buttonOutlineDanger {
-    @apply px-4 py-2 border border-red-200 text-red-600 rounded hover:bg-red-50 transition-colors;
+    @apply px-5 py-2.5 border border-red-200 text-red-600 font-medium rounded-lg hover:bg-red-50 transition-colors;
+    @apply w-full sm:w-auto text-center;
 }
 
 :global(.dark) .buttonOutlineDanger {
-    @apply border-red-900/30 text-red-400 hover:bg-red-900/20;
+    @apply border-red-900/50 text-red-400 hover:bg-red-900/20;
 }
 
 .buttonOutlineWarning {
-    @apply px-4 py-2 border border-yellow-200 text-yellow-700 rounded hover:bg-yellow-50 transition-colors w-full text-left sm:w-auto block mb-3;
+    @apply px-5 py-2.5 border border-yellow-300 text-yellow-700 font-medium rounded-lg hover:bg-yellow-50 transition-colors mb-3;
+    @apply w-full sm:w-auto text-center;
 }
 
 :global(.dark) .buttonOutlineWarning {
-    @apply border-yellow-900/30 text-yellow-500 hover:bg-yellow-900/20;
+    @apply border-yellow-700/50 text-yellow-500 hover:bg-yellow-900/20;
 }
 
 /* Error Box */
 .errorBox {
     composes: errorAlert from "./Global.module.css";
+    @apply mt-4;
 }
 
 /* Loading */
 .loadingContainer {
-    @apply flex-1 p-6 flex items-center justify-center h-full;
+    @apply flex-1 p-6 flex items-center justify-center min-h-[50vh];
 }
 
 :global(.dark) .loadingContainer {
-    @apply bg-slate-950 text-gray-300;
+    @apply text-gray-400;
 }
