@@ -63,7 +63,9 @@ const ImageAnalysisSection: React.FC<Props> = ({
 
         <p className={styles.confidenceLabel}>Confidence</p>
         <p className={styles.confidenceValue}>
-          {Math.round(confidenceScore * 100)}%
+          {isDeepfake
+            ? `${Math.round(confidenceScore * 100)}%`
+            : `${Math.round((1 - confidenceScore) * 100)}%`}
         </p>
 
         <p className={styles.dateLabel}>

@@ -13,6 +13,8 @@ type UserProfile = {
   id?: string;
   name: string;
   email: string;
+  profile_picture?: string | null;
+  isTrial?: boolean;
   profile_pic?: string | null;
 };
 
@@ -65,8 +67,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       isLogout
         ? "all other devices"
         : type === "analyses"
-        ? "all analysis history"
-        : "your entire account",
+          ? "all analysis history"
+          : "your entire account",
     questionPrefix:
       isLogout
         ? "Are you sure you want to log out from"
@@ -81,19 +83,19 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   const colors = isLogout
     ? {
-        iconBg: "bg-blue-50 dark:bg-teal-900/20",
-        iconColor: "text-blue-600 dark:text-teal-400",
-        buttonBg: "bg-blue-600 hover:bg-blue-700 dark:bg-teal-600 dark:hover:bg-teal-700",
-        warningText: "text-blue-600 dark:text-teal-400",
-        ring: "ring-blue-50 dark:ring-teal-900/10",
-      }
+      iconBg: "bg-blue-50 dark:bg-teal-900/20",
+      iconColor: "text-blue-600 dark:text-teal-400",
+      buttonBg: "bg-blue-600 hover:bg-blue-700 dark:bg-teal-600 dark:hover:bg-teal-700",
+      warningText: "text-blue-600 dark:text-teal-400",
+      ring: "ring-blue-50 dark:ring-teal-900/10",
+    }
     : {
-        iconBg: "bg-red-50 dark:bg-red-900/20",
-        iconColor: "text-red-600 dark:text-red-500",
-        buttonBg: "bg-red-600 hover:bg-red-700",
-        warningText: "text-red-500",
-        ring: "ring-red-50 dark:ring-red-900/10",
-      };
+      iconBg: "bg-red-50 dark:bg-red-900/20",
+      iconColor: "text-red-600 dark:text-red-500",
+      buttonBg: "bg-red-600 hover:bg-red-700",
+      warningText: "text-red-500",
+      ring: "ring-red-50 dark:ring-red-900/10",
+    };
 
   return (
     <div
@@ -300,6 +302,9 @@ export default function AccountSettings(): JSX.Element {
 
       setProfileSaveState("SUCCESS");
       pulseSuccess(profileCardRef.current);
+
+      // Notify other components (Sidebar/UserProfileCard) to refresh
+      window.dispatchEvent(new Event("user-profile-updated"));
     } catch (err: any) {
       setProfileSaveState("ERROR");
       shakeCard(profileCardRef.current);
@@ -396,7 +401,32 @@ export default function AccountSettings(): JSX.Element {
     );
 
   return (
-    <main ref={pageRef} className={styles.container}>
+    <main ref={pageRef} className={`${styles.container} relative`}>
+
+      {/* TRIAL BLUR OVERLAY */}
+      {(profile.isTrial || profile.email === 'guest@trial.com') && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-lg pt-20">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 text-center max-w-md mx-4 relative z-50">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <LogOut className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Account Settings Restricted</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Trial users cannot modify account settings. <br />
+              Please create an account to access these features.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <a href="/login" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                Sign In
+              </a>
+              <a href="/signup" className="px-6 py-2.5 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 font-medium rounded-lg transition-colors">
+                Create Account
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL */}
       <ConfirmationModal
         isOpen={modalConfig.isOpen}
@@ -415,25 +445,35 @@ export default function AccountSettings(): JSX.Element {
       {/* PROFILE CARD */}
       <section ref={profileCardRef} className={`${styles.card} account-card`}>
         <form onSubmit={saveProfile} className={styles.formGroup}>
-          <div className="flex items-center gap-4">
-            <div className={`${styles.profilePicWrapper} profile-pic-wrapper`}>
-              {local.profile_pic ? (
-                <img
-                  src={local.profile_pic}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                local.name?.charAt(0).toUpperCase()
-              )}
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 dark:from-cyan-400 dark:to-purple-500 opacity-70 group-hover:opacity-100 blur-[2px] transition-all"></div>
+              <div className="relative w-24 h-24 rounded-full bg-white dark:bg-slate-800 overflow-hidden border-2 border-white dark:border-slate-800 z-10 flex items-center justify-center">
+                {local.profile_pic ? (
+                  <img
+                    src={local.profile_pic}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-slate-700 text-4xl font-bold text-gray-400 dark:text-gray-500">
+                    {local.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="border px-3 py-2 rounded dark:border-gray-600 dark:text-gray-200 action-button"
-            >
-              Change photo
-            </button>
+            <div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-medium hover:border-blue-500 dark:hover:border-cyan-500 hover:text-blue-600 dark:hover:text-cyan-400 transition-all bg-white dark:bg-slate-800 dark:text-gray-200 shadow-sm"
+              >
+                Change photo
+              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                JPG, GIF or PNG. Max size of 2MB.
+              </p>
+            </div>
 
             <input
               ref={fileInputRef}
@@ -443,7 +483,7 @@ export default function AccountSettings(): JSX.Element {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <div>
               <label className={styles.label}>Full name</label>
               <input
@@ -461,7 +501,7 @@ export default function AccountSettings(): JSX.Element {
           </div>
 
           <button
-            className={`${styles.buttonPrimary} action-button`}
+            className="mt-4 px-6 py-2.5 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-blue-600 to-pink-600 hover:from-blue-700 hover:to-pink-700 dark:from-cyan-500 dark:to-purple-600 dark:hover:from-cyan-400 dark:hover:to-purple-500 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={profileSaveState === "SAVING"}
           >
             {profileSaveState === "SAVING" ? "Saving..." : "Save changes"}
