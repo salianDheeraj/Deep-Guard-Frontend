@@ -45,8 +45,8 @@ const AuthInput: FC<AuthInputProps> = ({
   };
 
   return (
-    <div className={`${styles.inputGroup} login-form-element`}>
-      <label className={styles.label}>{label}</label>
+    <div className={`${styles.inputGroup} login-form-element mb-4`}>
+      <label className={`${styles.label} mb-2 block`}>{label}</label>
       <div className={styles.inputWrapper}>
         <input
           type={actualType}
@@ -170,20 +170,24 @@ const Login: FC = () => {
         <ThemeToggleButton />
       </div>
 
-      <header className={`${styles.header} login-title-group`}>
-        <div className={`${styles.logo} login-logo`}>
-          <Shield className={styles.logoIcon} />
+      <header className={`${styles.header} login-title-group !mb-8 flex flex-col items-center gap-2`}>
+        <div className={`${styles.logo} login-logo !mb-4`}>
+          {/* LOGO: Solid Blue (Light) / Solid Cyan (Dark) */}
+          <Shield className={`${styles.logoIcon} !text-blue-600 dark:!text-cyan-400 w-16 h-16 transition-colors duration-300`} />
         </div>
 
-        <h1 className={styles.title}>Deepfake Detector</h1>
+        {/* TITLE: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
+        <h1 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300 text-3xl font-bold`}>
+          Deepfake Detector
+        </h1>
 
-        <p className={styles.subtitle}>
+        <p className={`${styles.subtitle} mt-2`}>
           Sign in to detect deepfakes and review past analyses
         </p>
       </header>
 
-      <div className={`${styles.card} login-card`}>
-        <form onSubmit={handleSubmit}>
+      <div className={`${styles.card} login-card p-8`}>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <AuthInput
             label="Email Address"
             type="email"
@@ -204,25 +208,26 @@ const Login: FC = () => {
             InputIcon={Lock}
           />
 
-          <div className={styles.authOptions}>
-            <div className={styles.rememberMeWrapper}>
+          <div className={`${styles.authOptions} flex justify-between items-center mt-2`}>
+            <div className={`${styles.rememberMeWrapper} flex items-center`}>
               <input
                 id="remember-me"
                 name="rememberMe"
                 type="checkbox"
                 checked={formData.rememberMe || false}
                 onChange={handleInputChange}
-                className={styles.checkbox}
+                className={`${styles.checkbox} mr-2`}
               />
               <label htmlFor="remember-me" className={styles.checkboxLabel}>
                 Remember me
               </label>
             </div>
 
+            {/* FORGOT PASSWORD: Solid Blue (Light) / Cyan (Dark) */}
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
-              className={styles.forgotPassword}
+              className={`${styles.forgotPassword} !text-blue-600 dark:!text-cyan-400 hover:!underline transition-colors duration-300`}
             >
               Forgot Password?
             </button>
@@ -237,25 +242,27 @@ const Login: FC = () => {
             <div className={styles.error}>{error}</div>
           )}
 
+          {/* SIGN IN BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
           <button
             type="submit"
             disabled={isLoading}
-            className={`${styles.submitButton} login-button`}
+            className={`${styles.submitButton} login-button !border-0 !text-white !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300 w-full py-3 mt-4`}
           >
             <Shield className={styles.submitIcon} />
             {isLoading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
-        <p className={styles.footerText}>
+        <p className={`${styles.footerText} mt-6 text-center`}>
           Don't have an account?{" "}
-          <Link href="/signup" className={styles.footerLink}>
+          {/* SIGN UP LINK: Solid Blue (Light) / Cyan (Dark) */}
+          <Link href="/signup" className={`${styles.footerLink} !text-blue-600 dark:!text-cyan-400 hover:!underline transition-colors duration-300 ml-1`}>
             Sign up
           </Link>
         </p>
 
         {/* TRIAL BUTTON */}
-        <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1rem" }}>
+        <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1.5rem" }}>
           <button
             type="button"
             onClick={async () => {
@@ -278,12 +285,8 @@ const Login: FC = () => {
                 setIsLoading(false);
               }
             }}
-            className={styles.submitButton}
-            style={{
-              backgroundColor: "transparent",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              marginTop: "0.5rem"
-            }}
+            // TRIAL BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) + BOLD TEXT
+            className={`${styles.submitButton} login-button !border-0 !text-white font-bold !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300 w-full py-3`}
           >
             Try without an account
           </button>

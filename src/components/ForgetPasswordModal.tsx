@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, FC, FormEvent, ChangeEvent, useEffect } from "react";
-import { X, KeyRound, RotateCcw } from "lucide-react";
+// UPDATED: Imported Shield, removed KeyRound
+import { X, RotateCcw, Shield } from "lucide-react";
 import ReactDOM from "react-dom";
 import styles from "@/styles/ForgetPassword.module.css";
 
@@ -197,9 +198,15 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
         <div className={styles.header}>
           <div className={styles.iconWrapper}>
-            <KeyRound className={styles.icon} />
+            {/* UPDATED: Switched to Shield Logo. Solid Blue (Light) / Cyan (Dark) */}
+            <Shield className={`${styles.icon} !text-blue-600 dark:!text-cyan-400`} />
           </div>
-          <h2 className={styles.title}>Reset Password</h2>
+          
+          {/* TITLE: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
+          <h2 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300`}>
+            Reset Password
+          </h2>
+          
           <p className={styles.subtext}>
             {step === "email" && "Enter your email to receive a reset code"}
             {step === "otp" && "Enter the OTP and set a new password"}
@@ -234,10 +241,11 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
                 Cancel
               </button>
 
+              {/* MAIN BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className={styles.submitButton}
+                className={`${styles.submitButton} !border-0 !text-white !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300`}
               >
                 {isLoading ? "Sending..." : "Continue"}
               </button>
@@ -266,11 +274,12 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
               </span>
             </p>
 
+            {/* RESEND BUTTON: Text Blue (Light) / Cyan (Dark) */}
             <button
               type="button"
               onClick={resendOtp}
               disabled={cooldown > 0}
-              className={styles.resendButton}
+              className={`${styles.resendButton} !text-blue-600 dark:!text-cyan-400 hover:!underline transition-colors duration-300`}
             >
               <RotateCcw className="h-4 w-4" />
               {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
@@ -312,10 +321,11 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
                 Cancel
               </button>
 
+              {/* MAIN BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className={styles.submitButton}
+                className={`${styles.submitButton} !border-0 !text-white !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300`}
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
               </button>
@@ -328,9 +338,10 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
           <div className="text-center py-4">
             <p className={styles.successMessage}>{successMessage}</p>
 
+            {/* CLOSE BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
             <button
               onClick={handleClose}
-              className={styles.closeSuccessButton}
+              className={`${styles.closeSuccessButton} !border-0 !text-white !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300`}
             >
               Close
             </button>

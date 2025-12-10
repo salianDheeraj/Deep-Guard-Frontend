@@ -81,15 +81,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     Icon: isLogout ? LogOut : AlertTriangle,
   };
 
+  // UPDATED COLORS: Blue+Pink / Cyan+Purple
   const colors = isLogout
     ? {
-      iconBg: "bg-blue-50 dark:bg-teal-900/20",
-      iconColor: "text-blue-600 dark:text-teal-400",
-      buttonBg: "bg-blue-600 hover:bg-blue-700 dark:bg-teal-600 dark:hover:bg-teal-700",
-      warningText: "text-blue-600 dark:text-teal-400",
-      ring: "ring-blue-50 dark:ring-teal-900/10",
+      iconBg: "bg-blue-50 dark:bg-cyan-900/20",
+      iconColor: "text-blue-600 dark:text-cyan-400",
+      // Gradient Button
+      buttonBg: "bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700",
+      warningText: "text-blue-600 dark:text-cyan-400",
+      ring: "ring-blue-50 dark:ring-cyan-900/10",
     }
     : {
+      // Delete actions remain Red for safety semantics
       iconBg: "bg-red-50 dark:bg-red-900/20",
       iconColor: "text-red-600 dark:text-red-500",
       buttonBg: "bg-red-600 hover:bg-red-700",
@@ -145,7 +148,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 px-5 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg ${colors.buttonBg} disabled:opacity-70`}
+            className={`flex-1 px-5 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg border-0 ${colors.buttonBg} disabled:opacity-70`}
           >
             {isLoading ? (
               <Loader2 className="animate-spin w-4 h-4" />
@@ -181,18 +184,18 @@ export default function AccountSettings(): JSX.Element {
     );
   };
 
-  // Success pulse animation — FIXED ✔
+  // Success pulse animation
   const pulseSuccess = (el: HTMLElement | null) => {
     if (!el) return;
 
     gsap.to(el, {
-      boxShadow: "0 0 20px rgba(34,197,94,0.4)",
+      boxShadow: "0 0 20px rgba(34,197,94,0.4)", // Kept green for success feedback
       scale: 1.01,
       duration: 0.2,
       yoyo: true,
       repeat: 1,
       onComplete: () => {
-        gsap.set(el, { clearProps: "boxShadow,scale" }); // ✔ VALID RETURN TYPE
+        gsap.set(el, { clearProps: "boxShadow,scale" });
       },
     });
   };
@@ -303,7 +306,6 @@ export default function AccountSettings(): JSX.Element {
       setProfileSaveState("SUCCESS");
       pulseSuccess(profileCardRef.current);
 
-      // Notify other components (Sidebar/UserProfileCard) to refresh
       window.dispatchEvent(new Event("user-profile-updated"));
     } catch (err: any) {
       setProfileSaveState("ERROR");
@@ -390,9 +392,6 @@ export default function AccountSettings(): JSX.Element {
     }
   };
 
-  // =======================================================================
-  // RENDER
-  // =======================================================================
   if (loading)
     return (
       <main className={styles.loadingContainer}>
@@ -407,8 +406,9 @@ export default function AccountSettings(): JSX.Element {
       {(profile.isTrial || profile.email === 'guest@trial.com') && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-lg pt-20">
           <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 text-center max-w-md mx-4 relative z-50">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4 mx-auto">
-              <LogOut className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            {/* Icon: Solid Blue / Cyan */}
+            <div className="w-16 h-16 bg-blue-100 dark:bg-cyan-900/30 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <LogOut className="w-8 h-8 text-blue-600 dark:text-cyan-400" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Account Settings Restricted</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -416,7 +416,8 @@ export default function AccountSettings(): JSX.Element {
               Please create an account to access these features.
             </p>
             <div className="flex gap-3 justify-center">
-              <a href="/login" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+              {/* Sign In Button: Gradient */}
+              <a href="/login" className="px-6 py-2.5 font-medium rounded-lg transition-colors text-white border-0 bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700">
                 Sign In
               </a>
               <a href="/signup" className="px-6 py-2.5 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 font-medium rounded-lg transition-colors">
@@ -447,11 +448,13 @@ export default function AccountSettings(): JSX.Element {
         <form onSubmit={saveProfile} className={styles.formGroup}>
           <div className="flex items-center gap-6">
             <div className="relative group">
+              {/* PROFILE RING: Gradient Blue+Pink / Cyan+Purple */}
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 dark:from-cyan-400 dark:to-purple-500 opacity-70 group-hover:opacity-100 blur-[2px] transition-all"></div>
               <div className="relative w-24 h-24 rounded-full bg-white dark:bg-slate-800 overflow-hidden border-2 border-white dark:border-slate-800 z-10 flex items-center justify-center">
                 {local.profile_pic ? (
                   <img
                     src={local.profile_pic}
+                    alt="Profile"
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -463,6 +466,7 @@ export default function AccountSettings(): JSX.Element {
             </div>
 
             <div>
+              {/* CHANGE PHOTO BUTTON: Hover Text/Border Blue / Cyan */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -500,8 +504,9 @@ export default function AccountSettings(): JSX.Element {
             </div>
           </div>
 
+          {/* SAVE BUTTON: Gradient Blue+Pink / Cyan+Purple */}
           <button
-            className="mt-4 px-6 py-2.5 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-blue-600 to-pink-600 hover:from-blue-700 hover:to-pink-700 dark:from-cyan-500 dark:to-purple-600 dark:hover:from-cyan-400 dark:hover:to-purple-500 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-4 px-6 py-2.5 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border-0"
             disabled={profileSaveState === "SAVING"}
           >
             {profileSaveState === "SAVING" ? "Saving..." : "Save changes"}
@@ -543,8 +548,9 @@ export default function AccountSettings(): JSX.Element {
             />
           </div>
 
+          {/* CHANGE PASSWORD BUTTON: Gradient Blue+Pink / Cyan+Purple */}
           <button
-            className={`${styles.buttonPrimary} action-button`}
+            className={`${styles.buttonPrimary} action-button !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 !border-0`}
             disabled={passwordSaveState === "SAVING"}
           >
             {passwordSaveState === "SAVING" ? "Changing..." : "Change password"}

@@ -527,42 +527,43 @@ const NewAnalysisContent: React.FC = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* VIDEO CARD */}
+            {/* VIDEO CARD: Cyan Theme */}
             <div
               onClick={() => setSelectedType('VIDEO')}
-              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-cyan-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-blue-500 dark:hover:border-cyan-500"
+              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-cyan-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500"
             >
-              <div className="w-16 h-16 bg-blue-100 dark:bg-cyan-900/30 rounded-2xl flex items-center justify-center mb-6 text-blue-600 dark:text-cyan-400 group-hover:bg-blue-600 dark:group-hover:bg-cyan-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
+              <div className="w-16 h-16 bg-cyan-100 dark:bg-cyan-900/30 rounded-2xl flex items-center justify-center mb-6 text-cyan-600 dark:text-cyan-400 group-hover:bg-cyan-600 dark:group-hover:bg-cyan-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
                 <Video className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Video</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
                 Detect deepfakes in video files. Supports MP4 format.
               </p>
-              <div className="flex items-center text-blue-600 dark:text-cyan-400 font-medium">
+              <div className="flex items-center text-cyan-600 dark:text-cyan-400 font-medium">
                 Select Video <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
-            {/* IMAGE CARD */}
+            {/* IMAGE CARD: Purple Theme */}
             <div
               onClick={() => setSelectedType('IMAGE')}
-              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-purple-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-pink-500 dark:hover:border-purple-500"
+              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-purple-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500"
             >
-              <div className="w-16 h-16 bg-pink-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6 text-pink-600 dark:text-purple-400 group-hover:bg-pink-600 dark:group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 dark:group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
                 <ImageIcon className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Image</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
                 Check photos for AI manipulation. Supports JPG, PNG.
               </p>
-              <div className="flex items-center text-pink-600 dark:text-purple-400 font-medium">
+              <div className="flex items-center text-purple-600 dark:text-purple-400 font-medium">
                 Select Image <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </div>
 
-          <div className="mt-12 opacity-80">
+          {/* Updated FeatureList container for color styling */}
+          <div className="mt-12 opacity-80 [&_h3]:dark:text-white [&_svg]:text-blue-600 dark:[&_svg]:text-cyan-400">
             <FeatureList features={features} />
           </div>
         </div>
@@ -601,7 +602,9 @@ const NewAnalysisContent: React.FC = () => {
           </button>
           <div>
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-              {selectedType === 'VIDEO' ? <Video className="w-8 h-8 text-cyan-500" /> : <ImageIcon className="w-8 h-8 text-purple-500" />}
+              {selectedType === 'VIDEO'
+                ? <Video className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+                : <ImageIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />}
               Analyze {config.label}
             </h2>
           </div>
@@ -619,8 +622,8 @@ const NewAnalysisContent: React.FC = () => {
                 ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30 border-solid"
                 : "border-purple-500 bg-purple-50 dark:bg-purple-900/30 border-solid"
               : selectedType === 'VIDEO'
-                ? "border-cyan-200 dark:border-cyan-800/50 border-dashed"
-                : "border-purple-200 dark:border-purple-800/50 border-dashed"
+                ? "border-cyan-200 dark:border-cyan-800/50 border-dashed hover:border-cyan-400 dark:hover:border-cyan-600"
+                : "border-purple-200 dark:border-purple-800/50 border-dashed hover:border-purple-400 dark:hover:border-purple-600"
             }
             ${analysisState !== "IDLE" ? "p-10" : ""}
           `}
@@ -648,7 +651,8 @@ const NewAnalysisContent: React.FC = () => {
           />
         </div>
 
-        <div className="mt-10 [&_h3]:dark:text-white">
+        {/* Updated FeatureList container for color styling */}
+        <div className="mt-10 [&_h3]:dark:text-white [&_svg]:text-blue-600 dark:[&_svg]:text-cyan-400">
           <FeatureList features={features} />
         </div>
       </div>

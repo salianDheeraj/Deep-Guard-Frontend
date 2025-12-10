@@ -316,7 +316,8 @@ const AnalysisHistory: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center p-12 bg-gray-50 dark:bg-slate-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 text-center transition-colors">
         <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
-          <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          {/* Icon: Solid Blue / Cyan */}
+          <FileText className="w-8 h-8 text-blue-600 dark:text-cyan-400" />
         </div>
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">History Not Available</h3>
         <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
@@ -324,9 +325,10 @@ const AnalysisHistory: React.FC = () => {
           Sign in or create an account to save your results.
         </p>
         <div className="flex gap-4">
+          {/* Sign In Button: Gradient */}
           <Link
             href="/login"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="px-6 py-2 text-white font-medium rounded-lg transition-colors border-0 bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700"
           >
             Sign In
           </Link>
@@ -362,7 +364,8 @@ const AnalysisHistory: React.FC = () => {
               key={filter}
               onClick={() => handleFilterChange(filter)}
               className={`${styles.filterButton} ${activeFilter === filter
-                ? styles.filterButtonActive + ' dark:!text-white'
+                // Filter Active: Solid Blue / Cyan Tint
+                ? styles.filterButtonActive + ' !bg-blue-100 !text-blue-700 dark:!bg-cyan-900/30 dark:!text-cyan-400'
                 : styles.filterButtonInactive + ' dark:!text-gray-300 dark:hover:!text-white dark:hover:!bg-slate-800'
                 }`}
             >
@@ -378,7 +381,7 @@ const AnalysisHistory: React.FC = () => {
               placeholder="Search filename..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className={`${styles.searchInput} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 dark:placeholder-gray-500`}
+              className={`${styles.searchInput} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 dark:placeholder-gray-500 focus:!border-blue-500 dark:focus:!border-cyan-400`}
             />
             <Search size={16} className={`${styles.searchIcon} dark:text-gray-400`} />
           </div>
@@ -390,7 +393,7 @@ const AnalysisHistory: React.FC = () => {
                 setSortBy(e.target.value as 'date' | 'confidence');
                 setAnimationTrigger(prev => prev + 1);
               }}
-              className={`${styles.sortSelect} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700`}
+              className={`${styles.sortSelect} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 focus:!border-blue-500 dark:focus:!border-cyan-400`}
             >
               <option value="date">Sort by Date</option>
               <option value="confidence">Sort by Confidence</option>
@@ -443,9 +446,10 @@ const AnalysisHistory: React.FC = () => {
                       <td className={`${styles.td} font-medium`}>
                         <div className={styles.filenameCell}>
                           <FileText size={16} className={`${styles.fileIcon} dark:text-gray-400`} />
+                          {/* File Name Link: Solid Blue / Cyan */}
                           <Link
                             href={`/dashboard/analysis/${item.id}`}
-                            className={`${styles.filenameLink} dark:!text-gray-200 dark:hover:!text-blue-400`}
+                            className={`${styles.filenameLink} !text-blue-600 hover:!text-blue-800 dark:!text-cyan-400 dark:hover:!text-cyan-300`}
                             title={item.filename}
                           >
                             {item.filename}
@@ -468,9 +472,10 @@ const AnalysisHistory: React.FC = () => {
                       </td>
                       <td className={`${styles.td} font-medium`}>
                         <div className={styles.actionButtons}>
+                          {/* View Button: Solid Blue / Cyan */}
                           <button
                             onClick={() => router.push(`/dashboard/analysis/${item.id}`)}
-                            className={`${styles.actionBtn} ${styles.viewBtn} dark:!text-gray-400 dark:hover:!text-blue-400`}
+                            className={`${styles.actionBtn} ${styles.viewBtn} !text-blue-600 hover:bg-blue-50 dark:!text-cyan-400 dark:hover:bg-cyan-900/20`}
                             title="View Details"
                           >
                             <Search size={18} />
@@ -502,9 +507,6 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  // --- FIX APPLIED HERE ---
-                  // disabled:dark:!text-white ensures the text stays white even when disabled.
-                  // disabled:opacity-50 reduces the brightness/alpha to imply the disabled state, while keeping the color white.
                   className={`${styles.navButton} dark:!text-white dark:hover:!text-gray-200 disabled:dark:!text-white disabled:opacity-50`}
                 >
                   Previous
@@ -515,7 +517,8 @@ const AnalysisHistory: React.FC = () => {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`${styles.pageButton} ${currentPage === pageNum
-                      ? styles.pageButtonActive + ' dark:!text-white'
+                      // Pagination Active: Gradient Blue+Pink / Cyan+Purple
+                      ? styles.pageButtonActive + ' !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-600 !text-white !border-0'
                       : styles.pageButtonInactive + ' dark:!text-gray-300 dark:hover:!text-white'
                       }`}
                   >
@@ -526,7 +529,6 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  // --- FIX APPLIED HERE ---
                   className={`${styles.navButton} dark:!text-white dark:hover:!text-gray-200 disabled:dark:!text-white disabled:opacity-50`}
                 >
                   Next
@@ -537,7 +539,7 @@ const AnalysisHistory: React.FC = () => {
         )}
       </div>
 
-      {/* Bulk Delete + Start New */}
+      {/* Bottom Actions */}
       <div className={styles.bottomActions}>
         <button
           onClick={openBulkDeleteModal}
@@ -547,9 +549,10 @@ const AnalysisHistory: React.FC = () => {
           Bulk Delete {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
 
+        {/* Start New Analysis: Gradient Blue+Pink / Cyan+Purple */}
         <Link
           href="/dashboard/new-analysis"
-          className={styles.newAnalysisButton}
+          className={`${styles.newAnalysisButton} !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 text-white border-0`}
         >
           Start New Analysis
         </Link>
