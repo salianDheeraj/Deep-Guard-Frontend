@@ -90,14 +90,14 @@ export default function RecentAnalyses() {
   // ERROR STATE
   if (error) {
     return (
-      <div className={styles.statusCard}>
+      <div className={`${styles.statusCard} p-4 md:p-6`}>
         <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
           <AlertCircle size={20} />
           <div>
-            <p className="font-medium">{error}</p>
+            <p className="font-medium text-sm md:text-base">{error}</p>
             <button
               onClick={fetchAnalyses}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-300 underline mt-1"
+              className="text-xs md:text-sm text-red-500 hover:text-red-700 dark:hover:text-red-300 underline mt-1"
             >
               Try again
             </button>
@@ -110,7 +110,7 @@ export default function RecentAnalyses() {
   // LOADING STATE
   if (loading) {
     return (
-      <div className={styles.statusCard}>
+      <div className={`${styles.statusCard} p-6`}>
         <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     );
@@ -119,8 +119,8 @@ export default function RecentAnalyses() {
   // EMPTY STATE
   if (analyses.length === 0) {
     return (
-      <div className={styles.statusCard}>
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className={`${styles.statusCard} p-6`}>
+        <p className="text-gray-500 dark:text-gray-400 text-center">
           No analyses yet. Start by uploading a video!
         </p>
       </div>
@@ -131,60 +131,74 @@ export default function RecentAnalyses() {
   return (
     <div
       ref={containerRef}
-      className={styles.analysesCard}
+      className={`${styles.analysesCard} bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden`}
     >
-      <h2 className={styles.cardHeader}>
+      <h2 className={`${styles.cardHeader} text-lg md:text-xl font-bold p-4 md:p-6 border-b border-gray-100 dark:border-gray-800`}>
         Recent Analyses
       </h2>
 
-      {analyses.map((analysis) => (
-        <Link
-          href={`/dashboard/analysis/${analysis.id}`}
-          key={analysis.id}
-          className={`${styles.analysisRow} opacity-0`}
-        >
-          <div className={styles.leftContent}>
-            <div
-              className={`${styles.avatar} ${getAvatarPlaceholder(
-                analysis.filename
-              )}`}
-            >
-              {analysis.filename.substring(0, 1).toUpperCase()}
+      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+        {analyses.map((analysis) => (
+          <Link
+            href={`/dashboard/analysis/${analysis.id}`}
+            key={analysis.id}
+            // Responsive Layout: Compact padding on mobile
+            className={`${styles.analysisRow} opacity-0 block hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors p-3 md:p-4`}
+          >
+            <div className="flex items-center justify-between w-full">
+              
+              {/* LEFT: Avatar + Filename (Flexible width) */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Avatar */}
+                <div
+                  className={`${styles.avatar} w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base ${getAvatarPlaceholder(
+                    analysis.filename
+                  )}`}
+                >
+                  {analysis.filename.substring(0, 1).toUpperCase()}
+                </div>
+
+                {/* Text Info */}
+                <div className="min-w-0 flex-1 pr-2">
+                  {/* Truncate ensures filename doesn't push UI off screen */}
+                  <p className={`${styles.filename} text-sm md:text-base font-medium text-gray-900 dark:text-gray-100 truncate`}>
+                    {analysis.filename}
+                  </p>
+                  <p className={`${styles.timestamp} text-xs text-gray-500`}>
+                    {formatTimeAgo(analysis.created_at)}
+                  </p>
+                </div>
+              </div>
+
+              {/* RIGHT: Confidence + Badge + Arrow (Fixed/Shrink width) */}
+              <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                
+                {/* Confidence: HIDDEN on mobile to save space */}
+                <span className={`${styles.confidence} text-sm text-gray-500 hidden sm:block`}>
+                  {getDisplayedConfidence(analysis)}% confidence
+                </span>
+
+                {/* Status Badge */}
+                <span
+                  className={`${styles.statusBadge} px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${analysis.is_deepfake
+                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    }`}
+                >
+                  {analysis.is_deepfake ? "FAKE" : "REAL"}
+                </span>
+
+                <ChevronRight className={`${styles.chevron} w-4 h-4 md:w-5 md:h-5 text-gray-400`} />
+              </div>
             </div>
+          </Link>
+        ))}
+      </div>
 
-            <div className={styles.textContent}>
-              <p className={styles.filename}>
-                {analysis.filename}
-              </p>
-              <p className={styles.timestamp}>
-                {formatTimeAgo(analysis.created_at)}
-              </p>
-            </div>
-          </div>
-
-          <div className={styles.rightContent}>
-            <span className={styles.confidence}>
-              {getDisplayedConfidence(analysis)}% confidence
-            </span>
-
-            <span
-              className={`${styles.statusBadge} ${analysis.is_deepfake
-                ? styles.badgeFake
-                : styles.badgeReal
-                }`}
-            >
-              {analysis.is_deepfake ? "FAKE" : "REAL"}
-            </span>
-
-            <ChevronRight className={styles.chevron} />
-          </div>
-        </Link>
-      ))}
-
-      <div className={styles.viewAllLinkContainer}>
+      <div className="p-3 md:p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800">
         <Link
           href="/dashboard/history"
-          className={styles.viewAllLink}
+          className={`${styles.viewAllLink} block text-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors`}
         >
           View All Analyses →
         </Link>

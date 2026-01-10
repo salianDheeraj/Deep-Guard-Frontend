@@ -55,8 +55,6 @@ export default function DashboardStatCard() {
 
         // Check for trial restriction
         if (result.trial_restricted) {
-          // You can handle this by setting a special state, or just setting stats to -1 to indicate N/A
-          // Or we can add a new state boolean 'restricted'
           setStats({ totalVideos: -1, realVideos: -1, fakeVideos: -1 });
           return;
         }
@@ -106,11 +104,19 @@ export default function DashboardStatCard() {
   // ---------------- RENDER: Success ----------------
   return (
     <div>
-      <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Responsive Grid Updates:
+        - gap-4 on mobile (tighter) -> gap-6 on desktop (spacious)
+        - mb-6 on mobile -> mb-8 on desktop
+        - grid-cols-1 (stacked) on mobile -> grid-cols-3 on desktop
+      */}
+      <div 
+        ref={gridRef} 
+        className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8"
+      >
         {/* TOTAL VIDEOS */}
         <Link href="/dashboard/history" className="contents">
           <section
-            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200`}
             aria-labelledby="total-videos-title"
           >
             <div className={styles.statHeader}>
@@ -138,7 +144,7 @@ export default function DashboardStatCard() {
         {/* REAL VIDEOS */}
         <Link href="/dashboard/history?filter=REAL" className="contents">
           <section
-            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200`}
             aria-labelledby="real-videos-title"
           >
             <div className={styles.statHeader}>
@@ -166,7 +172,7 @@ export default function DashboardStatCard() {
         {/* FAKE VIDEOS */}
         <Link href="/dashboard/history?filter=FAKE" className="contents">
           <section
-            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            className={`${styles.statCard} stat-card opacity-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200`}
             aria-labelledby="fake-videos-title"
           >
             <div className={styles.statHeader}>

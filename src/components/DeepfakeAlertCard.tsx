@@ -33,54 +33,76 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
           : styles.realGradient
         }`}
     >
-      <div className={styles.alertHeader}>
+      {/* Responsive Header:
+        - Mobile: flex-col (stacks status top, confidence bottom)
+        - Desktop (sm): flex-row (side-by-side)
+      */}
+      <div className={`${styles.alertHeader} flex flex-col sm:flex-row gap-6 sm:gap-4`}>
+        
         {/* Left: Status & Message */}
         <div className="flex-1">
-          <div className={styles.alertStatus}>
+          <div className={`${styles.alertStatus} flex items-center gap-3 mb-2`}>
             {isDeepfake ? (
               <>
-                <AlertTriangle className={styles.statusIcon} />
-                <h2 className={styles.statusText}>FAKE</h2>
+                <AlertTriangle className={`${styles.statusIcon} w-6 h-6 sm:w-8 sm:h-8`} />
+                <h2 className={`${styles.statusText} text-2xl sm:text-3xl font-bold`}>FAKE</h2>
               </>
             ) : (
               <>
-                <CheckCircle className={styles.statusIcon} />
-                <h2 className={styles.statusText}>REAL</h2>
+                <CheckCircle className={`${styles.statusIcon} w-6 h-6 sm:w-8 sm:h-8`} />
+                <h2 className={`${styles.statusText} text-2xl sm:text-3xl font-bold`}>REAL</h2>
               </>
             )}
           </div>
 
-          <p className={styles.alertMessage}>
+          <p className={`${styles.alertMessage} text-lg sm:text-xl font-medium mb-1`}>
             {isDeepfake
               ? 'Deepfake manipulation detected'
               : 'No deepfake detected'}
           </p>
 
-          <p className={styles.alertSubMessage}>
+          <p className={`${styles.alertSubMessage} text-sm opacity-90`}>
             Confidence represents model certainty, not absolute proof
           </p>
         </div>
 
         {/* Right: Confidence Score */}
-        <div className={styles.confidenceSection}>
-          <p className={styles.confidenceLabel}>Overall Confidence</p>
-          <p className={styles.confidenceValue}>{displayPercentage}%</p>
+        {/* Mobile: Aligns left (default), Desktop: Aligns right (text-right) */}
+        <div className={`${styles.confidenceSection} sm:text-right flex flex-col justify-center sm:block border-t sm:border-t-0 border-white/20 pt-4 sm:pt-0`}>
+          <p className={`${styles.confidenceLabel} text-sm uppercase tracking-wider opacity-90 mb-1`}>
+            Overall Confidence
+          </p>
+          {/* Responsive Text Size: 3xl on mobile, 5xl on desktop */}
+          <p className={`${styles.confidenceValue} text-4xl sm:text-5xl font-bold`}>
+            {displayPercentage}%
+          </p>
         </div>
       </div>
 
       {/* Frame Analysis Info */}
-      <div className={styles.statsRow}>
-        <div>
-          <p className={styles.statItemLabel}>Frames Analyzed</p>
-          <p className={styles.statItemValue}>{framesAnalyzed}</p>
+      {/* Grid ensures even spacing on mobile without wrapping awkwardly */}
+      <div className={`${styles.statsRow} grid grid-cols-3 gap-4 border-t border-white/20 pt-4 mt-4 sm:mt-6`}>
+        <div className="text-center sm:text-left">
+          <p className={`${styles.statItemLabel} text-xs sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
+            Analyzed
+          </p>
+          <p className={`${styles.statItemValue} text-lg sm:text-xl font-semibold`}>
+            {framesAnalyzed}
+          </p>
         </div>
-        <div>
-          <p className={styles.statItemLabel}>Total Frames</p>
-          <p className={styles.statItemValue}>{totalFrames}</p>
+        <div className="text-center sm:text-left">
+          <p className={`${styles.statItemLabel} text-xs sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
+            Total Frames
+          </p>
+          <p className={`${styles.statItemValue} text-lg sm:text-xl font-semibold`}>
+            {totalFrames}
+          </p>
         </div>
-        <div>
-          <p className={styles.statItemLabel}>Coverage</p>
-          <p className={styles.statItemValue}>
+        <div className="text-center sm:text-left">
+          <p className={`${styles.statItemLabel} text-xs sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
+            Coverage
+          </p>
+          <p className={`${styles.statItemValue} text-lg sm:text-xl font-semibold`}>
             {totalFrames > 0 ? Math.round((framesAnalyzed / totalFrames) * 100) : 0}%
           </p>
         </div>
