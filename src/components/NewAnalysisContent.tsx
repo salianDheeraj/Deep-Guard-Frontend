@@ -185,12 +185,6 @@ const NewAnalysisContent: React.FC = () => {
       return false;
     }
 
-    const fileExtension = file.name.split(".").pop()?.toUpperCase();
-
-    // Use dynamic config.supportedFormats based on selectedType (Video vs Image)
-    // Note: 'config' is not directly accessible in this callback due to dependency chain
-    // We should use the selectedType ref or pass it in. 
-    // Simplified: Check standard formats but logic below ensures type safety via accept attribute too.
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
 
@@ -203,8 +197,6 @@ const NewAnalysisContent: React.FC = () => {
       return false;
     }
 
-    // Basic extension check
-    // Actually we can just trust the 'selectedType' logic primarily.
     return true;
   }, [selectedType]);
 
@@ -313,7 +305,6 @@ const NewAnalysisContent: React.FC = () => {
           `🎬 Video upload: frames=${frameCount}, framesToAnalyze=${framesToAnalyze}`
         );
 
-        // If we haven't shown frame modal yet, show it and stop here.
         if (!showFrameInput && frameCount > 0) {
           debug(
             "📝 Showing frame selection modal before upload/ML for video"
@@ -354,10 +345,8 @@ const NewAnalysisContent: React.FC = () => {
       debug("📥 Upload response:", uploadData);
 
       if (!uploadRes.ok) {
-        // Surface backend message to UI for easier debugging
         const backendMsg = uploadData?.message || `Upload failed (${uploadRes.status})`;
 
-        // Specific helpful hint for large image uploads
         if (uploadRes.status === 413) {
           setErrorMessage(`Upload rejected: file too large. Maximum ${MAX_FILE_SIZE_MB}MB.`);
         } else {
@@ -366,7 +355,6 @@ const NewAnalysisContent: React.FC = () => {
 
         debug("❌ Upload error details:", { status: uploadRes.status, body: uploadData });
 
-        // If session expired / unauthorized, redirect to login so user can re-authenticate.
         if (uploadRes.status === 401 || String(backendMsg).toLowerCase().includes("session") || String(backendMsg).toLowerCase().includes("auth")) {
           debug("🔒 Session expired detected during upload; redirecting to login");
           setAnalysisState("IDLE");
@@ -384,7 +372,7 @@ const NewAnalysisContent: React.FC = () => {
         uploadData.data?.analysis_id ||
         uploadData.id;
 
-      await new Promise((r) => setTimeout(r, 200)); // allow cookie rotation
+      await new Promise((r) => setTimeout(r, 200));
 
       if (!analysisId) {
         throw new Error("No analysisId returned");
@@ -404,7 +392,6 @@ const NewAnalysisContent: React.FC = () => {
       debug("🧠 ML →", mlEndpoint);
 
       if (isVideo) {
-        // fake frame animation
         if (frameIntervalRef.current) {
           clearInterval(frameIntervalRef.current);
         }
@@ -431,7 +418,6 @@ const NewAnalysisContent: React.FC = () => {
           }),
         });
       } else {
-        // IMAGE: no body, backend pulls from storage
         mlRes = await fetch(mlEndpoint, {
           method: "POST",
           credentials: "include",
@@ -520,23 +506,27 @@ const NewAnalysisContent: React.FC = () => {
   // -------------------------------------------------------------
   if (!selectedType) {
     return (
-      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-10 transition-colors">
+      /* Changed p-10 to p-4 md:p-8 lg:p-10 for responsive padding */
+      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-4 md:p-8 lg:p-10 transition-colors">
         <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-8 text-center">
+          {/* Responsive Heading */}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6 md:mb-8 text-center">
             Choose Analysis Type
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* VIDEO CARD: Cyan Theme */}
+          {/* Responsive Grid: Gap reduced on mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+            {/* VIDEO CARD */}
             <div
               onClick={() => setSelectedType('VIDEO')}
-              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-cyan-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500"
+              /* Padding reduced on mobile (p-6) vs desktop (p-8) */
+              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-cyan-900/20 rounded-2xl p-6 md:p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500"
             >
               <div className="w-16 h-16 bg-cyan-100 dark:bg-cyan-900/30 rounded-2xl flex items-center justify-center mb-6 text-cyan-600 dark:text-cyan-400 group-hover:bg-cyan-600 dark:group-hover:bg-cyan-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
                 <Video className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Video</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Video</h3>
+              <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-6">
                 Detect deepfakes in video files. Supports MP4 format.
               </p>
               <div className="flex items-center text-cyan-600 dark:text-cyan-400 font-medium">
@@ -544,16 +534,16 @@ const NewAnalysisContent: React.FC = () => {
               </div>
             </div>
 
-            {/* IMAGE CARD: Purple Theme */}
+            {/* IMAGE CARD */}
             <div
               onClick={() => setSelectedType('IMAGE')}
-              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-purple-900/20 rounded-2xl p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500"
+              className="group relative overflow-hidden bg-white dark:bg-slate-800 dark:bg-gradient-to-br dark:from-slate-800 dark:to-purple-900/20 rounded-2xl p-6 md:p-8 shadow-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-2xl border border-gray-100 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500"
             >
               <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 dark:group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
                 <ImageIcon className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Image</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyze Image</h3>
+              <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-6">
                 Check photos for AI manipulation. Supports JPG, PNG.
               </p>
               <div className="flex items-center text-purple-600 dark:text-purple-400 font-medium">
@@ -562,8 +552,7 @@ const NewAnalysisContent: React.FC = () => {
             </div>
           </div>
 
-          {/* Updated FeatureList container for color styling */}
-          <div className="mt-12 opacity-80 [&_h3]:dark:text-white [&_svg]:text-blue-600 dark:[&_svg]:text-cyan-400">
+          <div className="mt-8 md:mt-12 opacity-80 [&_h3]:dark:text-white [&_svg]:text-blue-600 dark:[&_svg]:text-cyan-400">
             <FeatureList features={features} />
           </div>
         </div>
@@ -575,7 +564,8 @@ const NewAnalysisContent: React.FC = () => {
   // RENDER: Upload Screen (Specific Type)
   // -------------------------------------------------------------
   return (
-    <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-10 transition-colors">
+    /* Changed p-10 to p-4 md:p-10 for responsive padding */
+    <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-4 md:p-10 transition-colors">
       <FrameInputModal
         show={showFrameInput}
         selectedFile={selectedFile}
@@ -589,34 +579,38 @@ const NewAnalysisContent: React.FC = () => {
 
       <div className="max-w-4xl mx-auto">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6">
           <button
             onClick={() => {
               setSelectedType(null);
               setSelectedFile(null);
               setErrorMessage(null);
             }}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors shrink-0"
           >
-            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 text-gray-600 dark:text-gray-300" />
           </button>
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+            {/* Responsive Text Sizes */}
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-2 md:gap-3">
               {selectedType === 'VIDEO'
-                ? <Video className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
-                : <ImageIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />}
+                ? <Video className="w-6 h-6 md:w-8 md:h-8 text-cyan-600 dark:text-cyan-400" />
+                : <ImageIcon className="w-6 h-6 md:w-8 md:h-8 text-purple-600 dark:text-purple-400" />}
               Analyze {config.label}
             </h2>
           </div>
         </div>
 
-        <p className="text-gray-500 dark:text-gray-400 mb-10 ml-12">
+        {/* Responsive Description: Removed ml-12 on mobile, restored on desktop */}
+        <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-6 md:mb-10 ml-0 md:ml-12">
           Upload {config.label.toLowerCase()} files to detect potential deepfakes. Supported: {config.supportedFormats.join(', ')}
         </p>
 
         <div
+          /* Upload Box: Reduced padding drastically on mobile (p-6) -> desktop (p-16) */
           className={`
-            border-2 rounded-xl p-16 text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
+            border-2 rounded-xl text-center bg-white dark:bg-slate-800 shadow-xl transition-all duration-300 flex justify-center items-center
+            p-6 md:p-10 lg:p-16
             ${isDragging && analysisState === "IDLE"
               ? selectedType === 'VIDEO'
                 ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30 border-solid"
@@ -625,7 +619,7 @@ const NewAnalysisContent: React.FC = () => {
                 ? "border-cyan-200 dark:border-cyan-800/50 border-dashed hover:border-cyan-400 dark:hover:border-cyan-600"
                 : "border-purple-200 dark:border-purple-800/50 border-dashed hover:border-purple-400 dark:hover:border-purple-600"
             }
-            ${analysisState !== "IDLE" ? "p-10" : ""}
+            ${analysisState !== "IDLE" ? "p-6 md:p-10" : ""}
           `}
           onDragOver={analysisState === "IDLE" ? handleDragOver : undefined}
           onDragLeave={analysisState === "IDLE" ? handleDragLeave : undefined}
@@ -651,8 +645,7 @@ const NewAnalysisContent: React.FC = () => {
           />
         </div>
 
-        {/* Updated FeatureList container for color styling */}
-        <div className="mt-10 [&_h3]:dark:text-white [&_svg]:text-blue-600 dark:[&_svg]:text-cyan-400">
+        <div className="mt-8 md:mt-10 [&_h3]:dark:text-white [&_svg]:text-blue-600 dark:[&_svg]:text-cyan-400">
           <FeatureList features={features} />
         </div>
       </div>

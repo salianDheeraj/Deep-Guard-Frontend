@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { Loader2, Camera, Lock, Trash2, Save, AlertTriangle } from "lucide-react";
 
 type UserProfile = {
   id?: string;
@@ -32,14 +33,12 @@ export default function AccountSettings(): JSX.Element {
     profile_pic: null,
   });
 
-  const [profileSaveState, setProfileSaveState] =
-    useState<SaveState>("IDLE");
+  const [profileSaveState, setProfileSaveState] = useState<SaveState>("IDLE");
 
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
-  const [passwordSaveState, setPasswordSaveState] =
-    useState<SaveState>("IDLE");
+  const [passwordSaveState, setPasswordSaveState] = useState<SaveState>("IDLE");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -110,7 +109,6 @@ export default function AccountSettings(): JSX.Element {
       if (!res.ok) throw new Error("Failed to update profile");
 
       const data = await res.json();
-
       const updated = data.user;
 
       setProfile(updated);
@@ -202,130 +200,214 @@ export default function AccountSettings(): JSX.Element {
   // =======================================================================
   if (loading) {
     return (
-      <main className="flex-1 p-6 flex items-center justify-center">
-        Loading...
+      <main className="flex-1 p-10 flex items-center justify-center bg-gray-50 dark:bg-slate-950">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-cyan-400" />
       </main>
     );
   }
 
   return (
-    <main className="flex-1 p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Account Settings</h1>
+    /* Responsive Container: 
+      - p-4 on mobile (compact)
+      - p-8 on desktop (spacious)
+    */
+    <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-4 md:p-8 space-y-6 md:space-y-8 transition-colors">
+      
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Account Settings
+        </h1>
+        <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+          Manage your personal information and security preferences.
+        </p>
+      </div>
 
       {error && (
-        <div className="bg-red-100 border p-3 rounded text-red-700">{error}</div>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg flex items-center text-red-700 dark:text-red-300">
+          <AlertTriangle className="w-5 h-5 mr-3 shrink-0" />
+          {error}
+        </div>
       )}
 
-      {/* Profile */}
-      <section className="bg-white rounded shadow p-6 space-y-4">
-        <form onSubmit={saveProfile}>
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
-              {local.profile_pic ? (
-                <img src={local.profile_pic} />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  {local.name.charAt(0)}
-                </div>
-              )}
+      {/* --- PROFILE SECTION --- */}
+      <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 p-4 md:p-8">
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-6">
+          Profile Details
+        </h2>
+        
+        <form onSubmit={saveProfile} className="space-y-6">
+          {/* Avatar Row: Flex col on tiny screens, Row on normal */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
+            <div className="relative group">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700">
+                {local.profile_pic ? (
+                  <img src={local.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-2xl font-bold text-gray-400">
+                    {local.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                 <Camera className="text-white w-6 h-6" />
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="border px-3 py-2 rounded"
-            >
-              Change photo
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleFileInput}
-            />
+            
+            <div>
+               <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+              >
+                Change Photo
+              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                JPG, PNG or GIF. Max size 5MB.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileInput}
+              />
+            </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          {/* Inputs Grid: Stack on mobile (grid-cols-1), Side-by-side on Desktop (md:grid-cols-2) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
-              <label>Full name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Full Name
+              </label>
               <input
-                className="mt-1 border px-3 py-2 rounded w-full"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-transparent text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 value={local.name}
                 onChange={(e) =>
                   setLocal((p) => ({ ...p, name: e.target.value }))
                 }
+                placeholder="Your full name"
               />
             </div>
             <div>
-              <label>Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email Address
+              </label>
               <input
-                className="mt-1 border px-3 py-2 rounded w-full bg-gray-100"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 value={local.email}
                 disabled
               />
             </div>
           </div>
 
-          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
-            {profileSaveState === "SAVING" ? "Saving..." : "Save changes"}
-          </button>
+          <div className="flex justify-end">
+            <button 
+              type="submit"
+              disabled={profileSaveState === "SAVING"}
+              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {profileSaveState === "SAVING" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                </>
+              ) : profileSaveState === "SUCCESS" ? (
+                <>
+                  <Save className="w-4 h-4" /> Saved!
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
         </form>
       </section>
 
-      {/* Password */}
-      <section className="bg-white rounded shadow p-6 space-y-3">
-        <h2 className="text-xl font-semibold">Change Password</h2>
-
-        <form onSubmit={changePassword}>
-          <input
-            type="password"
-            placeholder="Current password"
-            className="border px-3 py-2 rounded w-full"
-            value={currentPass}
-            onChange={(e) => setCurrentPass(e.target.value)}
-          />
-
-          <input
-            type="password"
-            placeholder="New password"
-            className="border px-3 py-2 rounded w-full"
-            value={newPass}
-            onChange={(e) => setNewPass(e.target.value)}
-          />
-
-          <input
-            type="password"
-            placeholder="Confirm password"
-            className="border px-3 py-2 rounded w-full"
-            value={confirmPass}
-            onChange={(e) => setConfirmPass(e.target.value)}
-          />
-
-          <button className="px-4 py-2 bg-blue-600 text-white rounded mt-3">
+      {/* --- PASSWORD SECTION --- */}
+      <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 p-4 md:p-8">
+        <div className="flex items-center gap-2 mb-6">
+            <Lock className="w-5 h-5 text-gray-400" />
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
             Change Password
-          </button>
+            </h2>
+        </div>
+
+        <form onSubmit={changePassword} className="space-y-4 max-w-2xl">
+          <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-transparent text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                value={currentPass}
+                onChange={(e) => setCurrentPass(e.target.value)}
+              />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                <input
+                    type="password"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-transparent text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    value={newPass}
+                    onChange={(e) => setNewPass(e.target.value)}
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                <input
+                    type="password"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-transparent text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    value={confirmPass}
+                    onChange={(e) => setConfirmPass(e.target.value)}
+                />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button 
+                type="submit"
+                disabled={passwordSaveState === "SAVING"}
+                className="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+            >
+                 {passwordSaveState === "SAVING" ? "Updating..." : "Update Password"}
+            </button>
+          </div>
         </form>
       </section>
 
-      {/* Data Actions */}
-      <section className="grid grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded shadow">
-          <h3 className="font-semibold mb-2">Data Management</h3>
+      {/* --- DANGER ZONE --- */}
+      {/* Responsive Grid: Stack on mobile (cols-1), Side-by-side on desktop (md:cols-2) */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        
+        {/* Data Management */}
+        <div className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Data Management</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Permanently delete all your analysis history. This action cannot be undone.
+          </p>
           <button
             onClick={deleteAllAnalyses}
-            className="border text-red-600 px-4 py-2 rounded"
+            className="flex items-center gap-2 px-4 py-2 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-sm font-medium transition-colors"
           >
+            <Trash2 className="w-4 h-4" />
             Delete all analyses
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded shadow">
-          <h3 className="font-semibold text-red-600 mb-2">Danger Zone</h3>
+        {/* Account Deletion */}
+        <div className="bg-red-50 dark:bg-red-900/10 p-4 md:p-6 rounded-xl shadow-sm border border-red-100 dark:border-red-900/30">
+          <h3 className="font-semibold text-red-700 dark:text-red-400 mb-2">Danger Zone</h3>
+          <p className="text-sm text-red-600/80 dark:text-red-300/70 mb-4">
+            Permanently delete your account and all associated data.
+          </p>
           <button
             onClick={deleteAccount}
-            className="bg-red-600 text-white px-4 py-2 rounded"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg text-sm font-medium transition-colors shadow-sm"
           >
-            Delete account
+            <Trash2 className="w-4 h-4" />
+            Delete Account
           </button>
         </div>
       </section>

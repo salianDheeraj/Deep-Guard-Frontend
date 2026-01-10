@@ -225,30 +225,34 @@ const Signup: FC = () => {
   };
 
   return (
-    <div ref={scope} className={styles.container}>
+    // Responsive Container: Added px-4 for mobile safe area
+    <div ref={scope} className={`${styles.container} px-4 md:px-0`}>
       <div className={styles.themeToggle}>
         <ThemeToggleButton />
       </div>
 
-      {/* HEADER: Added !mb-8 for more breathing room */}
-      <header className={`${styles.header} login-title-group !mb-8 flex flex-col items-center gap-2`}>
-        {/* LOGO: Added !mb-4 for spacing */}
-        <div className={`${styles.logo} login-logo !mb-4`}>
-          {/* ICON: Solid Blue (Light) / Solid Cyan (Dark) for max visibility */}
-          <Shield className={`${styles.logoIcon} !text-blue-600 dark:!text-cyan-400 w-16 h-16 transition-colors duration-300`} />
+      {/* HEADER: Adjusted margin for mobile (mb-6) vs desktop (mb-8) */}
+      <header className={`${styles.header} login-title-group mb-6 md:mb-8 flex flex-col items-center gap-2`}>
+        
+        {/* LOGO: Scaled down on mobile (w-12) vs desktop (w-16) */}
+        <div className={`${styles.logo} login-logo mb-4`}>
+          <Shield className={`${styles.logoIcon} !text-blue-600 dark:!text-cyan-400 w-12 h-12 md:w-16 md:h-16 transition-colors duration-300`} />
         </div>
 
-        {/* TITLE: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
-        <h1 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300 text-3xl font-bold`}>
+        {/* TITLE: Adjusted size for mobile (text-2xl) vs desktop (text-3xl) */}
+        <h1 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300 text-2xl md:text-3xl font-bold text-center`}>
           Create Account
         </h1>
-        <p className={`${styles.subtitle} mt-2`}>
+        
+        {/* Subtitle: slightly smaller on mobile */}
+        <p className={`${styles.subtitle} mt-2 text-sm md:text-base text-center`}>
           Join us to start detecting deepfakes securely
         </p>
       </header>
-      <div className={`${styles.card} login-card p-8`}>
-        {/* FORM: Added space-y-5 for clean vertical spacing */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* CARD: Adjusted padding for mobile (p-6) vs desktop (p-8) */}
+      <div className={`${styles.card} login-card p-6 md:p-8 w-full max-w-md`}>
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
           <AuthInput
             label="Name"
             type="text"
@@ -289,13 +293,13 @@ const Signup: FC = () => {
             InputIcon={Lock}
           />
 
-          <div className={`${styles.otpContainer} pt-2 pb-2`}>
-            {/* SEND OTP BUTTON: Outline Blue (Light) / Cyan (Dark) */}
+          <div className={`${styles.otpContainer} pt-2 pb-2 flex flex-wrap gap-2 items-center`}>
+            {/* SEND OTP BUTTON */}
             <button
               type="button"
               onClick={handleSendOtp}
               disabled={isSendingOtp || otpTimer > 0}
-              className={`${styles.otpButton} !border !border-blue-600 !text-blue-600 hover:!bg-blue-50 dark:!border-cyan-400 dark:!text-cyan-400 dark:hover:!bg-cyan-900/20 transition-all duration-300 px-4 py-2 rounded-md`}
+              className={`${styles.otpButton} !border !border-blue-600 !text-blue-600 hover:!bg-blue-50 dark:!border-cyan-400 dark:!text-cyan-400 dark:hover:!bg-cyan-900/20 transition-all duration-300 px-4 py-2 rounded-md text-sm md:text-base`}
             >
               {isSendingOtp
                 ? "Sending..."
@@ -304,7 +308,7 @@ const Signup: FC = () => {
                   : "Send OTP"}
             </button>
             {otpTimer > 0 && (
-              <span className={`${styles.otpTimer} !text-blue-600 dark:!text-cyan-400 ml-4`}>
+              <span className={`${styles.otpTimer} !text-blue-600 dark:!text-cyan-400 text-sm`}>
                 Resend available in {otpTimer}s
               </span>
             )}
@@ -334,20 +338,18 @@ const Signup: FC = () => {
             <div className={styles.error}>{error}</div>
           )}
 
-          {/* CREATE ACCOUNT BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
           <button
             type="submit"
             disabled={isLoading}
-            className={`${styles.submitButton} login-button !border-0 !text-white !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300 w-full py-3 mt-4`}
+            className={`${styles.submitButton} login-button !border-0 !text-white !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300 w-full py-3 mt-4 text-base font-medium`}
           >
             <Shield className={styles.submitIcon} />
             {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        <p className={`${styles.footerText} mt-6 text-center`}>
+        <p className={`${styles.footerText} mt-6 text-center text-sm md:text-base`}>
           Already have an account?{" "}
-          {/* SIGN IN LINK: Solid Blue (Light) / Cyan (Dark) */}
           <Link href="/login" className={`${styles.footerLink} !text-blue-600 dark:!text-cyan-400 hover:!underline transition-colors duration-300 ml-1`}>
             Sign In
           </Link>

@@ -13,7 +13,6 @@ import UnderstandingConfidence from './UnderstandingConfidence';
 
 import { Loader, AlertCircle } from 'lucide-react';
 import { useAnalysisStore } from '@/../lib/store/analysisStore';
-import { useAnalysisResultsAnimation } from '@/hooks/useAnalysisResultsAnimation';
 import styles from '@/styles/Analysis.module.css';
 
 interface ConfidenceReport {
@@ -201,23 +200,15 @@ export default function AnalysisPage() {
   }
 
   // ----------------------------------------------------
-  // RENDER UI (unchanged)
-  // ----------------------------------------------------
-  // ----------------------------------------------------
   // RENDER UI (Updated for Image vs Video)
   // ----------------------------------------------------
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   const isImage = currentAnalysis.filename?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
 
   if (isImage) {
-    // Import ImageAnalysisSection dynamically or assume it's imported at top
-    // For now, I'll update the imports separately if needed, but assuming import exists or I'll add it.
-    // Wait, I need to add the import first. I will do this in 2 steps or just one block if I can see imports.
-    // Since I can't see imports at top (lines 1-42), I will update imports in next step/separate tool call if needed.
-    // Actually, I can use the existing `ImageAnalysisSection` if I import it.
-    // I'll render ImageAnalysisSection here.
     return (
-      <main className={styles.pageContainer}>
+      // Responsive Container: p-4 on mobile, p-8 on desktop
+      <main className={`${styles.pageContainer} p-4 md:p-8 w-full max-w-7xl mx-auto`}>
         <div className={styles.contentWrapper}>
           <AnalysisHeader
             analysisId={analysisId}
@@ -226,7 +217,7 @@ export default function AnalysisPage() {
             modelVersion="v3.2"
             onDelete={handleDelete}
           />
-          <div style={{ marginTop: '2rem' }}>
+          <div className="mt-6 md:mt-8">
             <ImageAnalysisSection
               imageUrl={`${API_URL}/api/analysis/${analysisId}/file`}
               isDeepfake={currentAnalysis.is_deepfake}
@@ -249,8 +240,9 @@ export default function AnalysisPage() {
     currentAnalysis.confidence_score;
 
   return (
-    <main className={styles.pageContainer}>
-      <div className={styles.contentWrapper}>
+    // Responsive Container: p-4 on mobile, p-8 on desktop
+    <main className={`${styles.pageContainer} p-4 md:p-8 w-full max-w-7xl mx-auto`}>
+      <div className={`${styles.contentWrapper} space-y-6 md:space-y-8`}>
 
         <AnalysisHeader
           analysisId={analysisId}
@@ -267,6 +259,7 @@ export default function AnalysisPage() {
           totalFrames={totalFrames}
         />
 
+        {/* Responsive Grid: Stack on mobile (cols-1), Side-by-side on desktop (lg:cols-2) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <FrameAnalysisSection
             analysisId={analysisId}

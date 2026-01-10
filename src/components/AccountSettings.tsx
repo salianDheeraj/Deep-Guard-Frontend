@@ -400,7 +400,8 @@ export default function AccountSettings(): JSX.Element {
     );
 
   return (
-    <main ref={pageRef} className={`${styles.container} relative`}>
+    // RESPONSIVE: p-4 on mobile, p-8 on desktop
+    <main ref={pageRef} className={`${styles.container} relative p-4 md:p-8`}>
 
       {/* TRIAL BLUR OVERLAY */}
       {(profile.isTrial || profile.email === 'guest@trial.com') && (
@@ -438,15 +439,18 @@ export default function AccountSettings(): JSX.Element {
       />
 
       {/* HEADER */}
-      <div className="account-header">
-        <h1 className={`${styles.header}`}>Account Settings</h1>
+      <div className="account-header mb-6">
+        {/* RESPONSIVE: text-2xl on mobile, text-3xl on desktop */}
+        <h1 className={`${styles.header} text-2xl md:text-3xl font-bold`}>Account Settings</h1>
         {error && <div className={styles.errorBox}>{error}</div>}
       </div>
 
       {/* PROFILE CARD */}
-      <section ref={profileCardRef} className={`${styles.card} account-card`}>
+      <section ref={profileCardRef} className={`${styles.card} account-card p-4 md:p-8 mb-8`}>
         <form onSubmit={saveProfile} className={styles.formGroup}>
-          <div className="flex items-center gap-6">
+          
+          {/* RESPONSIVE: Stack vertically on mobile (flex-col), Row on desktop (sm:flex-row) */}
+          <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group">
               {/* PROFILE RING: Gradient Blue+Pink / Cyan+Purple */}
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 dark:from-cyan-400 dark:to-purple-500 opacity-70 group-hover:opacity-100 blur-[2px] transition-all"></div>
@@ -465,7 +469,7 @@ export default function AccountSettings(): JSX.Element {
               </div>
             </div>
 
-            <div>
+            <div className="text-center sm:text-left">
               {/* CHANGE PHOTO BUTTON: Hover Text/Border Blue / Cyan */}
               <button
                 type="button"
@@ -487,6 +491,7 @@ export default function AccountSettings(): JSX.Element {
             />
           </div>
 
+          {/* RESPONSIVE: Stack inputs on mobile (grid-cols-1), side-by-side on desktop (md:grid-cols-2) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <div>
               <label className={styles.label}>Full name</label>
@@ -515,42 +520,47 @@ export default function AccountSettings(): JSX.Element {
       </section>
 
       {/* PASSWORD CARD */}
-      <section ref={passwordCardRef} className={`${styles.card} account-card`}>
-        <h2 className={styles.sectionHeader}>Change password</h2>
+      <section ref={passwordCardRef} className={`${styles.card} account-card p-4 md:p-8 mb-8`}>
+        <h2 className={`${styles.sectionHeader} text-lg md:text-xl font-bold mb-4`}>Change password</h2>
         <form onSubmit={changePassword} className={styles.formGroup}>
-          <div>
-            <label className={styles.label}>Current password</label>
-            <input
-              type="password"
-              value={currentPass}
-              onChange={(e) => setCurrentPass(e.target.value)}
-              className={styles.input}
-            />
-          </div>
+          <div className="space-y-4">
+            <div>
+              <label className={styles.label}>Current password</label>
+              <input
+                type="password"
+                value={currentPass}
+                onChange={(e) => setCurrentPass(e.target.value)}
+                className={styles.input}
+              />
+            </div>
 
-          <div>
-            <label className={styles.label}>New password</label>
-            <input
-              type="password"
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
-              className={styles.input}
-            />
-          </div>
+            {/* RESPONSIVE: Stack New/Confirm on mobile (grid-cols-1), side-by-side on desktop (md:grid-cols-2) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={styles.label}>New password</label>
+                <input
+                  type="password"
+                  value={newPass}
+                  onChange={(e) => setNewPass(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
 
-          <div>
-            <label className={styles.label}>Confirm new password</label>
-            <input
-              type="password"
-              value={confirmPass}
-              onChange={(e) => setConfirmPass(e.target.value)}
-              className={styles.input}
-            />
+              <div>
+                <label className={styles.label}>Confirm new password</label>
+                <input
+                  type="password"
+                  value={confirmPass}
+                  onChange={(e) => setConfirmPass(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+            </div>
           </div>
 
           {/* CHANGE PASSWORD BUTTON: Gradient Blue+Pink / Cyan+Purple */}
           <button
-            className={`${styles.buttonPrimary} action-button !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 !border-0`}
+            className={`${styles.buttonPrimary} action-button mt-6 !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 !border-0`}
             disabled={passwordSaveState === "SAVING"}
           >
             {passwordSaveState === "SAVING" ? "Changing..." : "Change password"}
@@ -559,10 +569,11 @@ export default function AccountSettings(): JSX.Element {
       </section>
 
       {/* DANGER ZONE */}
+      {/* RESPONSIVE: Stack cards on mobile (grid-cols-1), side-by-side on desktop (md:grid-cols-2) */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className={`${styles.card} account-card`}>
+        <div className={`${styles.card} account-card p-4 md:p-6`}>
           <h3 className={styles.sectionSubHeader}>Data management</h3>
-          <p className={styles.sectionText}>
+          <p className={`${styles.sectionText} mb-4`}>
             Remove all analyses stored in your account.
           </p>
 
@@ -574,9 +585,9 @@ export default function AccountSettings(): JSX.Element {
           </button>
         </div>
 
-        <div className={`${styles.card} account-card`}>
+        <div className={`${styles.card} account-card p-4 md:p-6`}>
           <h3 className={styles.dangerHeader}>Danger zone</h3>
-          <p className={styles.sectionText}>
+          <p className={`${styles.sectionText} mb-4`}>
             Deleting your account removes all data permanently.
           </p>
 

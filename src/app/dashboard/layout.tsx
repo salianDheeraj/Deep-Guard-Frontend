@@ -27,21 +27,33 @@ export default async function DashboardLayout({
     }
   } catch (error) {
     // FAIL CLOSED: If backend verification fails/errors, strictly redirect.
-    // This prevents the UI from rendering if we can't confirm identity.
     redirect('/login');
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
-      {/* ✅ Fixed Sidebar */}
-      <div className="fixed left-0 top-0 h-screen z-50">
-        <Sidebar />
-      </div>
+    // changed to h-screen and overflow-hidden to handle scrolling correctly
+    <div className="flex h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
+      
+      {/* ✅ SIDEBAR 
+        We removed the 'fixed' wrapper here because the Sidebar component 
+        now handles its own positioning (Fixed on Mobile, Relative on Desktop).
+      */}
+      <Sidebar />
 
-      {/* ✅ Main content with left margin to avoid overlap */}
-      <div className="flex-1 ml-64">
-        {children}
-      </div>
+      {/* ✅ MAIN CONTENT
+        - flex-1: Takes remaining width on desktop (next to sidebar).
+        - overflow-y-auto: Allows content to scroll independently.
+        - ml-0: Removed the hardcoded ml-64 so it fits on mobile.
+      */}
+      <main className="flex-1 relative overflow-y-auto overflow-x-hidden h-full">
+        {/* ✅ CONTENT PADDING
+          - pt-16: Adds top padding ONLY on mobile so the hamburger button doesn't block content.
+          - md:pt-8: Resets to standard padding on desktop.
+        */}
+        <div className="w-full max-w-7xl mx-auto px-4 pt-16 md:px-8 md:py-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

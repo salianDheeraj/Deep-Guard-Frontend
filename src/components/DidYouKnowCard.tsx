@@ -30,20 +30,30 @@ export default function DidYouKnowCard() {
     };
 
     return (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 h-full flex flex-col justify-center relative group">
-            <div className="flex items-center gap-2 mb-3">
-                <Lightbulb className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
-                <h4 className="font-bold text-indigo-900 dark:text-indigo-200 text-sm uppercase tracking-wide">Did You Know?</h4>
+        /* Responsive Padding: p-5 on mobile, p-6 on desktop */
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-slate-700 rounded-2xl p-5 md:p-6 h-full flex flex-col justify-center relative group transition-all duration-300">
+            
+            <div className="flex items-center gap-2 mb-2 md:mb-3">
+                <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-indigo-500 dark:text-indigo-400" />
+                <h4 className="font-bold text-indigo-900 dark:text-indigo-200 text-xs md:text-sm uppercase tracking-wide">
+                    Did You Know?
+                </h4>
             </div>
 
-            <p className="text-gray-700 dark:text-gray-300 font-medium leading-relaxed italic">
+            {/* Responsive Text Size: text-sm on mobile, default (base) on desktop */}
+            <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium leading-relaxed italic">
                 "{fact}"
             </p>
 
+            {/* Responsive Button Visibility:
+               - Mobile (default): opacity-100 (Always visible)
+               - Desktop (md): opacity-0 group-hover:opacity-100 (Visible only on hover)
+            */}
             <button
                 onClick={refreshFact}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/50 dark:hover:bg-slate-700 text-indigo-400 transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute top-3 right-3 md:top-4 md:right-4 p-2 rounded-full hover:bg-white/50 dark:hover:bg-slate-700 text-indigo-400 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                 title="New Fact"
+                aria-label="Refresh Fact"
             >
                 <RefreshCw className="w-4 h-4" />
             </button>

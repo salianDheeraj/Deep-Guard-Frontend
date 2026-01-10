@@ -37,11 +37,19 @@ export default function DashboardWelcome() {
     const greeting = hours < 12 ? "Good morning" : hours < 18 ? "Good afternoon" : "Good evening";
 
     return (
-        <div className="mb-6">
-            <h1 className="welcome-text text-3xl font-bold mb-1 bg-gradient-to-r from-blue-600 to-pink-600 dark:from-cyan-400 dark:to-purple-400 bg-clip-text text-transparent">
-                {greeting}, {name}! 👋
+        /* Responsive Margin: mb-6 on mobile, mb-8 on desktop */
+        <div className="mb-6 md:mb-8">
+            
+            {/* Responsive Text Size: 
+                - text-2xl on mobile (prevents wrapping/crowding)
+                - text-3xl on desktop (original size)
+            */}
+            <h1 className="welcome-text text-2xl md:text-3xl font-bold mb-1 md:mb-2 bg-gradient-to-r from-blue-600 to-pink-600 dark:from-cyan-400 dark:to-purple-400 bg-clip-text text-transparent">
+                {greeting}, {name}! <span className="inline-block origin-bottom-right hover:animate-pulse">👋</span>
             </h1>
-            <p className="welcome-sub text-gray-500 dark:text-gray-400">
+            
+            {/* Responsive Subtext: Slightly smaller on mobile */}
+            <p className="welcome-sub text-sm md:text-base text-gray-500 dark:text-gray-400">
                 Ready to detect some deepfakes today?
             </p>
         </div>

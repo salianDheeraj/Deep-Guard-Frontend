@@ -34,6 +34,7 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
 
   return (
     <div className={styles.modalOverlay}>
+      
       <div className={`${styles.modalContent} dark:bg-slate-800 dark:border dark:border-slate-700`}>
 
         <div className={styles.modalHeader}>
@@ -357,13 +358,14 @@ const AnalysisHistory: React.FC = () => {
       />
 
       {/* Filter + Search */}
-      <div className={styles.controlsContainer}>
-        <div className={styles.filterGroup}>
+      {/* RESPONSIVE: Stack vertically (flex-col) on mobile, Row on desktop (md:flex-row) */}
+      <div className={`${styles.controlsContainer} flex flex-col md:flex-row gap-4 mb-4`}>
+        <div className={`${styles.filterGroup} flex overflow-x-auto whitespace-nowrap pb-2 md:pb-0 gap-2 no-scrollbar`}>
           {(['All', 'FAKE', 'REAL'] as FilterType[]).map((filter) => (
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`${styles.filterButton} ${activeFilter === filter
+              className={`${styles.filterButton} flex-shrink-0 ${activeFilter === filter
                 // Filter Active: Solid Blue / Cyan Tint
                 ? styles.filterButtonActive + ' !bg-blue-100 !text-blue-700 dark:!bg-cyan-900/30 dark:!text-cyan-400'
                 : styles.filterButtonInactive + ' dark:!text-gray-300 dark:hover:!text-white dark:hover:!bg-slate-800'
@@ -374,14 +376,14 @@ const AnalysisHistory: React.FC = () => {
           ))}
         </div>
 
-        <div className={styles.searchGroup}>
-          <div className={styles.searchInputWrapper}>
+        <div className={`${styles.searchGroup} flex flex-col md:flex-row gap-2 flex-1`}>
+          <div className={`${styles.searchInputWrapper} flex-1`}>
             <input
               type="text"
               placeholder="Search filename..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className={`${styles.searchInput} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 dark:placeholder-gray-500 focus:!border-blue-500 dark:focus:!border-cyan-400`}
+              className={`${styles.searchInput} w-full dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 dark:placeholder-gray-500 focus:!border-blue-500 dark:focus:!border-cyan-400`}
             />
             <Search size={16} className={`${styles.searchIcon} dark:text-gray-400`} />
           </div>
@@ -393,7 +395,7 @@ const AnalysisHistory: React.FC = () => {
                 setSortBy(e.target.value as 'date' | 'confidence');
                 setAnimationTrigger(prev => prev + 1);
               }}
-              className={`${styles.sortSelect} dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 focus:!border-blue-500 dark:focus:!border-cyan-400`}
+              className={`${styles.sortSelect} w-full md:w-auto dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700 focus:!border-blue-500 dark:focus:!border-cyan-400`}
             >
               <option value="date">Sort by Date</option>
               <option value="confidence">Sort by Confidence</option>
@@ -402,16 +404,17 @@ const AnalysisHistory: React.FC = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className={styles.tableContainer}>
+      {/* Table Container */}
+      <div className={`${styles.tableContainer} flex-1 overflow-hidden flex flex-col`}>
         {paginatedAnalyses.length === 0 ? (
           <div className={styles.noDataContainer}>
             <p className={`${styles.noDataText} dark:text-gray-400`}>No analyses match your filters.</p>
           </div>
         ) : (
           <>
-            <div className={styles.tableWrapper}>
-              <table className={styles.table}>
+            {/* RESPONSIVE: Overflow-x-auto allows table to scroll horizontally on small screens */}
+            <div className={`${styles.tableWrapper} overflow-x-auto flex-1`}>
+              <table className={`${styles.table} min-w-[600px] w-full`}>
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-700/50 transition-colors">
                     <th className="p-4 w-12">
@@ -441,15 +444,15 @@ const AnalysisHistory: React.FC = () => {
                           className={styles.checkbox}
                         />
                       </td>
-                      <td className={`${styles.td} dark:!text-gray-200`}>{formatDate(item.created_at)}</td>
+                      <td className={`${styles.td} dark:!text-gray-200 whitespace-nowrap`}>{formatDate(item.created_at)}</td>
 
                       <td className={`${styles.td} font-medium`}>
                         <div className={styles.filenameCell}>
-                          <FileText size={16} className={`${styles.fileIcon} dark:text-gray-400`} />
+                          <FileText size={16} className={`${styles.fileIcon} dark:text-gray-400 shrink-0`} />
                           {/* File Name Link: Solid Blue / Cyan */}
                           <Link
                             href={`/dashboard/analysis/${item.id}`}
-                            className={`${styles.filenameLink} !text-blue-600 hover:!text-blue-800 dark:!text-cyan-400 dark:hover:!text-cyan-300`}
+                            className={`${styles.filenameLink} !text-blue-600 hover:!text-blue-800 dark:!text-cyan-400 dark:hover:!text-cyan-300 truncate max-w-[150px] md:max-w-xs block`}
                             title={item.filename}
                           >
                             {item.filename}
@@ -497,13 +500,14 @@ const AnalysisHistory: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className={styles.paginationContainer}>
-              <span className={`${styles.paginationInfo} dark:!text-white`}>
+            {/* RESPONSIVE: Stack vertically on small screens, row on desktop */}
+            <div className={`${styles.paginationContainer} flex flex-col sm:flex-row justify-between items-center gap-4 mt-4`}>
+              <span className={`${styles.paginationInfo} dark:!text-white text-sm text-center sm:text-left`}>
                 Showing {startIndex}-{endIndex} of {filteredAnalyses.length}
                 {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
               </span>
 
-              <nav className="flex items-center space-x-1">
+              <nav className="flex items-center flex-wrap justify-center gap-1">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
@@ -540,11 +544,12 @@ const AnalysisHistory: React.FC = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className={styles.bottomActions}>
+      {/* RESPONSIVE: Stack vertically on mobile, row on desktop */}
+      <div className={`${styles.bottomActions} flex flex-col sm:flex-row justify-between gap-3 mt-6`}>
         <button
           onClick={openBulkDeleteModal}
           disabled={selectedIds.size === 0}
-          className={styles.bulkDeleteButton}
+          className={`${styles.bulkDeleteButton} w-full sm:w-auto`}
         >
           Bulk Delete {selectedIds.size > 0 && `(${selectedIds.size})`}
         </button>
@@ -552,7 +557,7 @@ const AnalysisHistory: React.FC = () => {
         {/* Start New Analysis: Gradient Blue+Pink / Cyan+Purple */}
         <Link
           href="/dashboard/new-analysis"
-          className={`${styles.newAnalysisButton} !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 text-white border-0`}
+          className={`${styles.newAnalysisButton} !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 text-white border-0 w-full sm:w-auto text-center`}
         >
           Start New Analysis
         </Link>
