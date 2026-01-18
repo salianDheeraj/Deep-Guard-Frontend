@@ -31,7 +31,7 @@
 }
 
 .title {
-    @apply text-4xl font-extrabold text-gray-900 tracking-tight mb-2;
+    @apply text-3xl font-extrabold text-gray-900 tracking-tight mb-2;
 }
 
 :global(.dark) .title {
@@ -185,24 +185,23 @@
     .container {
         @apply p-4;
     }
+
     .card {
-        @apply p-6 max-w-[400px]; /* Cap width on tablet */
+        @apply p-6 max-w-[400px];
+        /* Cap width on tablet */
     }
 }
 
 /* Mobile (max-width: 480px) */
 @media (max-width: 480px) {
     .container {
-        @apply p-4 justify-start pt-10; /* Align top, give space */
+        @apply p-4 min-h-[calc(100vh-80px)] flex items-center justify-center;
+        /* Ensure centering */
     }
 
     .card {
-        /* FIX: 
-           1. w-[90%] creates margin on sides.
-           2. max-w-[340px] keeps it compact (small) on phone. 
-           3. mx-auto centers it.
-        */
-        @apply w-[90%] max-w-[340px] mx-auto p-5 rounded-2xl;
+        /* FIX: Allow full width with margins, up to standard small size */
+        @apply w-full max-w-sm mx-auto p-6 rounded-2xl;
     }
 
     .themeToggle {
@@ -244,7 +243,7 @@
     .authOptions {
         @apply flex-col items-start gap-2 mb-4;
     }
-    
+
     .footerText {
         @apply mt-4 text-xs;
     }

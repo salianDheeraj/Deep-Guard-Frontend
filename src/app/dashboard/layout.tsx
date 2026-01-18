@@ -33,7 +33,7 @@ export default async function DashboardLayout({
   return (
     // changed to h-screen and overflow-hidden to handle scrolling correctly
     <div className="flex h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
-      
+
       {/* ✅ SIDEBAR 
         We removed the 'fixed' wrapper here because the Sidebar component 
         now handles its own positioning (Fixed on Mobile, Relative on Desktop).

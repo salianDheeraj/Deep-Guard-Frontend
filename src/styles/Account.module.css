@@ -1,13 +1,14 @@
 /* Layout */
 .container {
     composes: dashboardLayout from "./Global.module.css";
-    /* FIX: Add top padding on mobile to clear the Hamburger button */
-    @apply min-h-screen p-4 pt-20 transition-colors duration-300;
-    
-    /* Desktop: Less top padding needed since Sidebar is side-by-side */
-    @apply md:p-8 md:pt-8;
-    
-    background-color: #f9fafb; /* Light mode bg */
+    /* FIX: Layout handles padding now to prevent double spacing */
+    @apply min-h-full transition-colors duration-300;
+
+    /* Desktop: Reset */
+    @apply md:p-0;
+
+    background-color: #f9fafb;
+    /* Light mode bg */
 }
 
 :global(.dark) .container {

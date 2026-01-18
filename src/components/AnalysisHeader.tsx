@@ -32,9 +32,9 @@ const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
       - Desktop (md): Flex Row (side-by-side), aligns center.
     */
     <div className={`${styles.headerContainer} flex flex-col md:flex-row justify-between items-start md:items-center gap-4`}>
-      
+
       <div className="flex flex-col max-w-full">
-        <h1 className={`${styles.headerTitle} text-xl md:text-2xl font-bold truncate`}>
+        <h1 className={`${styles.headerTitle} text-2xl md:text-3xl font-bold truncate`}>
           Analysis Results
         </h1>
 
@@ -49,8 +49,8 @@ const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
           onClick={handleDelete}
           disabled={isDeleting}
           className={`${styles.deleteButton} ${isDeleting
-              ? styles.deleteButtonDisabled
-              : ''
+            ? styles.deleteButtonDisabled
+            : ''
             }`}
         >
           {isDeleting ? (

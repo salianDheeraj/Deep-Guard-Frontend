@@ -22,7 +22,7 @@ export default function SidebarGuide() {
     };
 
     return (
-        <div className="mx-4 mt-auto mb-4 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm transition-colors">
+        <div className="mx-3 mt-auto mb-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-3 shadow-sm transition-colors">
             {/* Header controls */}
             <div className="flex items-center justify-between mb-3 border-b border-gray-100 dark:border-gray-800 pb-2">
                 <button
@@ -47,7 +47,7 @@ export default function SidebarGuide() {
             </div>
 
             {/* Content Area - Min height to prevent jumping */}
-            <div className="min-h-[180px]">
+            <div className="min-h-[150px]">
                 {activeSection === 'legal' && (
                     <div className="space-y-2 animate-in fade-in duration-300">
                         <div className="flex items-center gap-2 text-red-500 mb-1">
@@ -102,8 +102,8 @@ export default function SidebarGuide() {
                     <div
                         key={section}
                         className={`w-1.5 h-1.5 rounded-full transition-colors ${activeSection === section
-                                ? 'bg-blue-600 dark:bg-cyan-400'
-                                : 'bg-gray-300 dark:bg-slate-700'
+                            ? 'bg-blue-600 dark:bg-cyan-400'
+                            : 'bg-gray-300 dark:bg-slate-700'
                             }`}
                     />
                 ))}

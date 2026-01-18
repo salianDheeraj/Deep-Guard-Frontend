@@ -3,21 +3,23 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-    LayoutGrid, 
-    ScanEye, 
-    FileClock, 
-    CircleUser, 
-    LogOut, 
-    ShieldCheck, 
+import {
+    LayoutGrid,
+    ScanEye,
+    FileClock,
+    CircleUser,
+    LogOut,
+    ShieldCheck,
     LucideIcon,
-    Menu, // Added
-    X     // Added
-} from 'lucide-react'; 
+    Menu,
+    X,
+    Siren          // Added
+} from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import UserProfileCard from './UserProfileCard';
 import ThemeToggleButton from './ThemeToggleButton';
+import SidebarGuide from './SidebarGuide'; // Added
 
 import styles from '@/styles/Sidebar.module.css';
 
@@ -44,6 +46,8 @@ const Sidebar = () => {
         { name: 'New Analysis', href: '/dashboard/new-analysis', icon: ScanEye },
         { name: 'History', href: '/dashboard/history', icon: FileClock },
         { name: 'Account', href: '/dashboard/account', icon: CircleUser },
+        // Added to fill empty space
+        { name: 'Report Cybercrime', href: 'https://cybercrime.gov.in', icon: Siren },
     ];
 
     const isActive = (href: string) => {
@@ -70,7 +74,7 @@ const Sidebar = () => {
                 duration: 0.6,
                 ease: "power3.out",
             });
-            
+
             gsap.fromTo(".logo-shield-icon",
                 { scale: 0.5, opacity: 0, rotation: -45 },
                 { scale: 1, opacity: 1, rotation: 0, duration: 0.6, ease: "back.out(2)", delay: 0.2 }
@@ -137,9 +141,9 @@ const Sidebar = () => {
         <>
             {/* --- MOBILE HAMBURGER BUTTON --- */}
             {/* Visible only on mobile (md:hidden) */}
-            <button 
+            <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-200"
+                className="md:hidden fixed top-4 left-4 z-[100] p-2 rounded-md bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-200"
                 aria-label="Toggle Menu"
             >
                 {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
@@ -147,7 +151,7 @@ const Sidebar = () => {
 
             {/* --- MOBILE OVERLAY BACKDROP --- */}
             {isMobileOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setIsMobileOpen(false)}
                 />
@@ -159,11 +163,11 @@ const Sidebar = () => {
                 2. Sticky/Relative on Desktop (md:relative) to maintain original layout.
                 3. Translate logic: On mobile, slide in/out. On desktop, always show (translate-x-0).
             */}
-            <div 
-                ref={sidebarRef} 
+            <div
+                ref={sidebarRef}
                 className={`
                     ${styles.sidebar} 
-                    fixed md:relative inset-y-0 left-0 z-50
+                    fixed md:relative inset-y-0 left-0 z-[100]
                     h-screen
                     transform transition-transform duration-300 ease-in-out
                     ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -174,7 +178,7 @@ const Sidebar = () => {
                     {/* --- LOGO SECTION --- */}
                     <div className={styles.logoContainer}>
                         <ShieldCheck size={28} className={`${styles.logoIcon} logo-shield-icon !text-blue-600 dark:!text-cyan-400`} />
-                        
+
                         <h1 className={`${styles.logoText} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500`}>
                             Deep-Guard
                         </h1>
@@ -194,22 +198,24 @@ const Sidebar = () => {
                                 <Link
                                     key={item.name}
                                     href={item.href}
+                                    target={item.href.startsWith('http') ? '_blank' : undefined}
+                                    rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                                     ref={(el) => { itemRefs.current[index] = el; }}
                                     className={`${styles.navItem} nav-link-item group`}
                                     onMouseEnter={(e) => handleLinkHover(e, true)}
                                     onMouseLeave={(e) => handleLinkHover(e, false)}
                                 >
-                                    <item.icon 
-                                        size={20} 
+                                    <item.icon
+                                        size={20}
                                         className={`${styles.navIcon} 
-                                            ${active 
-                                                ? '!text-blue-600 dark:!text-cyan-400' 
+                                            ${active
+                                                ? '!text-blue-600 dark:!text-cyan-400'
                                                 : 'group-hover:!text-blue-500 dark:group-hover:!text-cyan-300'
-                                            }`} 
+                                            }`}
                                     />
-                                    
+
                                     <span className={
-                                        active 
+                                        active
                                             ? `!bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 font-medium`
                                             : `group-hover:!text-blue-600 dark:group-hover:!text-cyan-400`
                                     }>
@@ -219,6 +225,11 @@ const Sidebar = () => {
                             );
                         })}
                     </nav>
+                </div>
+
+                {/* --- INFO GUIDE CARD --- */}
+                <div className="mt-auto">
+                    <SidebarGuide />
                 </div>
 
                 {/* --- BOTTOM SECTION --- */}
@@ -235,9 +246,9 @@ const Sidebar = () => {
                         onClick={handleLogout}
                         className={`${styles.logoutButton} group transition-all duration-300`}
                     >
-                        <LogOut 
-                            size={20} 
-                            className="mr-4 group-hover:!text-blue-600 dark:group-hover:!text-cyan-400" 
+                        <LogOut
+                            size={20}
+                            className="mr-4 group-hover:!text-blue-600 dark:group-hover:!text-cyan-400"
                         />
                         <span className="group-hover:!bg-clip-text group-hover:!text-transparent group-hover:!bg-gradient-to-r group-hover:!from-blue-600 group-hover:!to-pink-500 dark:group-hover:!from-cyan-400 dark:group-hover:!to-purple-500">
                             Logout

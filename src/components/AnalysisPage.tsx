@@ -203,7 +203,10 @@ export default function AnalysisPage() {
   // RENDER UI (Updated for Image vs Video)
   // ----------------------------------------------------
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  const isImage = currentAnalysis.filename?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+  const isImage =
+    currentAnalysis.filename?.match(/\.(jpg|jpeg|png|webp|gif)$/i) ||
+    // Fallback for guest analysis where filename might not have extension
+    (currentAnalysis.frames_analyzed === 1 && !currentAnalysis.filename?.toLowerCase().endsWith('.mp4'));
 
   if (isImage) {
     return (

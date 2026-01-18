@@ -254,3 +254,18 @@
 :global(.dark) .selectButton {
     @apply bg-teal-600 hover:bg-teal-700;
 }
+
+@media (max-width: 480px) {
+    .actionButtons {
+        @apply flex-col w-full;
+    }
+
+    .cancelButton,
+    .startButton {
+        @apply w-full justify-center;
+    }
+
+    .statusRow {
+        @apply flex-col items-start gap-1;
+    }
+}

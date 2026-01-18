@@ -146,7 +146,7 @@ export default function RecentAnalyses() {
             className={`${styles.analysisRow} opacity-0 block hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors p-3 md:p-4`}
           >
             <div className="flex items-center justify-between w-full">
-              
+
               {/* LEFT: Avatar + Filename (Flexible width) */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 {/* Avatar */}
@@ -172,7 +172,7 @@ export default function RecentAnalyses() {
 
               {/* RIGHT: Confidence + Badge + Arrow (Fixed/Shrink width) */}
               <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                
+
                 {/* Confidence: HIDDEN on mobile to save space */}
                 <span className={`${styles.confidence} text-sm text-gray-500 hidden sm:block`}>
                   {getDisplayedConfidence(analysis)}% confidence

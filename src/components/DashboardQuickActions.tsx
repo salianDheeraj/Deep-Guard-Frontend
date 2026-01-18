@@ -13,7 +13,7 @@ export default function DashboardQuickActions() {
            - Side-by-side (cols-2) with wider gap (gap-6) on desktop.
         */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 h-full">
-            
+
             {/* --- IMAGE ACTION CARD --- */}
             <div
                 onClick={() => router.push('/dashboard/new-analysis?type=IMAGE')}
@@ -32,7 +32,7 @@ export default function DashboardQuickActions() {
                         </p>
 
                         <p className="text-xs md:text-sm font-medium opacity-75 group-hover:opacity-100 transition-opacity flex items-center bg-white/10 w-fit px-2 py-1 rounded-lg backdrop-blur-md">
-                            Supports JPG, PNG 
+                            Supports JPG, PNG
                             <ArrowRight className="ml-2 w-3 h-3 md:w-4 md:h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                         </p>
                     </div>
@@ -59,7 +59,7 @@ export default function DashboardQuickActions() {
                         </p>
 
                         <p className="text-xs md:text-sm font-medium opacity-75 group-hover:opacity-100 transition-opacity flex items-center bg-white/10 w-fit px-2 py-1 rounded-lg backdrop-blur-md">
-                            Supports MP4 
+                            Supports MP4
                             <ArrowRight className="ml-2 w-3 h-3 md:w-4 md:h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                         </p>
                     </div>

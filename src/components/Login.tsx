@@ -170,23 +170,23 @@ const Login: FC = () => {
         <ThemeToggleButton />
       </div>
 
-      <header className={`${styles.header} login-title-group !mb-8 flex flex-col items-center gap-2`}>
-        <div className={`${styles.logo} login-logo !mb-4`}>
+      <header className={`${styles.header} login-title-group flex flex-col items-center gap-2`}>
+        <div className={`${styles.logo} login-logo`}>
           {/* LOGO: Solid Blue (Light) / Solid Cyan (Dark) */}
-          <Shield className={`${styles.logoIcon} !text-blue-600 dark:!text-cyan-400 w-16 h-16 transition-colors duration-300`} />
+          <Shield className={`${styles.logoIcon} !text-blue-600 dark:!text-cyan-400 w-12 h-12 md:w-16 md:h-16 transition-colors duration-300`} />
         </div>
 
         {/* TITLE: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) */}
-        <h1 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300 text-3xl font-bold`}>
+        <h1 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300 text-2xl md:text-3xl font-bold`}>
           Deepfake Detector
         </h1>
 
-        <p className={`${styles.subtitle} mt-2`}>
+        <p className={`${styles.subtitle} mt-2 text-sm md:text-base`}>
           Sign in to detect deepfakes and review past analyses
         </p>
       </header>
 
-      <div className={`${styles.card} login-card p-8`}>
+      <div className={`${styles.card} login-card`}>
         <form onSubmit={handleSubmit} className="space-y-5">
           <AuthInput
             label="Email Address"
@@ -265,27 +265,8 @@ const Login: FC = () => {
         <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1.5rem" }}>
           <button
             type="button"
-            onClick={async () => {
-              try {
-                setIsLoading(true);
-                const res = await apiFetch("/api/trial/join", {
-                  method: "POST",
-                });
-
-                if (res.ok) {
-                  debug("✅ Trial started");
-                  router.push("/dashboard");
-                } else {
-                  const err = await res.json();
-                  setError(err.message || "Trial join failed");
-                }
-              } catch (e: any) {
-                setError("Failed to join trial");
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-            // TRIAL BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark) + BOLD TEXT
+            onClick={() => router.push('/try-without-account')}
+            // TRIAL BUTTON: Gradient Blue+Pink (Light) / Cyan+Purple (Dark)
             className={`${styles.submitButton} login-button !border-0 !text-white font-bold !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 transition-all duration-300 w-full py-3`}
           >
             Try without an account

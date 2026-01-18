@@ -50,7 +50,7 @@ const FrameInputModal: React.FC<Props> = ({
             <input type="range" min={20} max={maxFramesToAnalyze} step={4} value={framesToAnalyze} onChange={(e) => setFramesToAnalyze(Number(e.target.value))} className="w-full h-3 bg-gradient-to-r from-green-200 via-indigo-300 dark:via-teal-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-teal-500" />
           </div>
 
-          <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {presets.map((preset) => {
               const isSelected = framesToAnalyze === preset.frames;
               const colorClasses: Record<string, string> = {

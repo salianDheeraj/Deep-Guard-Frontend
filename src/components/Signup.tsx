@@ -232,10 +232,10 @@ const Signup: FC = () => {
       </div>
 
       {/* HEADER: Adjusted margin for mobile (mb-6) vs desktop (mb-8) */}
-      <header className={`${styles.header} login-title-group mb-6 md:mb-8 flex flex-col items-center gap-2`}>
-        
+      <header className={`${styles.header} login-title-group flex flex-col items-center gap-2`}>
+
         {/* LOGO: Scaled down on mobile (w-12) vs desktop (w-16) */}
-        <div className={`${styles.logo} login-logo mb-4`}>
+        <div className={`${styles.logo} login-logo`}>
           <Shield className={`${styles.logoIcon} !text-blue-600 dark:!text-cyan-400 w-12 h-12 md:w-16 md:h-16 transition-colors duration-300`} />
         </div>
 
@@ -243,7 +243,7 @@ const Signup: FC = () => {
         <h1 className={`${styles.title} !bg-clip-text !text-transparent !bg-gradient-to-r !from-blue-600 !to-pink-500 dark:!from-cyan-400 dark:!to-purple-500 transition-all duration-300 text-2xl md:text-3xl font-bold text-center`}>
           Create Account
         </h1>
-        
+
         {/* Subtitle: slightly smaller on mobile */}
         <p className={`${styles.subtitle} mt-2 text-sm md:text-base text-center`}>
           Join us to start detecting deepfakes securely
@@ -251,7 +251,7 @@ const Signup: FC = () => {
       </header>
 
       {/* CARD: Adjusted padding for mobile (p-6) vs desktop (p-8) */}
-      <div className={`${styles.card} login-card p-6 md:p-8 w-full max-w-md`}>
+      <div className={`${styles.card} login-card w-full max-w-md`}>
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
           <AuthInput
             label="Name"

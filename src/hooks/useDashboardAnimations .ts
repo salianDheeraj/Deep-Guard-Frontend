@@ -5,30 +5,36 @@ import { debug } from '@/lib/logger';
 import gsap from 'gsap';
 import { RefObject } from 'react';
 
-export function useDashboardAnimations(scope: RefObject<HTMLDivElement>) {
-  
+export function useDashboardAnimations(scope: RefObject<HTMLDivElement>, dependencies: any[] = []) {
+
   useEffect(() => {
     // Keep checking until cards are found
     let attempts = 0;
     const maxAttempts = 20;
-    
+
+    // If dependencies include a loading state that is true, don't start yet
+    // This is a naive check, but strictly for the current use case where we pass [loading]
+    if (dependencies.length > 0 && dependencies[0] === true) {
+      return;
+    }
+
     const checkAndAnimate = () => {
       attempts++;
-      
+
       if (!scope.current) {
         if (attempts < maxAttempts) {
           setTimeout(checkAndAnimate, 100);
         }
         return;
       }
-      
+
       const cards = scope.current.querySelectorAll('.stat-card');
-      
+
       if (cards && cards.length > 0) {
         debug('✅ Animating', cards.length, 'cards');
-        
+
         // Animate cards
-        gsap.fromTo(cards, 
+        gsap.fromTo(cards,
           {
             opacity: 0,
             y: 30,
@@ -50,10 +56,10 @@ export function useDashboardAnimations(scope: RefObject<HTMLDivElement>) {
         setTimeout(checkAndAnimate, 100);
       }
     };
-    
+
     // Start checking
     const timer = setTimeout(checkAndAnimate, 50);
-    
+
     return () => clearTimeout(timer);
-  }, [scope]);
+  }, [scope, ...dependencies]);
 }

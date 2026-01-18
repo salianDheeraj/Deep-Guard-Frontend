@@ -27,7 +27,7 @@ export default function DashboardStatCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useDashboardAnimations(gridRef);
+  useDashboardAnimations(gridRef, [loading]);
 
   useEffect(() => {
     async function fetchStats() {
@@ -109,8 +109,8 @@ export default function DashboardStatCard() {
         - mb-6 on mobile -> mb-8 on desktop
         - grid-cols-1 (stacked) on mobile -> grid-cols-3 on desktop
       */}
-      <div 
-        ref={gridRef} 
+      <div
+        ref={gridRef}
         className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8"
       >
         {/* TOTAL VIDEOS */}
@@ -148,7 +148,7 @@ export default function DashboardStatCard() {
             aria-labelledby="real-videos-title"
           >
             <div className={styles.statHeader}>
-              <span className={`${styles.statIconWrapper} ${styles.iconWrapperGreen}`}>
+              <span className={`${styles.statIconWrapper} ${styles.iconWrapperPink}`}>
                 <Video className="w-6 h-6" aria-hidden="true" />
               </span>
               <h3

@@ -46,6 +46,14 @@
     @apply bg-red-900/20 text-red-400;
 }
 
+.iconWrapperPink {
+    @apply bg-pink-100 text-pink-600;
+}
+
+:global(.dark) .iconWrapperPink {
+    @apply bg-purple-900/30 text-purple-400;
+}
+
 .statTitle {
     @apply font-semibold text-gray-700 text-base;
 }

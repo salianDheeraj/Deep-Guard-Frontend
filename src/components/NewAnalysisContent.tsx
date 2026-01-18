@@ -592,7 +592,7 @@ const NewAnalysisContent: React.FC = () => {
           </button>
           <div>
             {/* Responsive Text Sizes */}
-            <h2 className="text-xl md:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-2 md:gap-3">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-2 md:gap-3">
               {selectedType === 'VIDEO'
                 ? <Video className="w-6 h-6 md:w-8 md:h-8 text-cyan-600 dark:text-cyan-400" />
                 : <ImageIcon className="w-6 h-6 md:w-8 md:h-8 text-purple-600 dark:text-purple-400" />}
