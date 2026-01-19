@@ -205,8 +205,9 @@ export default function AnalysisPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   const isImage =
     currentAnalysis.filename?.match(/\.(jpg|jpeg|png|webp|gif)$/i) ||
-    // Fallback for guest analysis where filename might not have extension
-    (currentAnalysis.frames_analyzed === 1 && !currentAnalysis.filename?.toLowerCase().endsWith('.mp4'));
+    // Fallback: If not mp4 and has no frame data (or 0/1 frames), treat as image
+    (!currentAnalysis.filename?.toLowerCase().endsWith('.mp4') &&
+      (!currentAnalysis.frame_wise_confidences?.length || currentAnalysis.frames_analyzed <= 1));
 
   if (isImage) {
     return (

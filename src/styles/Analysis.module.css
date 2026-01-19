@@ -2,7 +2,7 @@
 .pageContainer {
     /* FIX: Add top padding (pt-20) on mobile to clear the Hamburger button */
     @apply min-h-screen bg-gray-50 px-4 pt-20 pb-8 transition-colors duration-300;
-    
+
     /* Desktop: Standard padding */
     @apply sm:px-6 lg:px-8 md:pt-8;
 }
@@ -388,16 +388,38 @@
 }
 
 /* Metric Icons */
-.metricIconBlue { @apply w-5 h-5 text-blue-600 dark:text-blue-400; }
-.metricIconViolet { @apply w-5 h-5 text-violet-600 dark:text-violet-400; }
-.metricIconEmerald { @apply w-5 h-5 text-emerald-600 dark:text-emerald-400; }
-.metricIconRose { @apply w-5 h-5 text-rose-600 dark:text-rose-400; }
+.metricIconBlue {
+    @apply w-5 h-5 text-blue-600 dark:text-blue-400;
+}
+
+.metricIconViolet {
+    @apply w-5 h-5 text-violet-600 dark:text-violet-400;
+}
+
+.metricIconEmerald {
+    @apply w-5 h-5 text-emerald-600 dark:text-emerald-400;
+}
+
+.metricIconRose {
+    @apply w-5 h-5 text-rose-600 dark:text-rose-400;
+}
 
 /* Metric Values */
-.metricValueBlue { @apply text-2xl font-bold text-blue-700 dark:text-blue-400; }
-.metricValueViolet { @apply text-2xl font-bold text-violet-700 dark:text-violet-400; }
-.metricValueEmerald { @apply text-2xl font-bold text-emerald-700 dark:text-emerald-400; }
-.metricValueRose { @apply text-2xl font-bold text-rose-700 dark:text-rose-400; }
+.metricValueBlue {
+    @apply text-2xl font-bold text-blue-700 dark:text-blue-400;
+}
+
+.metricValueViolet {
+    @apply text-2xl font-bold text-violet-700 dark:text-violet-400;
+}
+
+.metricValueEmerald {
+    @apply text-2xl font-bold text-emerald-700 dark:text-emerald-400;
+}
+
+.metricValueRose {
+    @apply text-2xl font-bold text-rose-700 dark:text-rose-400;
+}
 
 .metricSubtext {
     @apply text-xs text-gray-500 mt-1 dark:text-gray-400;

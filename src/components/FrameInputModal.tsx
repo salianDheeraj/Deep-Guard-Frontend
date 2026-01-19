@@ -23,14 +23,14 @@ const FrameInputModal: React.FC<Props> = ({
 }) => {
   if (!show || !selectedFile) return null;
 
-  const maxFramesToAnalyze = Math.min(200, totalFrames);
+  const maxFramesToAnalyze = Math.min(100, totalFrames);
   const frameSkipInterval = Math.ceil(maxFramesToAnalyze / (framesToAnalyze || 1));
-  const isInvalid = framesToAnalyze > maxFramesToAnalyze || framesToAnalyze < 20;
+  const isInvalid = framesToAnalyze > maxFramesToAnalyze || framesToAnalyze < 10;
 
   const presets = [
-    { label: "Quick", frames: 20, color: "green" },
-    { label: "Standard", frames: 80, color: "blue" },
-    { label: "Advanced", frames: 140, color: "purple" },
+    { label: "Quick", frames: 10, color: "green" },
+    { label: "Standard", frames: 40, color: "blue" },
+    { label: "Advanced", frames: 70, color: "purple" },
     { label: "Deep", frames: maxFramesToAnalyze, color: "red" },
   ];
 
@@ -47,7 +47,7 @@ const FrameInputModal: React.FC<Props> = ({
 
           <div className="mb-6">
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Slider:</label>
-            <input type="range" min={20} max={maxFramesToAnalyze} step={4} value={framesToAnalyze} onChange={(e) => setFramesToAnalyze(Number(e.target.value))} className="w-full h-3 bg-gradient-to-r from-green-200 via-indigo-300 dark:via-teal-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-teal-500" />
+            <input type="range" min={10} max={maxFramesToAnalyze} step={2} value={framesToAnalyze} onChange={(e) => setFramesToAnalyze(Number(e.target.value))} className="w-full h-3 bg-gradient-to-r from-green-200 via-indigo-300 dark:via-teal-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-teal-500" />
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -84,7 +84,7 @@ const FrameInputModal: React.FC<Props> = ({
 
             {isInvalid && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2 mb-2">
-                <p className="text-xs text-red-700 dark:text-red-400 font-bold">⚠️ Invalid! Enter 20-{maxFramesToAnalyze} (multiples of 4)</p>
+                <p className="text-xs text-red-700 dark:text-red-400 font-bold">⚠️ Invalid! Enter 10-{maxFramesToAnalyze} (multiples of 4)</p>
               </div>
             )}
 
@@ -93,7 +93,7 @@ const FrameInputModal: React.FC<Props> = ({
         </div>
 
         <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t dark:border-gray-700 p-4 flex gap-3">
-          <button onClick={() => { setShow(false); setFramesToAnalyze(20); setAnalysisState("IDLE"); }} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition font-medium text-sm">❌ Cancel</button>
+          <button onClick={() => { setShow(false); setFramesToAnalyze(10); setAnalysisState("IDLE"); }} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition font-medium text-sm">❌ Cancel</button>
           <button onClick={() => { setShow(false); void startAnalysis(); }} disabled={isInvalid} className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${isInvalid ? "bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 dark:bg-teal-600 dark:hover:bg-teal-700 text-white"}`}>
             ✅ Start Analysis
           </button>
