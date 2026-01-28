@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Star, GitFork, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
+import { Star, GitFork, AlertCircle, ExternalLink, Loader2, BookMarked } from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
 
@@ -50,41 +50,47 @@ const GithubRepoCard: React.FC<GithubRepoCardProps> = ({ owner, repo, title, des
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative flex flex-col p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+            className="group relative p-4 md:p-6 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 min-w-0"
         >
-            <div className="absolute top-6 right-6 text-gray-400 group-hover:text-blue-500 dark:group-hover:text-cyan-400 transition-colors">
-                <ExternalLink size={20} />
+            <div className="absolute top-0 right-0 p-3 md:p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+                <ExternalLink className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-blue-500" />
             </div>
 
-            <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors">
-                {title}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-grow">
+            <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                <div className="p-1.5 md:p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shrink-0">
+                    <BookMarked className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                <h3 className="font-bold text-base md:text-lg text-gray-800 dark:text-gray-100 truncate w-full">
+                    {title}
+                </h3>
+            </div>
+
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 min-h-[40px]">
                 {description}
             </p>
 
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
-                <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+                <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                     {language}
                 </span>
 
-                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 font-medium">
+                <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium ml-auto">
                     {loading ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                        <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin text-gray-400" />
                     ) : error ? (
                         <span className="text-xs text-red-400">API Limit</span>
                     ) : (
                         <>
                             <div className="flex items-center gap-1" title="Stars">
-                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 fill-yellow-500" />
                                 <span>{data?.stargazers_count}</span>
                             </div>
                             <div className="flex items-center gap-1" title="Forks">
-                                <GitFork className="w-4 h-4 text-gray-400" />
+                                <GitFork className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
                                 <span>{data?.forks_count}</span>
                             </div>
                             <div className="flex items-center gap-1" title="Open Issues">
-                                <AlertCircle className="w-4 h-4 text-green-500" />
+                                <AlertCircle className="w-3 h-3 md:w-4 md:h-4 text-green-500" />
                                 <span>{data?.open_issues_count}</span>
                             </div>
                         </>

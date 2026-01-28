@@ -145,10 +145,10 @@ const Sidebar = () => {
             {/* Visible only on mobile (md:hidden) */}
             <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-[100] p-2 rounded-md bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-200"
+                className="md:hidden fixed top-4 left-4 z-[110] p-2 rounded-md bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-200"
                 aria-label="Toggle Menu"
             >
-                {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+                <Menu size={24} />
             </button>
 
             {/* --- MOBILE OVERLAY BACKDROP --- */}
@@ -160,11 +160,7 @@ const Sidebar = () => {
             )}
 
             {/* --- SIDEBAR CONTAINER --- */}
-            {/* Responsive Classes logic:
-                1. Fixed position on mobile (inset-y-0 left-0) to act as a drawer.
-                2. Sticky/Relative on Desktop (md:relative) to maintain original layout.
-                3. Translate logic: On mobile, slide in/out. On desktop, always show (translate-x-0).
-            */}
+            {/* Responsive Classes logic: ... */}
             <div
                 ref={sidebarRef}
                 className={`

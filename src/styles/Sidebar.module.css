@@ -1,5 +1,5 @@
 .sidebar {
-    @apply w-64 h-screen shadow-md flex flex-col flex-shrink-0 border-r border-gray-100 transition-colors duration-300 overflow-y-auto;
+    @apply w-full md:w-64 h-screen shadow-md flex flex-col flex-shrink-0 border-r border-gray-100 transition-colors duration-300 overflow-y-auto;
     background-color: #f9fafb;
     /* gray-50 to match typical dashboard background */
 }

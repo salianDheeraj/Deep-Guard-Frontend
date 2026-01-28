@@ -4,8 +4,7 @@ import React from 'react';
 import { Github, Heart, GitPullRequest } from 'lucide-react';
 import GithubRepoCard from '@/components/GithubRepoCard';
 import ContributorList from '@/components/ContributorList';
-import BugReportForm from '@/components/BugReportForm';
-
+import LegalAwarenessCard from '@/components/LegalAwarenessCard';
 
 const GITHUB_OWNER = "Riyan-ai-code";
 
@@ -35,11 +34,11 @@ const Repositories = [
 
 export default function ContributionsPage() {
     return (
-        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-12 text-gray-800 dark:text-gray-100">
+        <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-12 text-gray-800 dark:text-gray-100">
 
             {/* HEADER */}
             <div className="flex flex-col gap-4">
-                <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500 dark:from-cyan-400 dark:to-purple-500">
+                <h1 className="text-2xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500 dark:from-cyan-400 dark:to-purple-500">
                     Contributions & Community
                 </h1>
                 <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
@@ -81,9 +80,9 @@ export default function ContributionsPage() {
                 <ContributorList owner={GITHUB_OWNER} repo="Deep-Guard-Frontend" />
             </section>
 
-            {/* BUG REPORT SECTION */}
+            {/* LEGAL AWARENESS SECTION */}
             <section className="max-w-3xl">
-                <BugReportForm />
+                <LegalAwarenessCard />
             </section>
 
         </div>

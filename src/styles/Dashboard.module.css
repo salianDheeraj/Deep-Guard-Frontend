@@ -67,7 +67,7 @@
 }
 
 .statValue {
-    @apply text-3xl font-bold text-gray-900;
+    @apply text-2xl md:text-3xl font-bold text-gray-900;
 }
 
 :global(.dark) .statValue {

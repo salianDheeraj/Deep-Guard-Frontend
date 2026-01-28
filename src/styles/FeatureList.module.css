@@ -1,9 +1,9 @@
 .container {
-    @apply flex justify-between mt-12;
+    @apply mt-12;
 }
 
 .featureItem {
-    @apply flex flex-col items-center w-[30%] p-4;
+    @apply flex flex-col items-center p-4;
 }
 
 .featureItemMiddle {
