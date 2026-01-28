@@ -149,9 +149,9 @@
 }
 
 .statsRow {
-    /* FIX: Flex-col on mobile, Row on desktop */
-    @apply mt-6 pt-6 border-t border-white/20 flex flex-col gap-4;
-    @apply sm:flex-row sm:gap-12;
+    /* FIX: Keep items in a line on mobile (grid-cols-3). Stack/Row on desktop as needed. */
+    @apply mt-4 pt-4 border-t border-white/20;
+    @apply sm:flex sm:flex-row sm:justify-start sm:gap-12 sm:mt-6 sm:pt-6;
 }
 
 .statItemLabel {

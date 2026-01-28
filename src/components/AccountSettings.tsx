@@ -136,11 +136,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </p>
         </div>
 
-        <div className="p-6 pt-2 flex gap-3">
+        <div className="p-6 pt-2 flex flex-col sm:flex-row gap-3">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 px-5 py-2.5 bg-gray-200 dark:bg-slate-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 transition disabled:opacity-50"
+            className="w-full sm:flex-1 px-5 py-2.5 bg-gray-200 dark:bg-slate-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 transition disabled:opacity-50"
           >
             Cancel
           </button>
@@ -148,7 +148,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 px-5 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg border-0 ${colors.buttonBg} disabled:opacity-70`}
+            className={`w-full sm:flex-1 px-5 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg border-0 ${colors.buttonBg} disabled:opacity-70`}
           >
             {isLoading ? (
               <Loader2 className="animate-spin w-4 h-4" />
@@ -448,7 +448,7 @@ export default function AccountSettings(): JSX.Element {
       {/* PROFILE CARD */}
       <section ref={profileCardRef} className={`${styles.card} account-card p-4 md:p-8 mb-8`}>
         <form onSubmit={saveProfile} className={styles.formGroup}>
-          
+
           {/* RESPONSIVE: Stack vertically on mobile (flex-col), Row on desktop (sm:flex-row) */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group">

@@ -211,11 +211,11 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
         >
           {downloading ? (
             <>
-              <Loader className="w-4 h-4 animate-spin" /> Downloading...
+              <Loader className="w-4 h-4 animate-spin" /> <span className="hidden sm:inline">Downloading...</span>
             </>
           ) : (
             <>
-              <Download className="w-4 h-4" /> Download Report
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Download Report</span>
             </>
           )}
         </button>

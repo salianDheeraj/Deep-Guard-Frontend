@@ -40,6 +40,59 @@ interface AnalysisResponse {
   };
 }
 
+// --- CUSTOM DELETE MODAL ---
+interface DeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isDeleting: boolean;
+}
+
+const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onConfirm, isDeleting }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 dark:border-gray-700 transform transition-all scale-100">
+
+        <div className="flex items-center gap-4 mb-5">
+          <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full flex-shrink-0">
+            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-500" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Confirm Deletion
+          </h3>
+        </div>
+
+        <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+          Are you sure you want to permanently delete this analysis?
+          <span className="text-sm text-red-500 mt-2 block">This action cannot be undone.</span>
+        </p>
+
+        {/* Footer: Flex on desktop, Stack on mobile (<400px) */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex justify-center"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isDeleting ? <Loader className="w-4 h-4 animate-spin" /> : null}
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
 export default function AnalysisPage() {
   const params = useParams();
   const router = useRouter();
@@ -52,9 +105,10 @@ export default function AnalysisPage() {
 
   const [deleting, setDeleting] = useState(false);
   const [initialMount, setInitialMount] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // Modal State
 
   // ----------------------------------------------------
-  // FETCH ANALYSIS (AUTH PATCHED: cookies → include)
+  // FETCH ANALYSIS
   // ----------------------------------------------------
   const fetchAnalysis = useCallback(async () => {
     try {
@@ -69,7 +123,7 @@ export default function AnalysisPage() {
 
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'GET',
-        credentials: "include",        // ← PATCH
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -143,11 +197,13 @@ export default function AnalysisPage() {
   }, [analysisId, fetchAnalysis]);
 
   // ----------------------------------------------------
-  // DELETE ANALYSIS (AUTH PATCHED)
+  // DELETE ANALYSIS
   // ----------------------------------------------------
-  const handleDelete = useCallback(async () => {
-    if (!confirm('Are you sure you want to delete this analysis?')) return;
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
 
+  const handleConfirmDelete = async () => {
     try {
       setDeleting(true);
 
@@ -155,20 +211,21 @@ export default function AnalysisPage() {
 
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'DELETE',
-        credentials: "include",        // ← PATCH
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error('Failed to delete analysis');
 
-      alert('Analysis deleted successfully');
+      // alert('Analysis deleted successfully'); // Removed alert
 
       reset();
-      router.push('/dashboard');
+      router.push('/dashboard/history'); // Redirect to history instead of dashboard home
     } catch (err: any) {
-      alert(err.message);
+      alert(err.message); // Keep error alert or replace with toast
       setDeleting(false);
+      setShowDeleteModal(false);
     }
-  }, [analysisId, router, reset]);
+  };
 
   // ----------------------------------------------------
   // LOADING UI
@@ -209,9 +266,15 @@ export default function AnalysisPage() {
     (!currentAnalysis.filename?.toLowerCase().endsWith('.mp4') &&
       (!currentAnalysis.frame_wise_confidences?.length || currentAnalysis.frames_analyzed <= 1));
 
-  if (isImage) {
-    return (
-      // Responsive Container: p-4 on mobile, p-8 on desktop
+  return (
+    <>
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleting}
+      />
+
       <main className={`${styles.pageContainer} p-4 md:p-8 w-full max-w-7xl mx-auto`}>
         <div className={styles.contentWrapper}>
           <AnalysisHeader
@@ -219,68 +282,47 @@ export default function AnalysisPage() {
             fileName={currentAnalysis.filename}
             analyzedDate={new Date(currentAnalysis.created_at).toLocaleDateString()}
             modelVersion="v3.2"
-            onDelete={handleDelete}
+            onDelete={handleDeleteClick}
           />
-          <div className="mt-6 md:mt-8">
-            <ImageAnalysisSection
-              imageUrl={`${API_URL}/api/analysis/${analysisId}/file`}
-              isDeepfake={currentAnalysis.is_deepfake}
-              confidenceScore={currentAnalysis.confidence_score}
-              createdAt={new Date(currentAnalysis.created_at).toLocaleDateString()}
-            />
-          </div>
+
+          {isImage ? (
+            <div className="mt-6 md:mt-8">
+              <ImageAnalysisSection
+                imageUrl={`${API_URL}/api/analysis/${analysisId}/file`}
+                isDeepfake={currentAnalysis.is_deepfake}
+                confidenceScore={currentAnalysis.confidence_score}
+                createdAt={new Date(currentAnalysis.created_at).toLocaleDateString()}
+              />
+            </div>
+          ) : (
+            <div className="space-y-6 md:space-y-8 mt-6">
+              <DeepfakeAlertCard
+                isDeepfake={currentAnalysis.is_deepfake}
+                confidence={currentAnalysis.confidence_score}
+                framesAnalyzed={currentAnalysis.frames_analyzed}
+                totalFrames={currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length}
+              />
+
+              {/* Responsive Grid: Stack on mobile (cols-1), Side-by-side on desktop (lg:cols-2) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <FrameAnalysisSection
+                  analysisId={analysisId}
+                  frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+                  annotatedFramesPath={currentAnalysis.annotated_frames_path}
+                  totalFrames={currentAnalysis.confidence_report?.total_frames || currentAnalysis.frame_wise_confidences.length}
+                  averageConfidence={currentAnalysis.confidence_report?.average_confidence || currentAnalysis.confidence_score}
+                />
+
+                <ConfidenceOverTimeChart
+                  frameWiseConfidences={currentAnalysis.frame_wise_confidences}
+                />
+              </div>
+
+              <UnderstandingConfidence />
+            </div>
+          )}
         </div>
       </main>
-    );
-  }
-
-  // VIDEO UI (Existing)
-  const totalFrames =
-    currentAnalysis.confidence_report?.total_frames ||
-    currentAnalysis.frame_wise_confidences.length;
-
-  const averageConfidence =
-    currentAnalysis.confidence_report?.average_confidence ||
-    currentAnalysis.confidence_score;
-
-  return (
-    // Responsive Container: p-4 on mobile, p-8 on desktop
-    <main className={`${styles.pageContainer} p-4 md:p-8 w-full max-w-7xl mx-auto`}>
-      <div className={`${styles.contentWrapper} space-y-6 md:space-y-8`}>
-
-        <AnalysisHeader
-          analysisId={analysisId}
-          fileName={currentAnalysis.filename}
-          analyzedDate={new Date(currentAnalysis.created_at).toLocaleDateString()}
-          modelVersion="v3.2"
-          onDelete={handleDelete}
-        />
-
-        <DeepfakeAlertCard
-          isDeepfake={currentAnalysis.is_deepfake}
-          confidence={currentAnalysis.confidence_score}
-          framesAnalyzed={currentAnalysis.frames_analyzed}
-          totalFrames={totalFrames}
-        />
-
-        {/* Responsive Grid: Stack on mobile (cols-1), Side-by-side on desktop (lg:cols-2) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <FrameAnalysisSection
-            analysisId={analysisId}
-            frameWiseConfidences={currentAnalysis.frame_wise_confidences}
-            annotatedFramesPath={currentAnalysis.annotated_frames_path}
-            totalFrames={totalFrames}
-            averageConfidence={averageConfidence}
-          />
-
-          <ConfidenceOverTimeChart
-            frameWiseConfidences={currentAnalysis.frame_wise_confidences}
-          />
-        </div>
-
-        <UnderstandingConfidence />
-
-      </div>
-    </main>
+    </>
   );
 }

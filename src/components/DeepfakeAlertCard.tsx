@@ -29,8 +29,8 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
   return (
     <div
       className={`${styles.alertCard} ${isDeepfake
-          ? styles.fakeGradient
-          : styles.realGradient
+        ? styles.fakeGradient
+        : styles.realGradient
         }`}
     >
       {/* Responsive Header:
@@ -38,7 +38,7 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
         - Desktop (sm): flex-row (side-by-side)
       */}
       <div className={`${styles.alertHeader} flex flex-col sm:flex-row gap-6 sm:gap-4`}>
-        
+
         {/* Left: Status & Message */}
         <div className="flex-1">
           <div className={`${styles.alertStatus} flex items-center gap-3 mb-2`}>
@@ -81,28 +81,29 @@ const DeepfakeAlertCard: React.FC<DeepfakeAlertCardProps> = ({
 
       {/* Frame Analysis Info */}
       {/* Grid ensures even spacing on mobile without wrapping awkwardly */}
-      <div className={`${styles.statsRow} grid grid-cols-3 gap-4 border-t border-white/20 pt-4 mt-4 sm:mt-6`}>
-        <div className="text-center sm:text-left">
-          <p className={`${styles.statItemLabel} text-xs sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
+      {/* Frame Analysis Info */}
+      <div className={`${styles.statsRow} flex flex-wrap justify-between items-center px-1`}>
+        <div className="text-center sm:text-left flex-1 min-w-[30%]">
+          <p className={`${styles.statItemLabel} text-[10px] sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
             Analyzed
           </p>
-          <p className={`${styles.statItemValue} text-lg sm:text-xl font-semibold`}>
+          <p className={`${styles.statItemValue} text-base sm:text-xl font-semibold`}>
             {framesAnalyzed}
           </p>
         </div>
-        <div className="text-center sm:text-left">
-          <p className={`${styles.statItemLabel} text-xs sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
+        <div className="text-center sm:text-left flex-1 min-w-[30%]">
+          <p className={`${styles.statItemLabel} text-[10px] sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
             Total Frames
           </p>
-          <p className={`${styles.statItemValue} text-lg sm:text-xl font-semibold`}>
+          <p className={`${styles.statItemValue} text-base sm:text-xl font-semibold`}>
             {totalFrames}
           </p>
         </div>
-        <div className="text-center sm:text-left">
-          <p className={`${styles.statItemLabel} text-xs sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
+        <div className="text-center sm:text-left flex-1 min-w-[30%]">
+          <p className={`${styles.statItemLabel} text-[10px] sm:text-sm uppercase tracking-wide opacity-80 mb-1`}>
             Coverage
           </p>
-          <p className={`${styles.statItemValue} text-lg sm:text-xl font-semibold`}>
+          <p className={`${styles.statItemValue} text-base sm:text-xl font-semibold`}>
             {totalFrames > 0 ? Math.round((framesAnalyzed / totalFrames) * 100) : 0}%
           </p>
         </div>

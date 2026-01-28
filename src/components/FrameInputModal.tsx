@@ -50,7 +50,7 @@ const FrameInputModal: React.FC<Props> = ({
             <input type="range" min={10} max={maxFramesToAnalyze} step={2} value={framesToAnalyze} onChange={(e) => setFramesToAnalyze(Number(e.target.value))} className="w-full h-3 bg-gradient-to-r from-green-200 via-indigo-300 dark:via-teal-300 to-red-400 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-teal-500" />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {presets.map((preset) => {
               const isSelected = framesToAnalyze === preset.frames;
               const colorClasses: Record<string, string> = {
@@ -62,7 +62,7 @@ const FrameInputModal: React.FC<Props> = ({
 
               return (
                 <button key={preset.label} onClick={() => setFramesToAnalyze(preset.frames)} className={`p-3 rounded-lg border-2 transition-all duration-200 font-bold cursor-pointer active:scale-95 ${colorClasses[preset.color]}`}>
-                  <p className="text-lg font-bold mb-2 uppercase">{preset.label}</p>
+                  <p className="text-base sm:text-lg font-bold mb-2 uppercase">{preset.label}</p>
                   <div className="text-xs opacity-70"><span className="font-semibold">{preset.frames}</span><span className="ml-1">frames</span></div>
                 </button>
               );
@@ -92,7 +92,7 @@ const FrameInputModal: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t dark:border-gray-700 p-4 flex gap-3">
+        <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t dark:border-gray-700 p-4 flex flex-col sm:flex-row gap-3">
           <button onClick={() => { setShow(false); setFramesToAnalyze(10); setAnalysisState("IDLE"); }} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition font-medium text-sm">❌ Cancel</button>
           <button onClick={() => { setShow(false); void startAnalysis(); }} disabled={isInvalid} className={`flex-1 px-4 py-2 rounded-lg transition font-bold text-sm ${isInvalid ? "bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 dark:bg-teal-600 dark:hover:bg-teal-700 text-white"}`}>
             ✅ Start Analysis

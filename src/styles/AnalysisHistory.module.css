@@ -268,11 +268,26 @@
 }
 
 .cancelButton {
-    @apply px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors;
+    @apply px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex justify-center;
 }
 
 .confirmButton {
-    @apply px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed;
+    @apply px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed;
+}
+
+@media (max-width: 400px) {
+    .modalFooter {
+        @apply flex-col;
+    }
+
+    .modalContent {
+        @apply p-4;
+    }
+
+    .cancelButton,
+    .confirmButton {
+        @apply w-full;
+    }
 }
 
 /* Loading/Error States */
