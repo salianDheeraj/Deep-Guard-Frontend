@@ -29,12 +29,13 @@ const ContributorList: React.FC<ContributorListProps> = ({ owner, repo }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await apiFetch(`/api/github/contributors?owner=${owner}&repo=${repo}`);
+                // Fetch aggregated contributors (backend handles repo list)
+                const res = await apiFetch(`/api/github/contributors?owner=${owner}`);
                 if (!res.ok) throw new Error("Failed to fetch");
                 const json = await res.json();
                 setContributors(json);
             } catch (err) {
-                console.error(`Error fetching contributors for ${repo}:`, err);
+                console.error(`Error fetching contributors:`, err);
                 setError(true);
             } finally {
                 setLoading(false);
