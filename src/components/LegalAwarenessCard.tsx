@@ -24,7 +24,7 @@ const LegalAwarenessCard = () => {
                         Is Deepfake Impersonation Illegal?
                     </h3>
                     <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 leading-relaxed break-words">
-                        Yes. Under <strong>Section 66D of the IT Act, 2000</strong>, creating a deepfake to cheat or impersonate someone works is a punishable offense. Offenders can face imprisonment up to 3 years and fines.
+                        Yes. Under <strong>Section 66D of the IT Act, 2000</strong> and <strong>BNS 2023</strong>, creating a deepfake to cheat or impersonate someone is a punishable offense. Offenders can face imprisonment up to 3 years and fines.
                     </p>
                 </div>
 

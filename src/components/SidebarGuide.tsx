@@ -52,15 +52,15 @@ export default function SidebarGuide() {
                     <div className="space-y-2 animate-in fade-in duration-300">
                         <div className="flex items-center gap-2 text-red-500 mb-1">
                             <ShieldAlert size={16} />
-                            <span className="text-xs font-semibold">Know Your Rights</span>
+                            <span className="text-xs font-semibold">Know Your Rights (India)</span>
                         </div>
                         <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-2 list-disc pl-4">
-                            <li>Deepfakes can constitute impersonation or fraud.</li>
-                            <li>Victims have the right to file complaints.</li>
-                            <li>Reporting early increases chances of action.</li>
+                            <li>Deepfakes violate <span className="font-semibold">Sec 66D of IT Act, 2000</span>.</li>
+                            <li>Impersonation is punishable under <span className="font-semibold">BNS 2023</span>.</li>
+                            <li>Dial <span className="font-bold text-blue-600 dark:text-cyan-400">1930</span> to report cyber fraud immediately.</li>
                         </ul>
                         <p className="text-[10px] text-gray-400 dark:text-gray-500 italic mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                            *This tool does not provide legal advice.
+                            *Report at cybercrime.gov.in
                         </p>
                     </div>
                 )}

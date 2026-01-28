@@ -34,7 +34,7 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
 
   return (
     <div className={styles.modalOverlay}>
-      
+
       <div className={`${styles.modalContent} dark:bg-slate-800 dark:border dark:border-slate-700`}>
 
         <div className={styles.modalHeader}>
@@ -511,7 +511,7 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={`${styles.navButton} dark:!text-white dark:hover:!text-gray-200 disabled:dark:!text-white disabled:opacity-50`}
+                  className={styles.navButton}
                 >
                   Previous
                 </button>
@@ -533,7 +533,7 @@ const AnalysisHistory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className={`${styles.navButton} dark:!text-white dark:hover:!text-gray-200 disabled:dark:!text-white disabled:opacity-50`}
+                  className={styles.navButton}
                 >
                   Next
                 </button>

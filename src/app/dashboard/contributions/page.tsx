@@ -80,6 +80,69 @@ export default function ContributionsPage() {
                 <ContributorList owner={GITHUB_OWNER} repo="Deep-Guard-Frontend" />
             </section>
 
+            {/* PROJECT ORIGINS & TEAM */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Story Card */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span className="text-2xl">🚀</span> Project Origins
+                    </h2>
+                    <div className="space-y-4 text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                        <p>
+                            <strong>Deep-Guard</strong> started in <span className="text-blue-600 dark:text-cyan-400 font-semibold">2025</span> as a college project with a singular mission: to restore trust in digital media.
+                        </p>
+                        <p>
+                            Witnessing the rise of malicious deepfakes targeting individuals, our team of students came together to build an accessible, privacy-first detection tool. What began as a classroom concept has evolved into a fully open-source platform protected by advanced ML models.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Core Team Card */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span className="text-2xl">👨‍💻</span> Meet the Core Team
+                    </h2>
+                    <ul className="space-y-4">
+                        <li className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                                D
+                            </div>
+                            <div>
+                                 <h3 className="font-bold text-gray-900 dark:text-gray-100">Dheeraj Salian</h3>
+                                <p className="text-xs text-blue-600 dark:text-cyan-400">Lead Developer & ML Engineer</p>
+                            </div>
+                        </li>
+                        <li className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+                                T
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-gray-100">Anurag Jha</h3>
+                                <p className="text-xs text-blue-600 dark:text-cyan-400">Frontend Developer and ui and ux designer</p>
+                            </div>
+                        </li>
+                          <li className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+                                P
+                            </div>
+                            <div>
+                                 <h3 className="font-bold text-gray-900 dark:text-gray-100">Parthib Dey(Riyan)</h3>
+                                <p className="text-xs text-blue-600 dark:text-cyan-400">Backend Developer & integration of all forms</p>
+                            </div>
+                        </li>
+                         <li className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+                                O
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-gray-100">others</h3>
+                                <p className="text-xs text-blue-600 dark:text-cyan-400">Developer that contributed later on is in hall of fame</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+  
             {/* LEGAL AWARENESS SECTION */}
             <section className="max-w-3xl">
                 <LegalAwarenessCard />
