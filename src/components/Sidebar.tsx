@@ -49,7 +49,7 @@ const Sidebar = () => {
         { name: 'Account', href: '/dashboard/account', icon: CircleUser },
         // Added to fill empty space
         { name: 'Report Cybercrime', href: 'https://cybercrime.gov.in', icon: Siren },
-        { name: 'Contributions', href: '/contributions', icon: GitPullRequest },
+        { name: 'Contributions', href: '/dashboard/contributions', icon: GitPullRequest },
     ];
 
     const isActive = (href: string) => {
