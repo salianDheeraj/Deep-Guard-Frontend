@@ -13,7 +13,8 @@ import {
     LucideIcon,
     Menu,
     X,
-    Siren          // Added
+    Siren,          // Added
+    GitPullRequest  // Added
 } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -48,6 +49,7 @@ const Sidebar = () => {
         { name: 'Account', href: '/dashboard/account', icon: CircleUser },
         // Added to fill empty space
         { name: 'Report Cybercrime', href: 'https://cybercrime.gov.in', icon: Siren },
+        { name: 'Contributions', href: '/contributions', icon: GitPullRequest },
     ];
 
     const isActive = (href: string) => {

@@ -106,6 +106,13 @@ const Login: FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  /* Wake up backend on load (Cold Start Fix) */
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    // Fire and forget - just to wake up the Render instance
+    fetch(`${API_URL}/`).catch(() => { });
+  }, []);
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
 
