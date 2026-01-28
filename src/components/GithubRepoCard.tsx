@@ -1,16 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Star, GitFork, AlertCircle, ExternalLink, Loader2, BookMarked } from "lucide-react";
-
-import { apiFetch } from "@/lib/api";
-
-interface RepoData {
-    stargazers_count: number;
-    forks_count: number;
-    open_issues_count: number;
-    html_url: string;
-}
+import React from "react";
+import { ExternalLink, BookMarked } from "lucide-react";
 
 interface GithubRepoCardProps {
     owner: string;
@@ -21,29 +12,7 @@ interface GithubRepoCardProps {
 }
 
 const GithubRepoCard: React.FC<GithubRepoCardProps> = ({ owner, repo, title, description, language }) => {
-    const [data, setData] = useState<RepoData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await apiFetch(`/api/github/repo?owner=${owner}&repo=${repo}`);
-                if (!res.ok) throw new Error("Failed to fetch");
-                const json = await res.json();
-                setData(json);
-            } catch (err) {
-                console.error(`Error fetching repo ${repo}:`, err);
-                setError(true);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [owner, repo]);
-
-    const url = data?.html_url || `https://github.com/${owner}/${repo}`;
+    const url = `https://github.com/${owner}/${repo}`;
 
     return (
         <a
@@ -69,33 +38,10 @@ const GithubRepoCard: React.FC<GithubRepoCardProps> = ({ owner, repo, title, des
                 {description}
             </p>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 mt-auto pt-3 md:pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-start pt-3 md:pt-4 border-t border-gray-100 dark:border-gray-700">
                 <span className="inline-block px-2 py-0.5 text-[10px] md:text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 shrink-0">
                     {language}
                 </span>
-
-                <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm text-gray-600 dark:text-gray-400 font-medium ml-auto flex-wrap justify-end">
-                    {loading ? (
-                        <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin text-gray-400" />
-                    ) : error ? (
-                        <span className="text-[10px] text-red-400">API Limit</span>
-                    ) : (
-                        <>
-                            <div className="flex items-center gap-1" title="Stars">
-                                <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 fill-yellow-500" />
-                                <span>{data?.stargazers_count}</span>
-                            </div>
-                            <div className="flex items-center gap-1" title="Forks">
-                                <GitFork className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-                                <span>{data?.forks_count}</span>
-                            </div>
-                            <div className="flex items-center gap-1" title="Open Issues">
-                                <AlertCircle className="w-3 h-3 md:w-4 md:h-4 text-green-500" />
-                                <span>{data?.open_issues_count}</span>
-                            </div>
-                        </>
-                    )}
-                </div>
             </div>
         </a>
     );

@@ -72,12 +72,8 @@ export default function ContributionsPage() {
                     A huge thank you to all our accepted contributors!
                 </p>
 
-                {/* 
-                    Since we likely don't have a real comprehensive list for "all repos" combined easily via one API call without logic,
-                    we can display contributors for the main frontend repo or repeat the list for critical repos. 
-                    For now, let's show contributors for the Frontend repo as the primary example.
-                */}
-                <ContributorList owner={GITHUB_OWNER} repo="Deep-Guard-Frontend" />
+               
+                <ContributorList />
             </section>
 
             {/* PROJECT ORIGINS & TEAM */}
@@ -108,7 +104,7 @@ export default function ContributionsPage() {
                                 D
                             </div>
                             <div>
-                                 <h3 className="font-bold text-gray-900 dark:text-gray-100">Dheeraj Salian</h3>
+                                <h3 className="font-bold text-gray-900 dark:text-gray-100">Dheeraj Salian</h3>
                                 <p className="text-xs text-blue-600 dark:text-cyan-400">Lead Developer & ML Engineer</p>
                             </div>
                         </li>
@@ -121,28 +117,19 @@ export default function ContributionsPage() {
                                 <p className="text-xs text-blue-600 dark:text-cyan-400">Frontend Developer and ui and ux designer</p>
                             </div>
                         </li>
-                          <li className="flex items-center gap-4">
+                        <li className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
                                 P
                             </div>
                             <div>
-                                 <h3 className="font-bold text-gray-900 dark:text-gray-100">Parthib Dey(Riyan)</h3>
+                                <h3 className="font-bold text-gray-900 dark:text-gray-100">Parthib Dey(Riyan)</h3>
                                 <p className="text-xs text-blue-600 dark:text-cyan-400">Backend Developer & integration of all forms</p>
-                            </div>
-                        </li>
-                         <li className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
-                                O
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900 dark:text-gray-100">others</h3>
-                                <p className="text-xs text-blue-600 dark:text-cyan-400">Developer that contributed later on is in hall of fame</p>
                             </div>
                         </li>
                     </ul>
                 </div>
             </section>
-  
+
             {/* LEGAL AWARENESS SECTION */}
             <section className="max-w-3xl">
                 <LegalAwarenessCard />
