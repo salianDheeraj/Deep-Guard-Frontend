@@ -8,14 +8,14 @@ import LegalAwarenessCard from '@/components/LegalAwarenessCard';
 
 const Repositories = [
     {
-        owner: 'Anurag0018',
+        owner: 'salianDheeraj',
         repo: 'Deep-Guard-Frontend',
         title: 'Frontend-Deep-Guard',
         description: 'The Next.js user interface and client-side logic.',
         language: 'TypeScript',
     },
     {
-        owner: 'Riyan-ai-code',
+        owner: 'salianDheeraj',
         repo: 'Deep-Guard-Backend',
         title: 'Backend Repository',
         description: 'Node.js/Express server handling logic and authentication.',
