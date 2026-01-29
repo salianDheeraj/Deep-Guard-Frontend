@@ -6,25 +6,23 @@ import GithubRepoCard from '@/components/GithubRepoCard';
 import ContributorList from '@/components/ContributorList';
 import LegalAwarenessCard from '@/components/LegalAwarenessCard';
 
-const GITHUB_OWNER = "Riyan-ai-code";
-
 const Repositories = [
     {
-        owner: GITHUB_OWNER,
+        owner: 'Anurag0018',
         repo: 'Deep-Guard-Frontend',
-        title: 'Frontend Repository',
+        title: 'Frontend-Deep-Guard',
         description: 'The Next.js user interface and client-side logic.',
         language: 'TypeScript',
     },
     {
-        owner: GITHUB_OWNER,
+        owner: 'Riyan-ai-code',
         repo: 'Deep-Guard-Backend',
         title: 'Backend Repository',
         description: 'Node.js/Express server handling logic and authentication.',
         language: 'JavaScript',
     },
     {
-        owner: GITHUB_OWNER,
+        owner: 'salianDheeraj',
         repo: 'Deep-Guard-ML-Engine',
         title: 'ML Engine Repository',
         description: 'The core deepfake detection models (FastAPI/Python).',
@@ -72,7 +70,7 @@ export default function ContributionsPage() {
                     A huge thank you to all our accepted contributors!
                 </p>
 
-               
+
                 <ContributorList />
             </section>
 
