@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useRef } from 'react';
-import { useChartAnimation } from '@/hooks/useChartAnimation ';
+import { useChartAnimation } from '@/hooks/useChartAnimation';
 import { Activity, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
 import styles from '@/styles/Analysis.module.css';

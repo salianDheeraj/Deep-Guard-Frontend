@@ -1,4 +1,4 @@
-// src/components/AnalysisPage.tsx - FIXED for HttpOnly Cookie Auth
+// src/components/AnalysisPage.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -12,8 +12,12 @@ import ImageAnalysisSection from './ImageAnalysisSection';
 import UnderstandingConfidence from './UnderstandingConfidence';
 
 import { Loader, AlertCircle } from 'lucide-react';
-import { useAnalysisStore } from '@/../lib/store/analysisStore';
+import { useAnalysisStore } from '@/../lib/store/analysisStore'; // Cleaned up import path
 import styles from '@/styles/Analysis.module.css';
+
+// 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+// This ensures cookies work correctly across environments.
+const API_URL = ""; 
 
 interface ConfidenceReport {
   video_id?: string;
@@ -119,8 +123,7 @@ export default function AnalysisPage() {
         throw new Error('Invalid analysis ID');
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
+      // ✅ FIX: Use relative path (empty API_URL)
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'GET',
         credentials: "include",
@@ -179,7 +182,7 @@ export default function AnalysisPage() {
     } finally {
       setLoading(false);
     }
-  }, [analysisId, setAnalysis, setError, setLoading]);
+  }, [analysisId, setAnalysis, setError, setLoading, router]);
 
   // cleanup
   useEffect(() => {
@@ -194,7 +197,7 @@ export default function AnalysisPage() {
       setInitialMount(false);
       setLoading(false);
     }
-  }, [analysisId, fetchAnalysis]);
+  }, [analysisId, fetchAnalysis, setError, setLoading]);
 
   // ----------------------------------------------------
   // DELETE ANALYSIS
@@ -207,8 +210,7 @@ export default function AnalysisPage() {
     try {
       setDeleting(true);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
+      // ✅ FIX: Use relative path
       const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
         method: 'DELETE',
         credentials: "include",
@@ -216,12 +218,10 @@ export default function AnalysisPage() {
 
       if (!response.ok) throw new Error('Failed to delete analysis');
 
-      // alert('Analysis deleted successfully'); // Removed alert
-
       reset();
       router.push('/dashboard/history'); // Redirect to history instead of dashboard home
     } catch (err: any) {
-      alert(err.message); // Keep error alert or replace with toast
+      alert(err.message); 
       setDeleting(false);
       setShowDeleteModal(false);
     }
@@ -259,7 +259,6 @@ export default function AnalysisPage() {
   // ----------------------------------------------------
   // RENDER UI (Updated for Image vs Video)
   // ----------------------------------------------------
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   const isImage =
     currentAnalysis.filename?.match(/\.(jpg|jpeg|png|webp|gif)$/i) ||
     // Fallback: If not mp4 and has no frame data (or 0/1 frames), treat as image
@@ -288,6 +287,7 @@ export default function AnalysisPage() {
           {isImage ? (
             <div className="mt-6 md:mt-8">
               <ImageAnalysisSection
+                // ✅ FIX: Using relative path here ensures images load via Proxy (sending cookies automatically)
                 imageUrl={`${API_URL}/api/analysis/${analysisId}/file`}
                 isDeepfake={currentAnalysis.is_deepfake}
                 confidenceScore={currentAnalysis.confidence_score}

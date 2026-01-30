@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Video, AlertTriangle } from "lucide-react";
-import { useDashboardAnimations } from "@/hooks/useDashboardAnimations ";
+// ✅ FIX: Removed trailing space in import path
+import { useDashboardAnimations } from "@/hooks/useDashboardAnimations"; 
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -34,21 +35,16 @@ export default function DashboardStatCard() {
       try {
         setLoading(true);
 
-        // -------- AUTHENTICATION CHECK (auto-refresh protected) --------
-        const me = await apiFetch(`/api/account/me`);
-        if (!me.ok) {
-          if (me.status === 401) {
-            router.push('/login');
-            return;
-          }
-          setError("Not authenticated. Please login.");
-          return;
-        }
-
-        // -------- FETCH ANALYSIS DATA (auto-refresh protected) --------
+        // ✅ OPTIMIZATION: Removed redundant /account/me call.
+        // We go straight for the data. If auth fails, apiFetch handles the 401.
         const response = await apiFetch(`/api/analysis?limit=1000&offset=0`);
+
         if (!response.ok) {
-          throw new Error(`Failed to fetch analyses: HTTP ${response.status}`);
+           if (response.status === 401) {
+             router.push('/login');
+             return;
+           }
+           throw new Error(`Failed to fetch analyses: HTTP ${response.status}`);
         }
 
         const result = await response.json();
@@ -67,14 +63,17 @@ export default function DashboardStatCard() {
 
         setStats({ totalVideos, realVideos, fakeVideos });
       } catch (err: any) {
-        setError(err.message || "Error fetching stats");
+        // Only set error if we didn't redirect
+        if (err.message !== "Failed to fetch analyses: HTTP 401") {
+            setError(err.message || "Error fetching stats");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     fetchStats();
-  }, []);
+  }, [router]);
 
   // ---------------- RENDER: Loading ----------------
   if (loading) {
