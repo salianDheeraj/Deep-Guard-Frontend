@@ -12,7 +12,9 @@ type UserProfile = {
 
 type SaveState = "IDLE" | "SAVING" | "SUCCESS" | "ERROR";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+// 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+// This ensures cookies work correctly across environments.
+const API_URL = ""; 
 
 // ===========================================================================
 // MAIN COMPONENT
@@ -58,11 +60,12 @@ export default function AccountSettings(): JSX.Element {
 
         const data = await res.json();
 
+        // Handle inconsistent backend response structures safely
         const formatted = {
-          id: data.id,
-          name: data.name || "",
-          email: data.email || "",
-          profile_pic: data.profile_pic || null,
+          id: data.user?.id || data.id,
+          name: data.user?.name || data.name || "",
+          email: data.user?.email || data.email || "",
+          profile_pic: data.user?.profile_pic || data.profile_pic || null,
         };
 
         setProfile(formatted);
@@ -81,6 +84,13 @@ export default function AccountSettings(): JSX.Element {
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    
+    // Size Check (e.g. 5MB)
+    if (f.size > 5 * 1024 * 1024) {
+      alert("File is too large (Max 5MB)");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setLocal((prev) => ({ ...prev, profile_pic: reader.result as string }));
@@ -94,6 +104,7 @@ export default function AccountSettings(): JSX.Element {
   const saveProfile = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setProfileSaveState("SAVING");
+    setError(null); // Clear previous errors
 
     try {
       const res = await fetch(`${API_URL}/api/account/update-profile`, {
@@ -109,17 +120,17 @@ export default function AccountSettings(): JSX.Element {
       if (!res.ok) throw new Error("Failed to update profile");
 
       const data = await res.json();
-      const updated = data.user;
+      const updated = data.user || data; // Handle likely response shape
 
       setProfile(updated);
       setLocal(updated);
 
       setProfileSaveState("SUCCESS");
-      setTimeout(() => setProfileSaveState("IDLE"), 1500);
+      setTimeout(() => setProfileSaveState("IDLE"), 2000);
     } catch (err: any) {
       setError(err.message || "Failed to save profile");
       setProfileSaveState("ERROR");
-      setTimeout(() => setProfileSaveState("IDLE"), 1500);
+      setTimeout(() => setProfileSaveState("IDLE"), 2000);
     }
   };
 
@@ -128,6 +139,19 @@ export default function AccountSettings(): JSX.Element {
   // =======================================================================
   const changePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    // ✅ FIX: Validate Confirm Password
+    if (newPass !== confirmPass) {
+      setError("New passwords do not match");
+      return;
+    }
+
+    if (newPass.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setPasswordSaveState("SAVING");
 
     try {
@@ -141,18 +165,22 @@ export default function AccountSettings(): JSX.Element {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to change password");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to change password");
+      }
 
       setPasswordSaveState("SUCCESS");
       setCurrentPass("");
       setNewPass("");
       setConfirmPass("");
 
-      setTimeout(() => setPasswordSaveState("IDLE"), 1500);
+      setTimeout(() => setPasswordSaveState("IDLE"), 2000);
     } catch (err: any) {
       setError(err.message);
       setPasswordSaveState("ERROR");
-      setTimeout(() => setPasswordSaveState("IDLE"), 1500);
+      setTimeout(() => setPasswordSaveState("IDLE"), 2000);
     }
   };
 
@@ -160,7 +188,7 @@ export default function AccountSettings(): JSX.Element {
   // DELETE ANALYSES
   // =======================================================================
   const deleteAllAnalyses = async () => {
-    if (!confirm("Delete all analyses?")) return;
+    if (!confirm("Are you sure you want to delete all analysis history? This cannot be undone.")) return;
 
     try {
       const res = await fetch(`${API_URL}/api/account/delete-analyses`, {
@@ -168,8 +196,8 @@ export default function AccountSettings(): JSX.Element {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("Failed");
-      alert("All analyses deleted");
+      if (!res.ok) throw new Error("Failed to delete history");
+      alert("All analyses deleted successfully");
     } catch (err: any) {
       alert(err.message);
     }
@@ -179,7 +207,8 @@ export default function AccountSettings(): JSX.Element {
   // DELETE ACCOUNT
   // =======================================================================
   const deleteAccount = async () => {
-    if (!confirm("Delete your entire account?")) return;
+    const confirmation = prompt("Type 'DELETE' to confirm account deletion. This action is irreversible.");
+    if (confirmation !== "DELETE") return;
 
     try {
       const res = await fetch(`${API_URL}/api/account/delete-account`, {
@@ -187,8 +216,9 @@ export default function AccountSettings(): JSX.Element {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error("Failed to delete account");
 
+      // Redirect to login
       window.location.href = "/login";
     } catch (err: any) {
       alert(err.message);
@@ -196,7 +226,7 @@ export default function AccountSettings(): JSX.Element {
   };
 
   // =======================================================================
-  // UI
+  // UI RENDER
   // =======================================================================
   if (loading) {
     return (
@@ -207,10 +237,6 @@ export default function AccountSettings(): JSX.Element {
   }
 
   return (
-    /* Responsive Container: 
-      - p-4 on mobile (compact)
-      - p-8 on desktop (spacious)
-    */
     <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-4 md:p-8 space-y-6 md:space-y-8 transition-colors">
       
       {/* Header */}
@@ -224,7 +250,7 @@ export default function AccountSettings(): JSX.Element {
       </div>
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg flex items-center text-red-700 dark:text-red-300">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg flex items-center text-red-700 dark:text-red-300 animate-in fade-in slide-in-from-top-2">
           <AlertTriangle className="w-5 h-5 mr-3 shrink-0" />
           {error}
         </div>
@@ -237,9 +263,8 @@ export default function AccountSettings(): JSX.Element {
         </h2>
         
         <form onSubmit={saveProfile} className="space-y-6">
-          {/* Avatar Row: Flex col on tiny screens, Row on normal */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
-            <div className="relative group">
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700">
                 {local.profile_pic ? (
                   <img src={local.profile_pic} alt="Profile" className="w-full h-full object-cover" />
@@ -275,7 +300,6 @@ export default function AccountSettings(): JSX.Element {
             </div>
           </div>
 
-          {/* Inputs Grid: Stack on mobile (grid-cols-1), Side-by-side on Desktop (md:grid-cols-2) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -306,7 +330,11 @@ export default function AccountSettings(): JSX.Element {
             <button 
               type="submit"
               disabled={profileSaveState === "SAVING"}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex items-center gap-2 px-6 py-2 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                  profileSaveState === "SUCCESS" ? "bg-green-600 hover:bg-green-700" : 
+                  profileSaveState === "ERROR" ? "bg-red-600 hover:bg-red-700" : 
+                  "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               {profileSaveState === "SAVING" ? (
                 <>
@@ -316,6 +344,8 @@ export default function AccountSettings(): JSX.Element {
                 <>
                   <Save className="w-4 h-4" /> Saved!
                 </>
+              ) : profileSaveState === "ERROR" ? (
+                "Failed"
               ) : (
                 "Save Changes"
               )}
@@ -369,16 +399,24 @@ export default function AccountSettings(): JSX.Element {
             <button 
                 type="submit"
                 disabled={passwordSaveState === "SAVING"}
-                className="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                className={`flex items-center gap-2 px-6 py-2 border text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                    passwordSaveState === "SUCCESS" ? "bg-green-50 border-green-200 text-green-700" :
+                    "bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"
+                }`}
             >
-                 {passwordSaveState === "SAVING" ? "Updating..." : "Update Password"}
+                 {passwordSaveState === "SAVING" ? (
+                    <><Loader2 className="w-4 h-4 animate-spin"/> Updating...</>
+                 ) : passwordSaveState === "SUCCESS" ? (
+                    "Password Updated!"
+                 ) : (
+                    "Update Password"
+                 )}
             </button>
           </div>
         </form>
       </section>
 
       {/* --- DANGER ZONE --- */}
-      {/* Responsive Grid: Stack on mobile (cols-1), Side-by-side on desktop (md:cols-2) */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         
         {/* Data Management */}
