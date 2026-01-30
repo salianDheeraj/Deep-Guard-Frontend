@@ -408,6 +408,8 @@ const NewAnalysisContent: React.FC = () => {
 
       let mlRes: Response;
 
+      // 🛑 UPDATE: Added signal to ML requests so user "Cancel" works, 
+      // but "Timeout" doesn't crash the pipeline.
       if (isVideo) {
         mlRes = await fetch(mlEndpoint, {
           method: "POST",
@@ -417,11 +419,13 @@ const NewAnalysisContent: React.FC = () => {
             total_frames: frameCount,
             frames_to_analyze: framesToAnalyze,
           }),
+          signal: abortControllerRef.current.signal, 
         });
       } else {
         mlRes = await fetch(mlEndpoint, {
           method: "POST",
           credentials: "include",
+          signal: abortControllerRef.current.signal,
         });
       }
 
@@ -453,29 +457,19 @@ const NewAnalysisContent: React.FC = () => {
       }
 
       setAnalysisState("IDLE");
-      setErrorMessage(error.message || "Something went wrong");
-
-      if (uploadedAnalysisIdRef.current) {
-        try {
-          // Cleanup also uses relative path
-          const API_URL = "";
-          debug(
-            `🗑️ Cleaning up failed analysis on server: ${uploadedAnalysisIdRef.current}`
-          );
-          await fetch(
-            `${API_URL}/api/analysis/${uploadedAnalysisIdRef.current}`,
-            {
-              method: "DELETE",
-              credentials: "include",
-            }
-          );
-          debug("✅ Cleanup complete");
-        } catch (err) {
-          console.error("❌ Failed to cleanup analysis on error:", err);
-          debug("❌ Cleanup request failed");
-        }
+      
+      // 🛑 CUSTOM ERROR MESSAGE: Inform user about potential timeout
+      if (error.name === 'AbortError') {
+        setErrorMessage("Upload cancelled by user.");
+      } else {
+        setErrorMessage(error.message || "Analysis is taking longer than expected. Please check your dashboard in a few minutes.");
       }
 
+      // 🛑 CRITICAL FIX: DISABLE AUTO-DELETE ON ERROR
+      // We removed the fetch DELETE call here.
+      // If the backend times out (504), the data remains safe in the DB 
+      // so the Python script can finish in the background.
+      
       uploadedAnalysisIdRef.current = null;
     }
   };
