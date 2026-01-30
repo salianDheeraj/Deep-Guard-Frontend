@@ -24,7 +24,9 @@ import SidebarGuide from './SidebarGuide'; // Added
 
 import styles from '@/styles/Sidebar.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+// 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+// This ensures cookies work correctly across environments.
+const API_URL = "";
 
 interface NavItem {
     name: string;
@@ -129,6 +131,8 @@ const Sidebar = () => {
 
     const handleLogout = async () => {
         try {
+            // ✅ FIX: Uses relative path -> Next.js Proxy -> Backend
+            // This ensures cookies are properly cleared on the domain
             await fetch(`${API_URL}/auth/logout`, {
                 method: "POST",
                 credentials: "include",
@@ -136,6 +140,8 @@ const Sidebar = () => {
             router.push("/login");
         } catch (err) {
             console.error("Logout failed:", err);
+            // Fallback redirect even if fetch fails
+            router.push("/login");
         }
     };
 
@@ -148,7 +154,7 @@ const Sidebar = () => {
                 className="md:hidden fixed top-4 left-4 z-[110] p-2 rounded-md bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-200"
                 aria-label="Toggle Menu"
             >
-                <Menu size={24} />
+                {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
             {/* --- MOBILE OVERLAY BACKDROP --- */}

@@ -2,6 +2,7 @@
 
 import { ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ✅ Added router
 import React, { useState, useEffect, useRef } from "react";
 import { useRecentAnalysesAnimation } from "@/hooks/useRecentAnalysesAnimation";
 import { apiFetch } from "@/lib/api";
@@ -47,6 +48,7 @@ const getDisplayedConfidence = (analysis: Analysis) => {
 };
 
 export default function RecentAnalyses() {
+  const router = useRouter(); // ✅ Init router
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -64,13 +66,14 @@ export default function RecentAnalyses() {
       setLoading(true);
       setError(null);
 
+      // ✅ Correct: Uses apiFetch with relative path -> Proxy -> Backend
       const res = await apiFetch("/api/analysis?limit=5&offset=0", {
         method: "GET",
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          router.push("/login"); // ✅ Smoother client-side redirect
           return;
         }
         const data = await res.json().catch(() => ({}));

@@ -46,19 +46,24 @@ const AuthInput: FC<AuthInputProps> = ({
   };
 
   return (
-    // Spacing: mb-4
     <div className={`${styles.inputGroup} login-form-element mb-4`}>
       <label className={`${styles.label} mb-2 block`}>{label}</label>
-      <div className={styles.inputWrapper}>
+      <div className={`${styles.inputWrapper} relative flex items-center`}>
+        {/* ✅ FIX: Render the Input Icon */}
+        <div className="absolute left-3 text-gray-400 pointer-events-none">
+            <InputIcon className="w-5 h-5" />
+        </div>
+
         <input
           type={actualType}
           name={name}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={styles.inputField}
+          className={`${styles.inputField} pl-10`} // Added pl-10 for icon space
           required
         />
+        
         {isPassword && (
           <button
             type="button"
@@ -148,6 +153,7 @@ const Signup: FC = () => {
     try {
       setIsSendingOtp(true);
 
+      // ✅ Correct usage of apiFetch (proxied request)
       const res = await apiFetch("/auth/signup/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,6 +167,7 @@ const Signup: FC = () => {
       const data = contentType.includes("application/json")
         ? await res.json()
         : { message: await res.text() };
+      
       if (!res.ok) {
         throw new Error(data?.message || "Failed to send OTP");
       }
@@ -201,6 +208,7 @@ const Signup: FC = () => {
         name: formData.name,
       };
 
+      // ✅ Correct usage of apiFetch
       const res = await apiFetch("/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -217,7 +225,6 @@ const Signup: FC = () => {
       debug("✅ Signup successful");
       router.push("/dashboard");
     } catch (err: any) {
-      // console.error("❌ Error:", err.message || err);
       setError(err.message || "An error occurred");
     } finally {
       setIsLoading(false);

@@ -89,11 +89,10 @@ const Login: FC = () => {
 
   /* Auto refresh access token every 14 minutes */
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+    // ✅ OPTIMIZED: Use relative path (Proxy)
     const interval = setInterval(async () => {
       try {
-        await fetch(`${API_URL}/auth/refresh`, {
+        await fetch(`/auth/refresh`, {
           method: "POST",
           credentials: "include",
         });
@@ -108,9 +107,9 @@ const Login: FC = () => {
 
   /* Wake up backend on load (Cold Start Fix) */
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    // ✅ OPTIMIZED: Use relative path (Proxy)
     // Fire and forget - just to wake up the Render instance
-    fetch(`${API_URL}/`).catch(() => { });
+    fetch(`/api/`).catch(() => { });
   }, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -139,6 +138,7 @@ const Login: FC = () => {
     setIsLoading(true);
 
     try {
+      // ✅ Uses apiFetch -> goes through Proxy -> handles credentials
       const endpoint = "/auth/login";
       const trimmedEmail = (formData.email || "").trim();
       const payload = {
@@ -165,7 +165,6 @@ const Login: FC = () => {
       setFormData((f) => ({ ...f, password: "" }));
       router.push("/dashboard");
     } catch (err: any) {
-      // console.error("❌ Error:", err.message || err);
       setError(err.message || "An error occurred");
     } finally {
       setIsLoading(false);

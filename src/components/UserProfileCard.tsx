@@ -18,7 +18,7 @@ export default function UserProfileCard() {
 
   const fetchProfile = React.useCallback(async () => {
     try {
-      // Use shared apiFetch which prefixes the API URL, forwards credentials
+      // ✅ Correct: apiFetch handles the proxy path and credentials
       const res = await apiFetch(`/api/account/me`, {
         method: "GET",
         cache: "no-store",
@@ -34,7 +34,12 @@ export default function UserProfileCard() {
       }
 
       const data = await res.json();
-      setProfile(data);
+      
+      // ✅ ROBUST FIX: Handle different backend response structures
+      // Sometimes APIs return { user: ... } or { data: ... } or just the object
+      const normalizedData = data.user || data.data || data;
+      
+      setProfile(normalizedData);
     } catch (err: any) {
       console.error("❌ Profile Fetch Error:", err);
       setError(err.message);
@@ -46,6 +51,7 @@ export default function UserProfileCard() {
   useEffect(() => {
     fetchProfile();
 
+    // Listen for updates from the "Account Settings" page
     const handleUpdate = () => {
       fetchProfile();
     };

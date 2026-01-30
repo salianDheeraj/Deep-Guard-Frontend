@@ -106,8 +106,8 @@ const NewAnalysisContent: React.FC = () => {
 
     if (uploadedAnalysisIdRef.current) {
       try {
-        const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        // 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+        const API_URL = "";
 
         debug(
           `🗑️ Deleting cancelled upload on server: ${uploadedAnalysisIdRef.current}`
@@ -245,8 +245,9 @@ const NewAnalysisContent: React.FC = () => {
       return;
     }
 
-    const API_URL =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    // 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+    const API_URL = "";
+
     const isImage = selectedFile.type.startsWith("image/");
     const isVideo = selectedFile.type.startsWith("video/");
 
@@ -336,7 +337,7 @@ const NewAnalysisContent: React.FC = () => {
 
       const uploadRes = await fetch(uploadEndpoint, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // Cookie sent automatically via Proxy
         body: formData,
         signal: abortControllerRef.current.signal,
       });
@@ -456,8 +457,8 @@ const NewAnalysisContent: React.FC = () => {
 
       if (uploadedAnalysisIdRef.current) {
         try {
-          const API_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          // Cleanup also uses relative path
+          const API_URL = "";
           debug(
             `🗑️ Cleaning up failed analysis on server: ${uploadedAnalysisIdRef.current}`
           );
