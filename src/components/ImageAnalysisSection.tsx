@@ -16,22 +16,41 @@ const ImageAnalysisSection: React.FC<Props> = ({
   confidenceScore,
   createdAt
 }) => {
-  // Convert backend binary response → Blob → URL
   const [resolvedUrl, setResolvedUrl] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    let active = true; // Prevent state updates if unmounted
+    let objectUrl: string | null = null;
+
     const fetchImage = async () => {
       try {
+        // Fetch using the relative path (via Proxy) so cookies are sent
         const res = await fetch(imageUrl, { credentials: "include" });
+        
+        if (!res.ok) throw new Error("Failed to load image");
+
         const blob = await res.blob();
-        const localUrl = URL.createObjectURL(blob);
-        setResolvedUrl(localUrl);
+        
+        if (active) {
+          objectUrl = URL.createObjectURL(blob);
+          setResolvedUrl(objectUrl);
+        }
       } catch (err) {
         console.error("Image fetch failed:", err);
       }
     };
 
-    fetchImage();
+    if (imageUrl) {
+        fetchImage();
+    }
+
+    // ✅ CLEANUP: Revoke the blob URL to prevent memory leaks
+    return () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [imageUrl]);
 
   return (
@@ -46,7 +65,9 @@ const ImageAnalysisSection: React.FC<Props> = ({
             className={styles.image}
           />
         ) : (
-          <p className={styles.loadingText}>Loading image...</p>
+          <div className="flex items-center justify-center h-64 bg-gray-100 dark:bg-slate-800 rounded-lg">
+             <p className={styles.loadingText}>Loading secured image...</p>
+          </div>
         )}
       </div>
 
@@ -68,9 +89,11 @@ const ImageAnalysisSection: React.FC<Props> = ({
             : `${Math.round((1 - confidenceScore) * 100)}%`}
         </p>
 
-        <p className={styles.dateLabel}>
-          Analyzed on: {createdAt}
-        </p>
+        {createdAt && (
+            <p className={styles.dateLabel}>
+            Analyzed on: {createdAt}
+            </p>
+        )}
       </div>
     </div>
   );

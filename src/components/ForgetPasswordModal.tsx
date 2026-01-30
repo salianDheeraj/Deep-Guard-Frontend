@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, FC, FormEvent, ChangeEvent, useEffect } from "react";
-// UPDATED: Imported Shield, removed KeyRound
 import { X, RotateCcw, Shield } from "lucide-react";
 import ReactDOM from "react-dom";
 import styles from "@/styles/ForgetPassword.module.css";
@@ -30,6 +29,9 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
     newPassword: "",
     confirmPassword: "",
   });
+
+  // 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+  const API_URL = ""; 
 
   useEffect(() => setIsClient(true), []);
 
@@ -83,9 +85,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
     setIsLoading(true);
     try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+      // ✅ FIX: Use relative path (empty API_URL)
       const response = await fetch(`${API_URL}/auth/send-reset-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,9 +128,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
     setIsLoading(true);
     try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+      // ✅ FIX: Use relative path (empty API_URL)
       const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,9 +159,7 @@ const ForgotPasswordModal: FC<ForgotPasswordModalProps> = ({
 
     setIsLoading(true);
     try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+      // ✅ FIX: Use relative path (empty API_URL)
       const response = await fetch(`${API_URL}/auth/send-reset-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

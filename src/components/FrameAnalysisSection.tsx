@@ -37,6 +37,9 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+  const API_URL = "";
+
   // Load frames & images
   useEffect(() => {
     const objectUrls: string[] = [];
@@ -59,12 +62,10 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
 
         if (annotatedFramesPath) {
           try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-            // **Send cookies instead of token**
+            // ✅ FIX: Use relative path (empty API_URL)
             const response = await fetch(`${API_URL}/api/analysis/${analysisId}/download`, {
               method: "GET",
-              credentials: "include", // IMPORTANT
+              credentials: "include", // Cookie is now sent automatically by browser via Proxy
             });
 
             if (response.ok) {
@@ -112,8 +113,7 @@ const FrameAnalysisSection: React.FC<FrameAnalysisSectionProps> = ({
       let blobToUse = reportBlob;
 
       if (!blobToUse) {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
+        // ✅ FIX: Use relative path here too
         const response = await fetch(`${API_URL}/api/analysis/${analysisId}/download`, {
           method: "GET",
           credentials: "include",

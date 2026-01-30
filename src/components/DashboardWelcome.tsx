@@ -9,12 +9,24 @@ export default function DashboardWelcome() {
     const [name, setName] = useState("User");
 
     useEffect(() => {
+        // Uses apiFetch, so cookies/proxy are handled automatically
         apiFetch('/api/account/me')
-            .then(res => res.json())
-            .then(data => {
-                if (data.name) setName(data.name.split(' ')[0]); // First name only
+            .then(res => {
+                if (!res.ok) throw new Error("Skip"); // specific throw to hit catch block
+                return res.json();
             })
-            .catch(() => { });
+            .then(data => {
+                // ✅ ROBUSTNESS FIX: Check both data.user.name and data.name
+                // This handles variations in backend response structure
+                const fullName = data.user?.name || data.name;
+                
+                if (fullName) {
+                    setName(fullName.split(' ')[0]); // First name only
+                }
+            })
+            .catch(() => { 
+                // Silently fail to "User" if auth check fails or network error
+            });
     }, []);
 
     useGSAP(() => {
