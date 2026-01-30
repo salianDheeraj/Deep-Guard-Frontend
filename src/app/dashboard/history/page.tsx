@@ -1,8 +1,7 @@
 // src/app/dashboard/history/page.tsx
 "use client";
 
-import React from 'react';
-
+import React, { Suspense } from 'react';
 import AnalysisHistory from '@/components/AnalysisHistory'; // Import the main component
 
 export default function HistoryPage() {
@@ -20,8 +19,13 @@ export default function HistoryPage() {
                 </p>
             </div>
 
-            {/* Main content handled by AnalysisHistory component */}
-            <AnalysisHistory />
+            {/* ✅ FIX: Wrapped in Suspense. 
+              This tells Next.js to render the fallback while waiting for 
+              URL search parameters to be available on the client.
+            */}
+            <Suspense fallback={<div className="text-center p-10 text-gray-500">Loading history...</div>}>
+                <AnalysisHistory />
+            </Suspense>
         </main>
     );
 }
