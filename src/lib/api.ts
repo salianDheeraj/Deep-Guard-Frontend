@@ -1,5 +1,6 @@
 export async function apiFetch(url: string, options: RequestInit = {}) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  // use relative path so it goes through Next.js rewrite proxy
+  const API_URL = "";
 
   const res = await fetch(API_URL + url, {
     ...options,

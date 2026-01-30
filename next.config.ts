@@ -1,18 +1,26 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 1. Move turbopack to the top level (Stable in v16)
-  // An empty object {} is enough to acknowledge you are using it.
   turbopack: {},
-
-  // 2. Use the built-in compiler options to remove console logs
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production" 
-      ? { exclude: ["error"] } 
-      : false,
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,
   },
-
-  // 3. Remove the 'experimental' block entirely if it's empty
+  // Add this section:
+  async rewrites() {
+    return [
+      {
+        // This matches any request starting with /api (or whatever your pattern is)
+        // and sends it to your actual backend.
+        source: '/api/:path*', 
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/:path*`,
+      },
+      {
+        // Handle your auth paths specifically if they don't start with /api
+        source: '/auth/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/auth/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
