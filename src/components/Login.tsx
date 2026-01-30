@@ -150,6 +150,7 @@ const Login: FC = () => {
       const res = await apiFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
