@@ -1,37 +1,36 @@
 // lib/auth.ts
-// Centralized logout helper used by client components
-
 export async function performLogout() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  const enableServerLogout = process.env.NEXT_PUBLIC_ENABLE_SERVER_LOGOUT === 'true';
+  // 1. USE RELATIVE PATH
+  // We leave this empty so it hits the Next.js Rewrite Proxy (Same-Origin)
+  const API_URL = ""; 
+  
+  // Optional: keep the flag if you want, but usually you always want server logout
+  const enableServerLogout = process.env.NEXT_PUBLIC_ENABLE_SERVER_LOGOUT !== 'false';
 
-  // Try server-side logout (clears httpOnly cookies if used)
   try {
     if (enableServerLogout) {
-      const res = await fetch(`${API_URL}/auth/logout`, {
+      // 2. CALL PROXY ENDPOINT
+      // This sends the request to /auth/logout on the frontend domain.
+      // Next.js forwards it to Render.
+      // The browser accepts the "Clear-Cookie" header because it looks local.
+      await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
-
-      if (!res.ok) {
-        // server doesn't support logout or returned error - warn but continue
-        // eslint-disable-next-line no-console
-        console.warn('Server logout returned non-OK status', res.status);
-      }
     }
   } catch (err) {
-    // Non-fatal: backend might not expose this endpoint
-    // Log for debugging but continue to clear client state
-    // eslint-disable-next-line no-console
     console.warn('Server logout failed or unavailable', err);
   }
 
-  // Clear client-side tokens / user info
-  try {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-  } catch (err) {
-    // ignore (e.g., running on server)
+  // 3. FORCE PAGE RELOAD / REDIRECT
+  // Since cookies are httpOnly, JS cannot confirm they are gone.
+  // A hard reload or redirect ensures the middleware runs again and detects the missing cookies.
+  if (typeof window !== "undefined") {
+    // Optional: Clear purely cosmetic data if you store any
+    localStorage.removeItem('user_preference_theme'); 
+    
+    // Redirect to login
+    window.location.href = "/login";
   }
 
   return true;
