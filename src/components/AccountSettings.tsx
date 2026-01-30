@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { AlertTriangle, Loader2, Trash2, LogOut } from "lucide-react";
+import { AlertTriangle, Loader2, Trash2, LogOut, Camera, Lock, Save } from "lucide-react";
 import { useAccountPageAnimations } from "@/hooks/useAccountPageAnimations";
 import styles from "@/styles/Account.module.css";
 import gsap from "gsap";
@@ -13,14 +13,15 @@ type UserProfile = {
   id?: string;
   name: string;
   email: string;
-  profile_picture?: string | null;
+  profile_pic?: string | null; // Normalized key
   isTrial?: boolean;
-  profile_pic?: string | null;
 };
 
 type SaveState = "IDLE" | "SAVING" | "SUCCESS" | "ERROR";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+// 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+// This ensures cookies work correctly across environments.
+const API_URL = ""; 
 
 // ===========================================================================
 // CONFIRMATION MODAL
@@ -81,18 +82,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     Icon: isLogout ? LogOut : AlertTriangle,
   };
 
-  // UPDATED COLORS: Blue+Pink / Cyan+Purple
   const colors = isLogout
     ? {
       iconBg: "bg-blue-50 dark:bg-cyan-900/20",
       iconColor: "text-blue-600 dark:text-cyan-400",
-      // Gradient Button
       buttonBg: "bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700",
       warningText: "text-blue-600 dark:text-cyan-400",
       ring: "ring-blue-50 dark:ring-cyan-900/10",
     }
     : {
-      // Delete actions remain Red for safety semantics
       iconBg: "bg-red-50 dark:bg-red-900/20",
       iconColor: "text-red-600 dark:text-red-500",
       buttonBg: "bg-red-600 hover:bg-red-700",
@@ -187,9 +185,8 @@ export default function AccountSettings(): JSX.Element {
   // Success pulse animation
   const pulseSuccess = (el: HTMLElement | null) => {
     if (!el) return;
-
     gsap.to(el, {
-      boxShadow: "0 0 20px rgba(34,197,94,0.4)", // Kept green for success feedback
+      boxShadow: "0 0 20px rgba(34,197,94,0.4)",
       scale: 1.01,
       duration: 0.2,
       yoyo: true,
@@ -233,7 +230,6 @@ export default function AccountSettings(): JSX.Element {
   });
 
   const [isProcessingAction, setIsProcessingAction] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // =======================================================================
@@ -254,12 +250,18 @@ export default function AccountSettings(): JSX.Element {
         }
 
         const data = await res.json();
-        setProfile(data);
+        
+        // Handle inconsistent API field names safely
+        const normalizedUser = {
+          id: data.user?.id || data.id,
+          name: data.user?.name || data.name || "",
+          email: data.user?.email || data.email || "",
+          profile_pic: data.user?.profile_pic || data.profile_pic || data.profile_picture || null,
+          isTrial: data.user?.isTrial || data.isTrial || false,
+        };
 
-        setLocal({
-          ...data,
-          profile_pic: data.profile_pic || data.profile_picture || null,
-        });
+        setProfile(normalizedUser);
+        setLocal(normalizedUser);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -275,6 +277,13 @@ export default function AccountSettings(): JSX.Element {
     const f = e.target.files?.[0];
     if (!f) return;
 
+    // ✅ FIX: File size validation (5MB)
+    if (f.size > 5 * 1024 * 1024) {
+      setError("File size too large. Max 5MB allowed.");
+      shakeCard(profileCardRef.current);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setLocal((prev) => ({ ...prev, profile_pic: reader.result as string }));
@@ -285,6 +294,7 @@ export default function AccountSettings(): JSX.Element {
   const saveProfile = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setProfileSaveState("SAVING");
+    setError(null);
 
     try {
       const res = await fetch(`${API_URL}/api/account/update-profile`, {
@@ -300,18 +310,22 @@ export default function AccountSettings(): JSX.Element {
       if (!res.ok) throw new Error("Update failed");
 
       const data = await res.json();
-      setProfile(data.user);
-      setLocal(data.user);
+      const updatedUser = data.user || data; // Handle backend response variant
+
+      setProfile(updatedUser);
+      setLocal(updatedUser);
 
       setProfileSaveState("SUCCESS");
       pulseSuccess(profileCardRef.current);
 
+      // Notify other components (like Sidebar) to update avatar
       window.dispatchEvent(new Event("user-profile-updated"));
     } catch (err: any) {
       setProfileSaveState("ERROR");
+      setError(err.message);
       shakeCard(profileCardRef.current);
     } finally {
-      setTimeout(() => setProfileSaveState("IDLE"), 1500);
+      setTimeout(() => setProfileSaveState("IDLE"), 2000);
     }
   };
 
@@ -327,6 +341,14 @@ export default function AccountSettings(): JSX.Element {
       return;
     }
 
+    // ✅ FIX: Minimum length validation
+    if (newPass.length < 6) {
+        setError("Password must be at least 6 characters");
+        setPasswordSaveState("ERROR");
+        shakeCard(passwordCardRef.current);
+        return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/api/account/change-password`, {
         method: "POST",
@@ -338,7 +360,10 @@ export default function AccountSettings(): JSX.Element {
         }),
       });
 
-      if (!res.ok) throw new Error("Change failed");
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Change failed");
+      }
 
       setPasswordSaveState("SUCCESS");
       pulseSuccess(passwordCardRef.current);
@@ -351,7 +376,7 @@ export default function AccountSettings(): JSX.Element {
       setPasswordSaveState("ERROR");
       shakeCard(passwordCardRef.current);
     } finally {
-      setTimeout(() => setPasswordSaveState("IDLE"), 1500);
+      setTimeout(() => setPasswordSaveState("IDLE"), 2000);
     }
   };
 
@@ -394,8 +419,8 @@ export default function AccountSettings(): JSX.Element {
 
   if (loading)
     return (
-      <main className={styles.loadingContainer}>
-        <p>Loading...</p>
+      <main className="flex-1 p-10 flex items-center justify-center bg-gray-50 dark:bg-slate-950">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-cyan-400" />
       </main>
     );
 
@@ -442,7 +467,12 @@ export default function AccountSettings(): JSX.Element {
       <div className="account-header mb-6">
         {/* RESPONSIVE: text-2xl on mobile, text-3xl on desktop */}
         <h1 className={`${styles.header} text-2xl md:text-3xl font-bold`}>Account Settings</h1>
-        {error && <div className={styles.errorBox}>{error}</div>}
+        {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg flex items-center text-red-700 dark:text-red-300 mt-4 animate-in fade-in">
+            <AlertTriangle className="w-5 h-5 mr-3 shrink-0" />
+            {error}
+            </div>
+        )}
       </div>
 
       {/* PROFILE CARD */}
@@ -451,7 +481,7 @@ export default function AccountSettings(): JSX.Element {
 
           {/* RESPONSIVE: Stack vertically on mobile (flex-col), Row on desktop (sm:flex-row) */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="relative group">
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               {/* PROFILE RING: Gradient Blue+Pink / Cyan+Purple */}
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 dark:from-cyan-400 dark:to-purple-500 opacity-70 group-hover:opacity-100 blur-[2px] transition-all"></div>
               <div className="relative w-24 h-24 rounded-full bg-white dark:bg-slate-800 overflow-hidden border-2 border-white dark:border-slate-800 z-10 flex items-center justify-center">
@@ -467,6 +497,9 @@ export default function AccountSettings(): JSX.Element {
                   </div>
                 )}
               </div>
+              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
+                 <Camera className="text-white w-6 h-6" />
+              </div>
             </div>
 
             <div className="text-center sm:text-left">
@@ -479,7 +512,7 @@ export default function AccountSettings(): JSX.Element {
                 Change photo
               </button>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                JPG, GIF or PNG. Max size of 2MB.
+                JPG, GIF or PNG. Max size of 5MB.
               </p>
             </div>
 
@@ -487,6 +520,7 @@ export default function AccountSettings(): JSX.Element {
               ref={fileInputRef}
               type="file"
               className="hidden"
+              accept="image/*"
               onChange={handleFileInput}
             />
           </div>
@@ -511,17 +545,24 @@ export default function AccountSettings(): JSX.Element {
 
           {/* SAVE BUTTON: Gradient Blue+Pink / Cyan+Purple */}
           <button
-            className="mt-4 px-6 py-2.5 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border-0"
+            className="mt-4 px-6 py-2.5 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-blue-600 to-pink-500 hover:from-blue-700 hover:to-pink-600 dark:from-cyan-400 dark:to-purple-600 dark:hover:from-cyan-500 dark:hover:to-purple-700 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border-0 flex items-center gap-2"
             disabled={profileSaveState === "SAVING"}
           >
-            {profileSaveState === "SAVING" ? "Saving..." : "Save changes"}
+             {profileSaveState === "SAVING" ? (
+                <><Loader2 className="w-4 h-4 animate-spin"/> Saving...</>
+             ) : profileSaveState === "SUCCESS" ? (
+                <><Save className="w-4 h-4"/> Saved!</>
+             ) : "Save changes"}
           </button>
         </form>
       </section>
 
       {/* PASSWORD CARD */}
       <section ref={passwordCardRef} className={`${styles.card} account-card p-4 md:p-8 mb-8`}>
-        <h2 className={`${styles.sectionHeader} text-lg md:text-xl font-bold mb-4`}>Change password</h2>
+        <div className="flex items-center gap-2 mb-4">
+            <Lock className="w-5 h-5 text-gray-400" />
+            <h2 className={`${styles.sectionHeader} text-lg md:text-xl font-bold`}>Change password</h2>
+        </div>
         <form onSubmit={changePassword} className={styles.formGroup}>
           <div className="space-y-4">
             <div>
@@ -560,10 +601,12 @@ export default function AccountSettings(): JSX.Element {
 
           {/* CHANGE PASSWORD BUTTON: Gradient Blue+Pink / Cyan+Purple */}
           <button
-            className={`${styles.buttonPrimary} action-button mt-6 !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 !border-0`}
+            className={`${styles.buttonPrimary} action-button mt-6 !bg-gradient-to-r !from-blue-600 !to-pink-500 hover:!from-blue-700 hover:!to-pink-600 dark:!from-cyan-400 dark:!to-purple-600 dark:hover:!from-cyan-500 dark:hover:!to-purple-700 !border-0 flex items-center gap-2`}
             disabled={passwordSaveState === "SAVING"}
           >
-            {passwordSaveState === "SAVING" ? "Changing..." : "Change password"}
+            {passwordSaveState === "SAVING" ? (
+                <><Loader2 className="w-4 h-4 animate-spin"/> Changing...</>
+             ) : "Change password"}
           </button>
         </form>
       </section>
@@ -579,8 +622,9 @@ export default function AccountSettings(): JSX.Element {
 
           <button
             onClick={() => setModalConfig({ isOpen: true, type: "analyses" })}
-            className={`${styles.buttonOutlineDanger} danger-button`}
+            className={`${styles.buttonOutlineDanger} danger-button flex items-center gap-2 justify-center`}
           >
+            <Trash2 className="w-4 h-4" />
             Delete all analyses
           </button>
         </div>
@@ -594,15 +638,17 @@ export default function AccountSettings(): JSX.Element {
           <div className="flex flex-col gap-3">
             <button
               onClick={() => setModalConfig({ isOpen: true, type: "logout" })}
-              className={`${styles.buttonOutlineWarning} danger-button`}
+              className={`${styles.buttonOutlineWarning} danger-button flex items-center gap-2 justify-center`}
             >
+              <LogOut className="w-4 h-4" />
               Logout other devices
             </button>
 
             <button
               onClick={() => setModalConfig({ isOpen: true, type: "account" })}
-              className={`${styles.buttonDanger} danger-button`}
+              className={`${styles.buttonDanger} danger-button flex items-center gap-2 justify-center`}
             >
+              <Trash2 className="w-4 h-4" />
               Delete account
             </button>
           </div>
