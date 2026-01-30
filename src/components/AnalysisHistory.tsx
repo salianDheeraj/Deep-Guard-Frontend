@@ -17,6 +17,9 @@ interface Analysis {
 
 type FilterType = "All" | "FAKE" | "REAL";
 
+// 🚨 CRITICAL FIX: Use empty string to leverage Next.js Rewrite Proxy
+const API_URL = "";
+
 // --- CUSTOM DELETE MODAL COMPONENT ---
 interface DeleteModalProps {
   isOpen: boolean;
@@ -120,8 +123,6 @@ const AnalysisHistory: React.FC = () => {
       setError(null);
       setIsTrialRestricted(false);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
       const response = await fetch(`${API_URL}/api/analysis?limit=1000&offset=0`, {
         method: 'GET',
         credentials: "include",
@@ -220,7 +221,6 @@ const AnalysisHistory: React.FC = () => {
   const executeDelete = async () => {
     setIsDeleting(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const idsToDelete = deleteModal.type === 'bulk'
         ? Array.from(selectedIds)
         : [deleteModal.id!];
