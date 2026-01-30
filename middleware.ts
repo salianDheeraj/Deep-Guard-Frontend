@@ -1,4 +1,3 @@
-// Middleware to strictly enforce authentication BEFORE content loading
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -20,52 +19,54 @@ export async function middleware(req: NextRequest) {
   const hasTokens = access || refresh || trial;
 
   if (!hasTokens) {
-    // No tokens -> Immediate Redirect
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // 3. Strict Verification: Call Backend to check validity
-  // This prevents "entering" with an expired cookie.
+  // 3. Strict Verification
   try {
+    // ⚠️ MIDDLEWARE REQUIRES ABSOLUTE URL (Cannot be relative "")
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-    // Pass cookies to backend
-    const cookieHeader = req.headers.get("cookie") || "";
+    
+    // Construct headers manually to ensure cookie propagation
+    const headers = new Headers();
+    headers.append("Cookie", req.headers.get("cookie") || "");
 
     const res = await fetch(`${API_URL}/api/account/me`, {
       method: "GET",
-      headers: {
-        Cookie: cookieHeader,
-      },
+      headers: headers,
     });
 
     if (res.status === 401) {
-      // Backend rejected the token -> Redirect to Login
-      // This ensures invalid/expired tokens don't load the dashboard shell.
       const response = NextResponse.redirect(new URL("/login", req.url));
-
-      // Optional: Clear invalid cookies so browser doesn't send them again immediately
       response.cookies.delete("accessToken");
       response.cookies.delete("refreshToken");
-
+      response.cookies.delete("trialAccess");
       return response;
     }
 
-    // If API error (500, etc), we might choose to let it through to show an error page, 
-    // or block. For "strict auth", usually block if we can't verify.
-    // But safely, if accessing dashboard and backend is 500, user sees error page.
+    // ✅ FIX: Create the Next response allows the navigation
+    const response = NextResponse.next();
+
+    // 🚨 CRITICAL: Forward new cookies (Refreshed Tokens) to the browser
+    // If backend rotated tokens, we must pass that "Set-Cookie" header along
+    const setCookieHeader = res.headers.get("set-cookie");
+    
+    if (setCookieHeader) {
+      // Depending on the environment, set-cookie might be a comma-separated string
+      // or specific headers. This simple split works for most standard auth setups.
+      // Ideally, simple forwarding is best:
+      response.headers.set("Set-Cookie", setCookieHeader);
+    }
+
+    return response;
 
   } catch (error) {
     console.error("Middleware Auth Check Failed:", error);
-    // FAIL CLOSED: If we cannot verify the token (e.g. backend down/network error), 
-    // strictly redirect to login to prevent "entering" unauthenticated.
+    // Safety Net: If backend is down, don't let them in.
     return NextResponse.redirect(new URL("/login", req.url));
   }
-
-  return NextResponse.next();
 }
 
-// Only run middleware on dashboard routes
 export const config = {
   matcher: ["/dashboard/:path*"],
 };
