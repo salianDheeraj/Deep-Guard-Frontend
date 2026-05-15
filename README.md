@@ -79,6 +79,22 @@ Deep Guard Frontend is a modern, responsive web application for Deepfake Detecti
 
 -   **Linting:** `npm run lint`
 
+### Docker
+
+To run the frontend in Docker, add a standard multi-stage Next.js Dockerfile at the project root, then use these commands.
+
+1.  Build the image:
+    ```bash
+    docker build -t deep-guard-frontend .
+    ```
+
+2.  Run the container:
+    ```bash
+    docker run --rm -p 3000:3000 --env-file .env.local deep-guard-frontend
+    ```
+
+3.  Confirm `NEXT_PUBLIC_API_URL` points to the backend service reachable from the container.
+
 ## 📂 Project Structure
 
 ```
