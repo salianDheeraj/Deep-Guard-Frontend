@@ -1,0 +1,38 @@
+# Ignore local dependency folders
+node_modules
+jspm_packages
+
+# Ignore Next.js build outputs
+.next
+out
+dist
+build
+
+# Ignore local environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Ignore source control files
+.git
+.gitignore
+.gitattributes
+.gitmodules
+
+# Ignore IDE settings
+.vscode
+.idea
+
+# Ignore docker files themselves
+Dockerfile
+.dockerignore
+docker-compose.yml
+README.md
