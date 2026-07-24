@@ -38,7 +38,9 @@ export async function middleware(req: NextRequest) {
   // 6. Strict Verification for Protected Paths
   if (isProtected && hasTokens) {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const API_URL = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+      ).replace(/\/$/, "");
       
       // Construct headers manually to ensure cookie propagation
       const headers = new Headers();

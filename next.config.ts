@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   // 1. Stable Turbopack
   turbopack: {},
@@ -12,16 +16,16 @@ const nextConfig: NextConfig = {
   },
 
   // 3. 🚨 REWRITES: The Magic Bridge 🚨
-  // This tells Next.js: "If you see /api/..., send it to the backend URL"
+  // Reads process.env.NEXT_PUBLIC_API_URL dynamically
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
+        destination: `${BACKEND_URL}/api/:path*`,
       },
       {
         source: "/auth/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/auth/:path*`,
+        destination: `${BACKEND_URL}/auth/:path*`,
       },
     ];
   },
