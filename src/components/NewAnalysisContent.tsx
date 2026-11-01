@@ -435,11 +435,23 @@ const NewAnalysisContent: React.FC = () => {
       }
       setCurrentFrame(isImage ? 1 : framesToAnalyze);
 
-      const mlData = await mlRes.json();
-      debug("🧠 ML result:", mlData);
+      let mlData: any = null;
+      const responseText = await mlRes.text();
+      try {
+        mlData = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        mlData = null;
+      }
 
-      if (!mlRes.ok || !mlData.success) {
-        throw new Error(mlData.message || "ML failed");
+      debug("🧠 ML result:", mlData || responseText);
+
+      if (!mlRes.ok || !mlData?.success) {
+        const errorMsg =
+          mlData?.message ||
+          (responseText && responseText.length < 200
+            ? responseText
+            : `Analysis server error (HTTP ${mlRes.status}).`);
+        throw new Error(errorMsg);
       }
 
       uploadedAnalysisIdRef.current = null;
