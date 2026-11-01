@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const BACKEND_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000"
 ).replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
@@ -16,13 +16,10 @@ const nextConfig: NextConfig = {
   },
 
   // 3. 🚨 REWRITES: The Magic Bridge 🚨
-  // Reads process.env.NEXT_PUBLIC_API_URL dynamically
+  // /api routes are handled by src/app/api/[...path]/route.ts with 300s configurable timeout.
+  // /auth routes are rewritten directly.
   async rewrites() {
     return [
-      {
-        source: "/api/:path*",
-        destination: `${BACKEND_URL}/api/:path*`,
-      },
       {
         source: "/auth/:path*",
         destination: `${BACKEND_URL}/auth/:path*`,
